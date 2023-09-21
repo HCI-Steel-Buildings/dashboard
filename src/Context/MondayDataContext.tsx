@@ -126,6 +126,7 @@ async function fetchDataFromMonday(): Promise<MondayData | null> {
 
   let headers: HeadersInit = {
     "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
   };
 
   if (AUTH_TOKEN) {
