@@ -140,6 +140,13 @@ async function fetchDataFromMonday(): Promise<MondayData | null> {
       body: JSON.stringify({ query }),
     });
 
+    if (!response.ok) {
+      console.error(
+        `Error fetching data from Monday.com: ${response.status} ${response.statusText}`
+      );
+      return null;
+    }
+
     const responseBody = await response.json();
     return responseBody.data.boards[0];
   } catch (error) {
