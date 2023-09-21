@@ -33,7 +33,7 @@ interface MondayDataProviderProps {
   children: ReactNode;
 }
 
-const MONDAY_API_ENDPOINT = "https://api.monday.com/v2/";
+const MONDAY_API_ENDPOINT = "/api";
 const AUTH_TOKEN = process.env.REACT_APP_AUTH_TOKEN as string;
 
 const MondayDataContext = createContext<MondayDataContextValue | any>({
