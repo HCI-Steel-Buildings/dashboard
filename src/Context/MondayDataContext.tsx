@@ -33,7 +33,7 @@ interface MondayDataProviderProps {
   children: ReactNode;
 }
 
-const MONDAY_API_ENDPOINT = "/api";
+const MONDAY_API_ENDPOINT = "https://api.monday.com/v2/";
 const AUTH_TOKEN = process.env.REACT_APP_AUTH_TOKEN as string;
 
 const MondayDataContext = createContext<MondayDataContextValue | any>({
@@ -139,13 +139,6 @@ async function fetchDataFromMonday(): Promise<MondayData | null> {
       headers: headers,
       body: JSON.stringify({ query }),
     });
-
-    if (!response.ok) {
-      console.error(
-        `Error fetching data from Monday.com: ${response.status} ${response.statusText}`
-      );
-      return null;
-    }
 
     const responseBody = await response.json();
     return responseBody.data.boards[0];
