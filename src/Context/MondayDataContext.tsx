@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
 } from "react";
+
 interface ColumnValue {
   text: string;
   value: any;
@@ -29,12 +30,15 @@ interface MondayDataContextValue {
   loading: boolean;
   weeklyCounts: number[];
 }
+
 interface MondayDataProviderProps {
   children: ReactNode;
 }
 
-const MONDAY_API_ENDPOINT = "https://api.monday.com/v2/";
-const AUTH_TOKEN = process.env.REACT_APP_AUTH_TOKEN as string;
+// Change this endpoint to point to your backend server hosted on DigitalOcean.
+// const BACKEND_API_ENDPOINT = "http://your-backend-url.com/api/monday-data";
+// const BACKEND_API_ENDPOINT = "http://localhost:3001/api/monday-data";
+const BACKEND_API_ENDPOINT = "http://164.92.100.76:3001/api/monday-data";
 
 const MondayDataContext = createContext<MondayDataContextValue | any>({
   data: null,
@@ -51,7 +55,7 @@ export const MondayDataProvider: React.FC<MondayDataProviderProps> = ({
 
   useEffect(() => {
     async function loadBoardData() {
-      const data = await fetchDataFromMonday();
+      const data = await fetchDataFromBackend();
       setBoardData(data);
 
       if (data) {
@@ -80,7 +84,6 @@ export const MondayDataProvider: React.FC<MondayDataProviderProps> = ({
   };
 
   const parseDate = (dateString: string): string => {
-    // Check for MM/DD/YYYY format
     if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateString)) {
       return dateString;
     }
@@ -104,46 +107,19 @@ export const useMondayData = () => {
   return context;
 };
 
-async function fetchDataFromMonday(): Promise<MondayData | null> {
-  const query = `
-    query {
-      boards(ids: 4803932474) {
-        name
-        columns {
-          title
-          type
-        }
-        items (limit: 200) {
-          name
-          column_values {
-            text
-            value
-          }
-        }
-      }
-    }
-  `;
-
-  let headers: HeadersInit = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-  };
-
-  if (AUTH_TOKEN) {
-    headers.Authorization = AUTH_TOKEN;
-  }
-
+async function fetchDataFromBackend(): Promise<MondayData | null> {
   try {
-    const response = await fetch(MONDAY_API_ENDPOINT, {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify({ query }),
-    });
+    const response = await fetch(BACKEND_API_ENDPOINT);
 
-    const responseBody = await response.json();
-    return responseBody.data.boards[0];
+    if (!response.ok) {
+      console.error("Error fetching data from backend:", response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error("Error fetching data from Monday.com:", error);
+    console.error("Error fetching data from backend:", error);
     return null;
   }
 }
