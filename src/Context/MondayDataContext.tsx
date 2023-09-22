@@ -37,7 +37,7 @@ interface MondayDataProviderProps {
 
 // Change this endpoint to point to your backend server hosted on DigitalOcean.
 const BACKEND_API_ENDPOINT =
-  "http://api.hcisteelbuildings.com:3001/api/monday-data";
+  "https://api.hcisteelbuildings.com:3001/api/monday-data";
 
 const MondayDataContext = createContext<MondayDataContextValue | any>({
   data: null,
