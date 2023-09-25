@@ -37,17 +37,6 @@ const Home: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        {/* <IonSearchbar
-          value={searchTerm}
-          type="text"
-          debounce={0}
-          placeholder="Search by name..."
-          onIonChange={(e: any) => {
-            console.log("Search term changed:", e.detail.value);
-            setSearchTerm(e.detail.value);
-          }}
-        /> */}
-
         <Calendar searchTerm={searchTerm} key={searchTerm} />
       </IonContent>
     </IonPage>

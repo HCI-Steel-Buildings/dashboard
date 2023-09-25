@@ -18,7 +18,10 @@
     "ionic": "^5.4.16",
     "ionicons": "^7.1.2",
     "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-chartjs-2": "^5.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
@@ -50,6 +53,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/react-beautiful-dnd": "^13.1.4",
     "@types/react-router-dom": "^5.3.3"
   }
 }

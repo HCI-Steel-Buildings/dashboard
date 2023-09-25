@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Droppable, Draggable, DragDropContext } from "react-beautiful-dnd";
 import {
   IonCard,
   IonGrid,
@@ -25,6 +26,7 @@ export const Calendar: React.FC<{ searchTerm: string }> = ({ searchTerm }) => {
   useEffect(() => {
     console.log("Calendar component re-rendered with searchTerm:", searchTerm);
   }, [searchTerm]);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const { data } = useMondayData();
   const items = data?.items || [];
@@ -106,6 +108,14 @@ export const Calendar: React.FC<{ searchTerm: string }> = ({ searchTerm }) => {
     setCurrentDate(newDate);
   };
 
+  const onDragEnd = (result: any) => {
+    const { source, destination } = result;
+    if (!destination) return;
+
+    // Implement the logic to update the `dateToClientMapping` state
+    // and call the API to save the changes to Monday.com
+  };
+
   return (
     <IonCard className="calendar-card">
       <div className="monthly-stats">
@@ -131,57 +141,87 @@ export const Calendar: React.FC<{ searchTerm: string }> = ({ searchTerm }) => {
         </IonButtons>
       </IonToolbar>
 
-      <IonGrid>
-        <IonRow>
-          {dayNames.map((dayName, index) => (
-            <IonCol key={index} className="calendar-day-name">
-              <IonLabel>{dayName}</IonLabel>
-            </IonCol>
-          ))}
-        </IonRow>
-        {weeks.map((week, index) => (
-          <IonRow key={index}>
-            {week.map((day, dayIndex) => {
-              const thisDate = new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth(),
-                day || 1
-              );
-              const clientNames = dateToClientMapping[formatDate(thisDate)];
-              return (
-                <IonCol
-                  key={dayIndex}
-                  className={`calendar-day-cell ${
-                    isWeekend(dayIndex) ? "weekend" : "workday"
-                  } ${!day ? "empty-cell" : ""} ${
-                    isToday(thisDate) ? "current-day" : ""
-                  }`}
-                >
-                  {day && (
-                    <>
-                      <IonLabel className="calendar-day-label">{day}</IonLabel>
-                      {clientNames &&
-                        clientNames.clients.map((client, clientIndex) => (
-                          <ClientCard
-                            key={clientIndex}
-                            name={client.name}
-                            type={client.type}
-                            projectId={client.projectId}
-                            searchTerm={searchTerm}
-                          />
-                        ))}
-
-                      <IonLabel className="calendar-quote-counter">
-                        {clientNames && clientNames.count}
-                      </IonLabel>
-                    </>
-                  )}
-                </IonCol>
-              );
-            })}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <IonGrid>
+          <IonRow>
+            {dayNames.map((dayName, index) => (
+              <IonCol key={index} className="calendar-day-name">
+                <IonLabel>{dayName}</IonLabel>
+              </IonCol>
+            ))}
           </IonRow>
-        ))}
-      </IonGrid>
+          {weeks.map((week, index) => (
+            <IonRow key={index}>
+              {week.map((day, dayIndex) => {
+                const thisDate = new Date(
+                  currentDate.getFullYear(),
+                  currentDate.getMonth(),
+                  day || 1
+                );
+                const dateString = formatDate(thisDate);
+                const clientNames = dateToClientMapping[dateString];
+                return (
+                  <IonCol
+                    key={dayIndex}
+                    className={`calendar-day-cell ${
+                      isWeekend(dayIndex) ? "weekend" : "workday"
+                    } ${!day ? "empty-cell" : ""} ${
+                      isToday(thisDate) ? "current-day" : ""
+                    }`}
+                  >
+                    {day && (
+                      <>
+                        <IonLabel className="calendar-day-label">
+                          {day}
+                        </IonLabel>
+                        <Droppable droppableId={dateString}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                            >
+                              {clientNames &&
+                                clientNames.clients.map(
+                                  (client, clientIndex) => (
+                                    <Draggable
+                                      key={client.projectId}
+                                      draggableId={client.projectId}
+                                      index={clientIndex}
+                                    >
+                                      {(provided) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                        >
+                                          <ClientCard
+                                            name={client.name}
+                                            type={client.type}
+                                            projectId={client.projectId}
+                                            searchTerm={searchTerm}
+                                          />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  )
+                                )}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+
+                        <IonLabel className="calendar-quote-counter">
+                          {clientNames && clientNames.count}
+                        </IonLabel>
+                      </>
+                    )}
+                  </IonCol>
+                );
+              })}
+            </IonRow>
+          ))}
+        </IonGrid>
+      </DragDropContext>
     </IonCard>
   );
 };
