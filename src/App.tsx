@@ -10,16 +10,10 @@ import {
   setupIonicReact,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import {
-  barChart,
-  ellipse,
-  homeOutline,
-  square,
-  triangle,
-} from "ionicons/icons";
+import { calendarNumber, homeOutline, square } from "ionicons/icons";
 import Home from "./Pages/Home";
-import Charts from "./Pages/Charts";
-import Tab3 from "./Pages/Tab3";
+import Charts from "./Pages/ProjectCenter";
+import Minis from "./Pages/Minis";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -50,11 +44,11 @@ const App: React.FC = () => (
           <Route exact path="/home">
             <Home />
           </Route>
-          <Route exact path="/charts">
+          <Route exact path="/projectCenter">
             <Charts />
           </Route>
-          <Route path="/tab3">
-            <Tab3 />
+          <Route path="/minis">
+            <Minis />
           </Route>
           <Route exact path="/">
             <Redirect to="/home" />
@@ -65,13 +59,13 @@ const App: React.FC = () => (
             <IonIcon aria-hidden="true" icon={homeOutline} />
             <IonLabel>Home</IonLabel>
           </IonTabButton>
-          <IonTabButton tab="charts" href="/charts">
-            <IonIcon aria-hidden="true" icon={barChart} />
-            <IonLabel>Charts</IonLabel>
+          <IonTabButton tab="projectCenter" href="/projectCenter">
+            <IonIcon aria-hidden="true" icon={calendarNumber} />
+            <IonLabel>Project Center</IonLabel>
           </IonTabButton>
-          <IonTabButton tab="tab3" href="/tab3">
+          <IonTabButton tab="minis" href="/minis">
             <IonIcon aria-hidden="true" icon={square} />
-            <IonLabel>Tab 3</IonLabel>
+            <IonLabel>Minis</IonLabel>
           </IonTabButton>
         </IonTabBar>
       </IonTabs>

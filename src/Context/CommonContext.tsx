@@ -3,22 +3,21 @@ import {
   ColumnValue,
   Item,
   MondayData,
-  MondayDataContextValue,
-  MondayDataProviderProps,
+  CommonContextValue,
+  CommonProviderProps,
 } from "./types";
 import { parseDate } from "../Utils/dateUtils";
 
 // Change this endpoint to point to your backend server hosted on DigitalOcean.
-const BACKEND_API_ENDPOINT =
-  "https://api.hcisteelbuildings.com/api/monday-data";
+const BACKEND_API_ENDPOINT = "/api/monday-data";
 
-const MondayDataContext = createContext<MondayDataContextValue | any>({
+const CommonContext = createContext<CommonContextValue | any>({
   data: null,
   loading: true,
   weeklyCounts: [0, 0, 0, 0, 0],
 });
 
-export const MondayDataProvider: React.FC<MondayDataProviderProps> = ({
+export const CommonContextProvider: React.FC<CommonProviderProps> = ({
   children,
 }) => {
   const [boardData, setBoardData] = useState<MondayData | null>(null);
@@ -27,7 +26,7 @@ export const MondayDataProvider: React.FC<MondayDataProviderProps> = ({
 
   useEffect(() => {
     async function loadBoardData() {
-      const data = await fetchDataFromBackend();
+      const data = await fetchDataFromMonday();
       setBoardData(data);
 
       if (data) {
@@ -56,23 +55,21 @@ export const MondayDataProvider: React.FC<MondayDataProviderProps> = ({
   };
 
   return (
-    <MondayDataContext.Provider
-      value={{ data: boardData, loading, weeklyCounts }}
-    >
+    <CommonContext.Provider value={{ data: boardData, loading, weeklyCounts }}>
       {children}
-    </MondayDataContext.Provider>
+    </CommonContext.Provider>
   );
 };
 
-export const useMondayData = () => {
-  const context = useContext(MondayDataContext);
+export const useCommonContext = () => {
+  const context = useContext(CommonContext);
   if (!context) {
     throw new Error("useMondayData must be used within a MondayDataProvider");
   }
   return context;
 };
 
-async function fetchDataFromBackend(): Promise<MondayData | null> {
+async function fetchDataFromMonday(): Promise<MondayData | null> {
   try {
     const response = await fetch(BACKEND_API_ENDPOINT);
 

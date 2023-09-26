@@ -1,18 +1,24 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import './Tab3.css';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+} from "@ionic/react";
+import "./Minis.css";
 
-const Tab3: React.FC = () => {
+const Minis: React.FC = () => {
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Tab 3</IonTitle>
+          <IonTitle>Minis Department</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large">Tab 3</IonTitle>
+            <IonTitle size="large">Minis</IonTitle>
           </IonToolbar>
         </IonHeader>
       </IonContent>
@@ -20,4 +26,4 @@ const Tab3: React.FC = () => {
   );
 };
 
-export default Tab3;
+export default Minis;

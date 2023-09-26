@@ -7,13 +7,12 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/react";
-import "./Charts.css";
-import QuotesChart from "../Components/QuotesChart/QuotesChart";
-import { useMondayData } from "../Context/MondayDataContext";
+import "./ProjectCenter.css";
+import { useCommonContext } from "../Context/CommonContext";
 import { getCurrentMonthName, getMonthlyCount } from "../Utils/dateUtils";
 
 const Charts: React.FC = () => {
-  const { data, weeklyCounts } = useMondayData();
+  const { data, weeklyCounts } = useCommonContext();
   const items = data?.items || [];
   const currentDate = new Date();
   const totalQuotesForMonth = getMonthlyCount(items, currentDate);
@@ -22,13 +21,11 @@ const Charts: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>
-            {`${getCurrentMonthName()} ${currentDate.getFullYear()} Quotes - Total: ${totalQuotesForMonth}`}
-          </IonTitle>
+          <IonTitle>Project Center</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        <QuotesChart weeklyCounts={weeklyCounts || [0, 0, 0, 0, 0]} />
+        <IonCard>Hello</IonCard>
       </IonContent>
     </IonPage>
   );

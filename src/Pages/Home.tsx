@@ -5,39 +5,37 @@ import {
   IonTitle,
   IonToolbar,
   IonSearchbar,
+  IonSpinner,
+  IonIcon,
+  IonButton,
 } from "@ionic/react";
 import "./Home.css";
-import { Calendar } from "../Components/Calendar/Calendar";
-import { useMondayData } from "../Context/MondayDataContext";
-import { formatDate } from "../Utils/dateUtils";
+import { useCommonContext } from "../Context/CommonContext";
 import React, { useState } from "react";
+import { personOutline } from "ionicons/icons";
 
 const Home: React.FC = () => {
-  // CONTEXT
-  const data = useMondayData();
-  // STATE
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  // LOCAL VARIABLES
-  const currentDate = new Date();
+  const data = useCommonContext();
 
-  if (!data) {
-    console.log("Data is still being fetched...");
-    return <IonPage>Loading...</IonPage>;
-  }
-
-  console.log("Data in Home:", data);
-
+  // Start JSX
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle style={{ fontWeight: "bold" }}>
-            Home - {formatDate(currentDate)}
-          </IonTitle>
+          <IonTitle className="title">Welcome to HCI Steel Buildings</IonTitle>
+          <IonButton slot="end" className="avatar">
+            <IonIcon icon={personOutline} />
+          </IonButton>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        <Calendar searchTerm={searchTerm} key={searchTerm} />
+        {data.loading ? (
+          <div className="spinner-container">
+            <IonSpinner />
+          </div>
+        ) : (
+          <div>Test</div>
+        )}
       </IonContent>
     </IonPage>
   );

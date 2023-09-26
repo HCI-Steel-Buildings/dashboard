@@ -19,12 +19,12 @@ export interface MondayData {
   items: Item[];
 }
 
-export interface MondayDataContextValue {
+export interface CommonContextValue {
   data: MondayData | null;
   loading: boolean;
   weeklyCounts: number[];
 }
 
-export interface MondayDataProviderProps {
+export interface CommonProviderProps {
   children: ReactNode;
 }

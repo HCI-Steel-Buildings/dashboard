@@ -1,15 +1,15 @@
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { MondayDataProvider } from "./Context/MondayDataContext";
+import { CommonContextProvider } from "./Context/CommonContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 root.render(
-  <MondayDataProvider>
+  <CommonContextProvider>
     <App />
-  </MondayDataProvider>
+  </CommonContextProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
