@@ -12,8 +12,9 @@ import {
 import { IonReactRouter } from "@ionic/react-router";
 import { calendarNumber, homeOutline, square } from "ionicons/icons";
 import Home from "./Pages/Home";
-import Charts from "./Pages/ProjectCenter";
+import ProjectCenter from "./Pages/ProjectCenter";
 import Minis from "./Pages/Minis";
+import Charts from "./Pages/Charts";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -45,13 +46,16 @@ const App: React.FC = () => (
             <Home />
           </Route>
           <Route exact path="/projectCenter">
-            <Charts />
+            <ProjectCenter />
           </Route>
           <Route path="/minis">
             <Minis />
           </Route>
           <Route exact path="/">
             <Redirect to="/home" />
+          </Route>
+          <Route path="/charts">
+            <Charts />
           </Route>
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
@@ -66,6 +70,10 @@ const App: React.FC = () => (
           <IonTabButton tab="minis" href="/minis">
             <IonIcon aria-hidden="true" icon={square} />
             <IonLabel>Minis</IonLabel>
+          </IonTabButton>
+          <IonTabButton tab="charts" href="/charts">
+            <IonIcon aria-hidden="true" icon={square} />
+            <IonLabel>Analytics</IonLabel>
           </IonTabButton>
         </IonTabBar>
       </IonTabs>

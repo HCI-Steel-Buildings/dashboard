@@ -4,7 +4,6 @@ import {
   IonPage,
   IonTitle,
   IonToolbar,
-  IonSearchbar,
   IonSpinner,
   IonIcon,
   IonButton,
@@ -16,6 +15,7 @@ import { personOutline } from "ionicons/icons";
 
 const Home: React.FC = () => {
   const data = useCommonContext();
+  console.log(data);
 
   // Start JSX
   return (

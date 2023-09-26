@@ -1,30 +1,46 @@
-import { ReactNode } from "react";
+interface Column {
+  title: string;
+  type: string;
+}
 
-export interface ColumnValue {
+interface ColumnValue {
   text: string;
-  value: any;
+  value: string | null;
 }
 
-export interface Item {
+interface NormalizedItem {
+  [key: string]: string | null;
+}
+
+interface MondayData {
   name: string;
-  column_values: ColumnValue[];
+  items: NormalizedItem[];
+  columns: Column[];
 }
 
-export interface MondayData {
-  name: string;
-  columns: {
-    title: string;
-    type: string;
-  }[];
-  items: Item[];
-}
-
-export interface CommonContextValue {
+interface CommonContextValue {
   data: MondayData | null;
   loading: boolean;
-  weeklyCounts: number[];
+}
+interface CommonProviderProps {
+  children: React.ReactNode;
+}
+interface Item {
+  column_values: ColumnValue[];
+}
+interface FetchedMondayData {
+  name: string;
+  items: Item[];
+  columns: Column[];
 }
 
-export interface CommonProviderProps {
-  children: ReactNode;
-}
+export type {
+  Column,
+  ColumnValue,
+  NormalizedItem,
+  MondayData,
+  CommonContextValue,
+  CommonProviderProps,
+  Item,
+  FetchedMondayData,
+};
