@@ -27,14 +27,14 @@ export const CommonContextProvider: React.FC<CommonProviderProps> = ({
       console.log(fetchedData);
 
       if (fetchedData) {
-        const { columns, items, name } = fetchedData;
+        const { columns, items } = fetchedData;
 
         // Skip the first two columns
         const adjustedColumns = columns.slice(2);
 
         // Create normalized items
         const normalizedItems: NormalizedItem[] = items.map((item: Item) => {
-          const normalizedItem: NormalizedItem = {};
+          const normalizedItem: NormalizedItem = { name: item.name }; // Include the name property
           item.column_values.forEach(
             (columnValue: ColumnValue, index: number) => {
               const columnName = adjustedColumns[index].title;
@@ -45,7 +45,7 @@ export const CommonContextProvider: React.FC<CommonProviderProps> = ({
         });
 
         setBoardData({
-          name,
+          name: fetchedData.name, // Assuming you also want to include the overall name of the fetchedData
           items: normalizedItems,
           columns: adjustedColumns,
         });
