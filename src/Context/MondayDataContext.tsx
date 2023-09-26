@@ -1,39 +1,12 @@
-import React, {
-  createContext,
-  useContext,
-  ReactNode,
-  useState,
-  useEffect,
-} from "react";
-
-interface ColumnValue {
-  text: string;
-  value: any;
-}
-
-interface Item {
-  name: string;
-  column_values: ColumnValue[];
-}
-
-interface MondayData {
-  name: string;
-  columns: {
-    title: string;
-    type: string;
-  }[];
-  items: Item[];
-}
-
-interface MondayDataContextValue {
-  data: MondayData | null;
-  loading: boolean;
-  weeklyCounts: number[];
-}
-
-interface MondayDataProviderProps {
-  children: ReactNode;
-}
+import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  ColumnValue,
+  Item,
+  MondayData,
+  MondayDataContextValue,
+  MondayDataProviderProps,
+} from "./types";
+import { parseDate } from "../Utils/dateUtils";
 
 // Change this endpoint to point to your backend server hosted on DigitalOcean.
 const BACKEND_API_ENDPOINT =
@@ -80,13 +53,6 @@ export const MondayDataProvider: React.FC<MondayDataProviderProps> = ({
     });
 
     setWeeklyCounts(tempWeeklyCounts);
-  };
-
-  const parseDate = (dateString: string): string => {
-    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateString)) {
-      return dateString;
-    }
-    return "";
   };
 
   return (

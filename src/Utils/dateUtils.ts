@@ -60,7 +60,7 @@ export const getMonthlyCount = (
   return monthCount;
 };
 
-function parseDate(dateString: string): string {
+export function parseDate(dateString: string): string {
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateString)) {
     return dateString;
   }
