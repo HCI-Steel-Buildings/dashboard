@@ -45,7 +45,6 @@
   },
   "name": "dashboard",
   "private": true,
-  "proxy": "https://api.hcisteelbuildings.com",
   "scripts": {
     "build": "react-scripts build",
     "eject": "react-scripts eject",
