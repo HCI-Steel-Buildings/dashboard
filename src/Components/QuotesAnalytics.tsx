@@ -25,7 +25,7 @@ const QuotesAnalytics: FC = () => {
   useEffect(() => {
     const items: Item[] = data.items || [];
 
-    const septemberQuotes = items.filter((item: Item) => {
+    const septemberQuotes = items?.filter((item: Item) => {
       const quoteDate = item.name;
       if (quoteDate) {
         const date = new Date(quoteDate);
@@ -40,7 +40,7 @@ const QuotesAnalytics: FC = () => {
       (item: Item) => item["Contacted?"] === "YES"
     ).length;
     setContactedQuotes(contactedQuotesCount);
-    const statesCount = items.reduce(
+    const statesCount = items?.reduce(
       (acc: Record<string, number>, item: Item) => {
         let state: string | undefined = item.State;
         if (state) {
