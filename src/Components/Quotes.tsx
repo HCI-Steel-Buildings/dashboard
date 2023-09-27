@@ -12,7 +12,7 @@ const QuotesAnalytics: FC = () => {
     const items = data.items || [];
 
     const septemberQuotes = items.filter((item: any) => {
-      const quoteDate = item["Quote Sent Date"];
+      const quoteDate = item["name"];
       if (quoteDate) {
         const date = new Date(quoteDate);
         return date.getMonth() === 8; // Months are 0-indexed, so 8 corresponds to September

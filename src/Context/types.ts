@@ -10,7 +10,7 @@ interface ColumnValue {
 
 interface NormalizedItem {
   name: string;
-  [key: string]: string | undefined; // assuming the other properties are of type string
+  [key: string]: string | undefined;
 }
 
 interface MondayData {
