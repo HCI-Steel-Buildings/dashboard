@@ -9,8 +9,10 @@ import {
   Item,
   FetchedMondayData,
 } from "./types";
-const BACKEND_API_ENDPOINT =
-  "https://api.hcisteelbuildings.com/api/monday-data";
+// const BACKEND_API_ENDPOINT =
+//   "https://api.hcisteelbuildings.com/api/monday-data";
+
+const BACKEND_API_ENDPOINT = "/api/monday-data";
 
 const CommonContext = createContext<CommonContextValue | any>({
   data: null,
@@ -35,7 +37,7 @@ export const CommonContextProvider: React.FC<CommonProviderProps> = ({
 
         // Create normalized items
         const normalizedItems: NormalizedItem[] = items.map((item: Item) => {
-          const normalizedItem: NormalizedItem = { name: item.name }; // Include the name property
+          const normalizedItem: NormalizedItem = { name: item.name };
           item.column_values.forEach(
             (columnValue: ColumnValue, index: number) => {
               const columnName = adjustedColumns[index].title;
@@ -46,7 +48,7 @@ export const CommonContextProvider: React.FC<CommonProviderProps> = ({
         });
 
         setBoardData({
-          name: fetchedData.name, // Assuming you also want to include the overall name of the fetchedData
+          name: fetchedData.name,
           items: normalizedItems,
           columns: adjustedColumns,
         });

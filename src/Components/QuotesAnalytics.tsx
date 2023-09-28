@@ -77,7 +77,7 @@ const QuotesAnalytics: FC = () => {
           "#FFCE56",
           "#FF9F40",
           "#00FF00",
-        ], // Add more colors if needed
+        ],
       },
     ],
   };
