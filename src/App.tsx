@@ -20,7 +20,13 @@ import {
   setupIonicReact,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import { calendarNumber, homeOutline, square } from "ionicons/icons";
+import {
+  barChart,
+  calculator,
+  calendarNumber,
+  homeOutline,
+  square,
+} from "ionicons/icons";
 import Home from "./Pages/Home";
 import ProjectCenter from "./Pages/ProjectCenter";
 import Minis from "./Pages/Minis";
@@ -47,6 +53,7 @@ import "./theme/variables.css";
 import "react-awesome-button/dist/styles.css";
 import { useAuth0 } from "@auth0/auth0-react";
 import LoginButton from "./Components/LogInButton";
+import Calculator from "./Pages/Calculator";
 
 setupIonicReact();
 
@@ -73,6 +80,9 @@ const App: React.FC = () => {
             <Route exact path="/">
               <Redirect to="/home" />
             </Route>
+            <Route exact path="/calculator">
+              <Calculator />
+            </Route>
           </IonRouterOutlet>
           <IonTabBar slot="bottom">
             <IonTabButton tab="home" href="/home">
@@ -88,8 +98,12 @@ const App: React.FC = () => {
               <IonLabel>Minis</IonLabel>
             </IonTabButton>
             <IonTabButton tab="charts" href="/charts">
-              <IonIcon icon={square} />
+              <IonIcon icon={barChart} />
               <IonLabel>Analytics</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="calculator" href="/calculator">
+              <IonIcon icon={calculator} />
+              <IonLabel>Calculator</IonLabel>
             </IonTabButton>
           </IonTabBar>
         </IonTabs>

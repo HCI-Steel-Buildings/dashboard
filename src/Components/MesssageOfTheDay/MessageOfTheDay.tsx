@@ -11,8 +11,8 @@ import "./MessageOfTheDay.css";
 const MessageOfTheDay = () => {
   return (
     <IonCard className="messageOfTheDayCard">
-      <IonCardTitle>Message Of The Day</IonCardTitle>
-      <IonCardSubtitle>Replace this with your message</IonCardSubtitle>
+      <IonCardTitle>Greetings! Welcome to HCI's new app.</IonCardTitle>
+      <IonCardSubtitle>Click one of the apps above to explore!</IonCardSubtitle>
     </IonCard>
   );
 };

@@ -8,18 +8,23 @@ const Home: React.FC = () => {
   const cardData = [
     {
       title: "Project Center",
-      description: "Navigate to Project Center",
+      description: "Navigate to Project Center📅",
       route: "/projectCenter",
     },
     {
       title: "Minis",
-      description: "Explore the Minis",
+      description: "Explore the Minis Department🔬",
       route: "/minis",
     },
     {
       title: "Analytics",
-      description: "Dive into Analytics",
+      description: "Dive into Analytics📈",
       route: "/charts",
+    },
+    {
+      title: "Calculator",
+      description: "All your calculations in one place✅",
+      route: "/calculator",
     },
   ];
 
