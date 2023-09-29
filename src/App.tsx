@@ -1,27 +1,30 @@
+import React from "react";
 import { Redirect, Route } from "react-router-dom";
 import {
   IonApp,
+  IonCard,
+  IonCardContent,
+  IonCardSubtitle,
+  IonHeader,
   IonIcon,
+  IonImg,
   IonLabel,
+  IonPage,
   IonRouterOutlet,
   IonTabBar,
   IonTabButton,
   IonTabs,
+  IonText,
+  IonTitle,
+  IonToolbar,
   setupIonicReact,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import {
-  calendarNumber,
-  homeOutline,
-  logInOutline,
-  square,
-} from "ionicons/icons";
+import { calendarNumber, homeOutline, square } from "ionicons/icons";
 import Home from "./Pages/Home";
 import ProjectCenter from "./Pages/ProjectCenter";
 import Minis from "./Pages/Minis";
 import Charts from "./Pages/Charts";
-import Login from "./Pages/Login";
-import { Auth0Provider } from "@auth0/auth0-react";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -41,17 +44,16 @@ import "@ionic/react/css/display.css";
 
 /* Theme variables */
 import "./theme/variables.css";
+import "react-awesome-button/dist/styles.css";
+import { useAuth0 } from "@auth0/auth0-react";
+import LoginButton from "./Components/LogInButton";
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <Auth0Provider
-    domain="dev-0xg7zi7tc21ikmvl.us.auth0.com"
-    clientId="yArx2LI4XIf6Ne0U7BrkG7E5dQkl6BBU"
-    authorizationParams={{
-      redirect_uri: window.location.origin,
-    }}
-  >
+const App: React.FC = () => {
+  const { isAuthenticated } = useAuth0();
+
+  return isAuthenticated ? (
     <IonApp>
       <IonReactRouter>
         <IonTabs>
@@ -65,14 +67,11 @@ const App: React.FC = () => (
             <Route path="/minis">
               <Minis />
             </Route>
-            <Route exact path="/">
-              <Redirect to="/home" />
-            </Route>
             <Route exact path="/charts">
               <Charts />
             </Route>
-            <Route exact path="/login">
-              <Login />
+            <Route exact path="/">
+              <Redirect to="/home" />
             </Route>
           </IonRouterOutlet>
           <IonTabBar slot="bottom">
@@ -92,15 +91,31 @@ const App: React.FC = () => (
               <IonIcon icon={square} />
               <IonLabel>Analytics</IonLabel>
             </IonTabButton>
-            <IonTabButton tab="login" href="/login">
-              <IonIcon icon={logInOutline} />
-              <IonLabel>Login</IonLabel>
-            </IonTabButton>
           </IonTabBar>
         </IonTabs>
       </IonReactRouter>
     </IonApp>
-  </Auth0Provider>
-);
+  ) : (
+    <IonPage className="ion-flex ion-align-items-center ion-justify-content-center">
+      <IonImg
+        src="https://hcisteelbuildings.com/wp-content/uploads/2018/07/hci-logo.png"
+        alt="HCI Logo"
+      />
+      <IonCard>
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle style={{ textAlign: "center" }}>
+              <IonText>Welcome to HCI Steel Buildings!</IonText>
+            </IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonCardContent className="ion-text-center">
+          <IonCardSubtitle>Please login to continue...</IonCardSubtitle>
+          <LoginButton />
+        </IonCardContent>
+      </IonCard>
+    </IonPage>
+  );
+};
 
 export default App;

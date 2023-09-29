@@ -9,10 +9,10 @@ import {
   Item,
   FetchedMondayData,
 } from "./types";
-// const BACKEND_API_ENDPOINT =
-//   "https://api.hcisteelbuildings.com/api/monday-data";
+const BACKEND_API_ENDPOINT =
+  "https://api.hcisteelbuildings.com/api/monday-data";
 
-const BACKEND_API_ENDPOINT = "/api/monday-data";
+// const BACKEND_API_ENDPOINT = "/api/monday-data";
 
 const CommonContext = createContext<CommonContextValue | any>({
   data: null,

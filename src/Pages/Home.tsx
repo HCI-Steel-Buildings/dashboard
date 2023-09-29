@@ -1,41 +1,54 @@
-import {
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonTitle,
-  IonToolbar,
-  IonSpinner,
-  IonIcon,
-  IonButton,
-} from "@ionic/react";
+import React from "react";
+import { IonPage, IonContent, IonGrid, IonRow, IonCol } from "@ionic/react";
+import Header from "../Components/Header/Header";
+import MessageOfTheDay from "../Components/MesssageOfTheDay/MessageOfTheDay";
 import "./Home.css";
-import { useCommonContext } from "../Context/CommonContext";
-import React, { useState } from "react";
-import { personOutline } from "ionicons/icons";
-
+import AppCard from "../Components/AppCardComponent/AppCardComponent";
 const Home: React.FC = () => {
-  const data = useCommonContext();
-  console.log(data);
+  const cardData = [
+    {
+      title: "Project Center",
+      description: "Navigate to Project Center",
+      route: "/projectCenter",
+    },
+    {
+      title: "Minis",
+      description: "Explore the Minis",
+      route: "/minis",
+    },
+    {
+      title: "Analytics",
+      description: "Dive into Analytics",
+      route: "/charts",
+    },
+  ];
 
-  // Start JSX
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle className="title">Welcome to HCI Steel Buildings</IonTitle>
-          <IonButton slot="end" className="avatar">
-            <IonIcon icon={personOutline} />
-          </IonButton>
-        </IonToolbar>
-      </IonHeader>
       <IonContent fullscreen>
-        {data.loading ? (
-          <div className="spinner-container">
-            <IonSpinner />
-          </div>
-        ) : (
-          <div>Test</div>
-        )}
+        <Header />
+
+        <IonGrid>
+          {/* Row for App Navigation Boxes */}
+          <IonRow>
+            {cardData.map((card, index) => (
+              <IonCol key={index}>
+                <AppCard
+                  title={card.title}
+                  description={card.description}
+                  route={card.route}
+                />
+              </IonCol>
+            ))}
+          </IonRow>
+
+          {/* Row for Message of the Day */}
+          <IonRow>
+            <IonCol>
+              <MessageOfTheDay />
+            </IonCol>
+          </IonRow>
+        </IonGrid>
       </IonContent>
     </IonPage>
   );
