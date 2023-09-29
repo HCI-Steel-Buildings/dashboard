@@ -10,7 +10,7 @@ const LoginButton = () => {
         width: "200px",
         fontSize: "1.345rem",
       }}
-      onPressed={() => loginWithRedirect()}
+      onPress={() => loginWithRedirect()}
     >
       Log In
     </AwesomeButton>
