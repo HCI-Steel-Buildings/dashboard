@@ -5,6 +5,7 @@ import "chart.js/auto";
 import { IonCard, IonCardContent, IonCol, IonGrid, IonRow } from "@ionic/react";
 import "./QuotesAnalytics.css";
 import stateMapping from "./StateMappingObject";
+import FollowUp from "./FollowUp/FollowUp";
 
 interface Item {
   name?: string;
@@ -21,26 +22,27 @@ const QuotesAnalytics: FC = () => {
   const [contactedQuotes, setContactedQuotes] = useState<number>(0);
   const [statesCount, setStatesCount] = useState<Record<string, number>>({});
   const { data } = useCommonContext();
+  const currentMonth = new Date().getMonth();
 
   useEffect(() => {
     const items: Item[] = data.items || [];
 
-    const septemberQuotes = items?.filter((item: Item) => {
+    const octoberQuotes = items?.filter((item: Item) => {
       const quoteDate = item.name;
       if (quoteDate) {
         const date = new Date(quoteDate);
-        return date.getMonth() === 8; // September
+        return date.getMonth() === currentMonth;
       }
       return false;
     });
 
-    setTotalQuotes(septemberQuotes.length);
+    setTotalQuotes(octoberQuotes.length);
 
-    const contactedQuotesCount = septemberQuotes.filter(
+    const contactedQuotesCount = octoberQuotes.filter(
       (item: Item) => item["Contacted?"] === "YES"
     ).length;
     setContactedQuotes(contactedQuotesCount);
-    const statesCount = items?.reduce(
+    const statesCount = octoberQuotes?.reduce(
       (acc: Record<string, number>, item: Item) => {
         let state: string | undefined = item.State;
         if (state) {
@@ -85,16 +87,22 @@ const QuotesAnalytics: FC = () => {
   return (
     <IonGrid>
       <IonRow>
-        <IonCol>
+        <IonCol size="4">
+          {" "}
+          {/* Takes up 1/3 of the width */}
           <IonCard>
             <IonCardContent>
               <h2 style={{ fontSize: "2em", fontWeight: "bold" }}>
-                Total Quotes in September: {totalQuotes}
+                Total Quotes in October: {totalQuotes}
               </h2>
             </IonCardContent>
           </IonCard>
+          <FollowUp />
         </IonCol>
-        <IonCol>
+
+        <IonCol size="4">
+          {" "}
+          {/* Takes up 1/3 of the width */}
           <IonCard>
             <IonCardContent>
               <h2>
@@ -105,7 +113,10 @@ const QuotesAnalytics: FC = () => {
             </IonCardContent>
           </IonCard>
         </IonCol>
-        <IonCol>
+
+        <IonCol size="4">
+          {" "}
+          {/* Takes up 1/3 of the width */}
           <IonCard>
             <IonCardContent>
               <h2>

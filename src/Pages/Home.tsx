@@ -4,6 +4,7 @@ import Header from "../Components/Header/Header";
 import MessageOfTheDay from "../Components/MesssageOfTheDay/MessageOfTheDay";
 import "./Home.css";
 import AppCard from "../Components/AppCardComponent/AppCardComponent";
+import { useCommonContext } from "../Context/CommonContext";
 const Home: React.FC = () => {
   const cardData = [
     {

@@ -10,8 +10,12 @@ const Header = () => {
   return (
     <IonHeader>
       <IonToolbar>
-        <IonTitle>Welcome {user?.name} to HCI Expiremental!</IonTitle>
-        <IonAvatar />
+        <IonTitle>
+          Welcome, <strong>{user?.name}</strong> to HCIX!
+        </IonTitle>
+        <IonAvatar slot="end" style={{ margin: "1rem" }}>
+          <img src={user?.picture} alt="profile" />
+        </IonAvatar>
         {!isAuthenticated ? <LoginButton /> : <LogoutButton />}
       </IonToolbar>
     </IonHeader>
