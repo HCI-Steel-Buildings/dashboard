@@ -83,10 +83,10 @@ const FollowUp: FC = () => {
         {followUps.map((followUpItems, index) => (
           <SwiperSlide key={index}>
             <IonList>
-              {followUpItems.map((item, i) => (
+              {followUpItems?.map((item, i) => (
                 <IonItem key={i}>
                   <IonLabel>
-                    <strong>Name:</strong> {item.Name}
+                    <strong>Name:</strong> {item?.Name}
                     <br />
                     Follow-Up: {item["Phone #"]}
                   </IonLabel>

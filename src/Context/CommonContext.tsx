@@ -36,7 +36,7 @@ export const CommonContextProvider: React.FC<CommonProviderProps> = ({
         const adjustedColumns = columns.slice(2);
 
         // Create normalized items
-        const normalizedItems: NormalizedItem[] = items.map((item: Item) => {
+        const normalizedItems: NormalizedItem[] = items?.map((item: Item) => {
           const normalizedItem: NormalizedItem = { name: item.name };
           item.column_values.forEach(
             (columnValue: ColumnValue, index: number) => {
