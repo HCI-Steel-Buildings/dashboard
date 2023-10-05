@@ -23,8 +23,11 @@ import {
   call,
   closeCircle,
   mailOutline,
+  open,
 } from "ionicons/icons";
 import { useCommonContext } from "../../Context/CommonContext";
+import { formatName, formatPhoneNumber } from "../../Utils/nameUtils";
+import FollowUpModal from "./FollowUpModal";
 
 // Import Swiper and its components
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
@@ -43,10 +46,11 @@ interface Swiper {
 }
 
 const FollowUp: FC = () => {
-  const { data } = useCommonContext();
+  const { data, refreshData } = useCommonContext();
   const [followUps, setFollowUps] = useState<Item[][]>([[], []]);
   const [swiperInstance, setSwiperInstance] = useState<Swiper | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [missedFollowUps, setMissedFollowUps] = useState<Item[]>([]);
 
   const swiper = useSwiper();
 
@@ -56,15 +60,6 @@ const FollowUp: FC = () => {
 
   const handleSlideNext = () => {
     swiperInstance?.slideNext();
-  };
-
-  const formatPhoneNumber = (input: string) => {
-    const cleaned = ("" + input).replace(/\D/g, "");
-    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return "(" + match[1] + ") " + match[2] + "-" + match[3];
-    }
-    return null;
   };
 
   const getSlideTitle = (index: number) => {
@@ -92,6 +87,7 @@ const FollowUp: FC = () => {
 
   useEffect(() => {
     if (data && data.items) {
+      // Logic for Today's and Tomorrow's Follow-Ups
       const followUpsForDates = [0, 1].map((offset) => {
         const targetDate = new Date();
         targetDate.setDate(targetDate.getDate() + offset);
@@ -104,119 +100,275 @@ const FollowUp: FC = () => {
           return followUpDate === formattedDate;
         });
       });
-
       setFollowUps(followUpsForDates);
+
+      // Logic for Missed Follow-Ups
+      const today = new Date();
+      const beginningOfMonth = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      );
+      const todayStr = `${today.getFullYear()}-${String(
+        today.getMonth() + 1
+      ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+      const missedItems = data.items.filter((item: Item) => {
+        const followUpDate = item["Next Follow-Up"].split(" ")[0];
+        return (
+          followUpDate < todayStr &&
+          followUpDate >=
+            `${beginningOfMonth.getFullYear()}-${String(
+              beginningOfMonth.getMonth() + 1
+            ).padStart(2, "0")}-01` &&
+          item["Contacted?"] === "NO"
+        );
+      });
+
+      setMissedFollowUps(missedItems);
     }
   }, [data]);
-  console.log(data.items);
+
+  const sendPostRequest = async (data: any) => {
+    try {
+      const response = await fetch("/api/update-contact-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error("There was a problem with the fetch operation:", error);
+    }
+  };
 
   return (
-    <IonCard style={{ width: "100%" }}>
-      <IonCardHeader>
-        <div>
-          <IonButton onClick={handleSlidePrev}>
-            <IonIcon icon={arrowBack} />
-          </IonButton>
-          <IonButton onClick={handleSlideNext}>
-            <IonIcon icon={arrowForward} />
-          </IonButton>
-        </div>
-        <IonCardTitle>
-          <strong>Follow-Ups: {getSlideTitle(currentSlideIndex)}</strong>
-        </IonCardTitle>
-      </IonCardHeader>
-
-      <IonModal isOpen={showModal}>
-        <IonHeader>
-          <IonToolbar>
-            <IonTitle>{selectedItem?.Name}</IonTitle>
-            <IonButton slot="end" onClick={() => setShowModal(false)}>
-              <IonIcon icon={closeCircle} />
+    <>
+      <IonCard style={{ width: "100%" }}>
+        <IonCardHeader>
+          <div>
+            <IonButton onClick={handleSlidePrev}>
+              <IonIcon icon={arrowBack} />
             </IonButton>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent>
-          <IonLabel>
-            <strong>Name:</strong> {selectedItem?.Name}
-          </IonLabel>
-          <IonLabel>
-            <strong>Email:</strong> {selectedItem?.["Customer Email"]}
-          </IonLabel>
-          <IonLabel>
-            <strong>Phone:</strong>{" "}
-            {formatPhoneNumber(selectedItem?.["Phone #"] || "")}
-          </IonLabel>
-          <IonTextarea placeholder="Enter your notes here..."></IonTextarea>
-        </IonContent>
-      </IonModal>
+            <IonButton onClick={handleSlideNext}>
+              <IonIcon icon={arrowForward} />
+            </IonButton>
+          </div>
+          <IonCardTitle>
+            <strong>Follow-Ups: {getSlideTitle(currentSlideIndex)}</strong>
+          </IonCardTitle>
+        </IonCardHeader>
 
-      <Swiper
-        navigation
-        onSwiper={setSwiperInstance}
-        onSlideChange={handleSlideChange}
-      >
-        {followUps.map((followUpItems, index: number) => (
-          <SwiperSlide key={index}>
-            <IonList>
-              {followUpItems?.map((item, i) => (
-                <IonItem key={i} onClick={() => handleItemClicked(item)}>
-                  <IonLabel>
-                    <div style={{ fontSize: "18px", fontWeight: "bold" }}>
-                      {item?.Name}
-                    </div>
-                    <div style={{ color: "#555" }}>
-                      <strong>Phone #:</strong>{" "}
-                      {formatPhoneNumber(item["Phone #"])}
-                    </div>
-                    <div style={{ color: "#555" }}>
-                      <strong>Email:</strong> {item["Customer Email"]}
-                    </div>
-                  </IonLabel>
+        <FollowUpModal
+          isOpen={showModal}
+          item={selectedItem}
+          onClose={() => setShowModal(false)}
+        />
 
-                  <IonItemGroup style={{ display: "flex" }}>
-                    {/* Phone icon */}
-                    <IonItem lines="none" style={{ padding: 0 }}>
-                      <IonIcon
-                        icon={call}
-                        style={{ cursor: "pointer", marginRight: "10px" }}
-                        onClick={() =>
-                          window.open(`tel:${item["Phone #"]}`, "_system")
-                        }
-                      />
-                    </IonItem>
+        <Swiper
+          navigation
+          onSwiper={setSwiperInstance}
+          onSlideChange={handleSlideChange}
+        >
+          {followUps.map((followUpItems, index: number) => (
+            <SwiperSlide key={index}>
+              <IonList>
+                {followUpItems?.map((item, i) => (
+                  <IonItem key={item?.id}>
+                    <IonLabel>
+                      <div style={{ fontSize: "18px", fontWeight: "bold" }}>
+                        {formatName(item?.Name)}
+                      </div>
+                      <div style={{ color: "#555" }}>
+                        <strong>Phone #:</strong>{" "}
+                        {formatPhoneNumber(item["Phone #"])}
+                      </div>
+                      <div style={{ color: "#555" }}>
+                        <strong>Email:</strong> {item["Customer Email"]}
+                      </div>
+                    </IonLabel>
+                    <IonButton onClick={() => handleItemClicked(item)}>
+                      <IonIcon icon={open} />
+                    </IonButton>
 
-                    {/* Email icon */}
-                    <IonItem lines="none" style={{ padding: 0 }}>
-                      <IonIcon
-                        icon={mailOutline}
-                        style={{ cursor: "pointer", marginRight: "10px" }}
-                        onClick={() =>
-                          window.open(
-                            `mailto:${item["Customer Email"]}`,
-                            "_system"
-                          )
-                        }
-                      />
-                    </IonItem>
-
-                    {/* Checkbox */}
-                    <IonItem lines="none" style={{ padding: 0 }}>
-                      <IonCheckbox
-                        onIonChange={(e) => {
-                          if (e.detail.checked) {
-                            // Your logic for sending the POST request when checkbox is checked
+                    <IonItemGroup style={{ display: "flex" }}>
+                      {/* Phone icon */}
+                      <IonItem lines="none" style={{ padding: 0 }}>
+                        <IonIcon
+                          icon={call}
+                          style={{ cursor: "pointer", marginRight: "10px" }}
+                          onClick={() =>
+                            window.open(`tel:${item["Phone #"]}`, "_system")
                           }
-                        }}
-                      />
-                    </IonItem>
-                  </IonItemGroup>
+                        />
+                      </IonItem>
+
+                      {/* Email icon */}
+                      <IonItem lines="none" style={{ padding: 0 }}>
+                        <IonIcon
+                          icon={mailOutline}
+                          style={{ cursor: "pointer", marginRight: "10px" }}
+                          onClick={() =>
+                            window.open(
+                              `mailto:${item["Customer Email"]}`,
+                              "_system"
+                            )
+                          }
+                        />
+                      </IonItem>
+
+                      {/* Checkbox */}
+                      <IonItem lines="none" style={{ padding: 0 }}>
+                        <IonCheckbox
+                          onIonChange={async (e) => {
+                            if (e.detail.checked) {
+                              // Wait for 2 seconds
+                              setTimeout(async () => {
+                                const dataToSend = {
+                                  itemId: item?.id,
+                                };
+
+                                // Optimistically remove the item from the list
+                                const newFollowUps = [...followUps];
+                                newFollowUps[currentSlideIndex] = newFollowUps[
+                                  currentSlideIndex
+                                ].filter((i) => i.id !== item.id);
+                                setFollowUps(newFollowUps);
+
+                                const response = await sendPostRequest(
+                                  dataToSend
+                                );
+                                if (!response) {
+                                  // If request failed, revert the UI changes
+                                  const revertedFollowUps = [...followUps];
+                                  revertedFollowUps[currentSlideIndex].push(
+                                    item
+                                  );
+                                  setFollowUps(revertedFollowUps);
+
+                                  // Notify the user of the error
+                                  alert(
+                                    "Error updating follow-up status. Please try again."
+                                  );
+                                } else {
+                                  // Optionally notify the user of success
+                                  alert(
+                                    "Follow-up status updated successfully."
+                                  );
+                                }
+                              }, 2000);
+                            }
+                          }}
+                        />
+                      </IonItem>
+                    </IonItemGroup>
+                  </IonItem>
+                ))}
+              </IonList>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </IonCard>
+      <IonCard style={{ width: "100%" }}>
+        <IonCardHeader style={{ backgroundColor: "rgba(255,0,0,0.5)" }}>
+          <IonCardTitle>
+            <strong>Missed Follow-Ups</strong>
+            <span>:{missedFollowUps?.length}</span>
+          </IonCardTitle>
+        </IonCardHeader>
+
+        <IonList>
+          {missedFollowUps?.map((item, i) => (
+            <IonItem key={item?.id}>
+              <IonLabel>
+                <div style={{ fontSize: "18px", fontWeight: "bold" }}>
+                  {formatName(item?.Name)}
+                </div>
+                <div style={{ color: "#555" }}>
+                  <strong>Phone #:</strong> {formatPhoneNumber(item["Phone #"])}
+                </div>
+                <div style={{ color: "#555" }}>
+                  <strong>Email:</strong> {item["Customer Email"]}
+                </div>
+              </IonLabel>
+              <IonButton onClick={() => handleItemClicked(item)}>
+                <IonIcon icon={open} />
+              </IonButton>
+
+              <IonItemGroup style={{ display: "flex" }}>
+                {/* Phone icon */}
+                <IonItem lines="none" style={{ padding: 0 }}>
+                  <IonIcon
+                    icon={call}
+                    style={{ cursor: "pointer", marginRight: "10px" }}
+                    onClick={() =>
+                      window.open(`tel:${item["Phone #"]}`, "_system")
+                    }
+                  />
                 </IonItem>
-              ))}
-            </IonList>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </IonCard>
+
+                {/* Email icon */}
+                <IonItem lines="none" style={{ padding: 0 }}>
+                  <IonIcon
+                    icon={mailOutline}
+                    style={{ cursor: "pointer", marginRight: "10px" }}
+                    onClick={() =>
+                      window.open(`mailto:${item["Customer Email"]}`, "_system")
+                    }
+                  />
+                </IonItem>
+
+                {/* Checkbox */}
+                <IonItem lines="none" style={{ padding: 0 }}>
+                  <IonCheckbox
+                    onIonChange={async (e) => {
+                      if (e.detail.checked) {
+                        // Wait for 2 seconds
+                        setTimeout(async () => {
+                          const dataToSend = {
+                            itemId: item?.id,
+                          };
+
+                          // Optimistically remove the item from the list
+                          const newMissedFollowUps = missedFollowUps.filter(
+                            (i) => i.id !== item.id
+                          );
+                          setMissedFollowUps(newMissedFollowUps);
+
+                          const response = await sendPostRequest(dataToSend);
+                          if (!response) {
+                            // If request failed, revert the UI changes
+                            setMissedFollowUps((prev) => [...prev, item]);
+
+                            // Notify the user of the error
+                            alert(
+                              "Error updating missed follow-up status. Please try again."
+                            );
+                          } else {
+                            // Optionally notify the user of success
+                            alert(
+                              "Missed follow-up status updated successfully."
+                            );
+                          }
+                        }, 2000);
+                      }
+                    }}
+                  />
+                </IonItem>
+              </IonItemGroup>
+            </IonItem>
+          ))}
+        </IonList>
+      </IonCard>
+    </>
   );
 };
 

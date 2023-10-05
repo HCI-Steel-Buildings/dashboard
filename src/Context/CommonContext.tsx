@@ -9,14 +9,15 @@ import {
   Item,
   FetchedMondayData,
 } from "./types";
-const BACKEND_API_ENDPOINT =
-  "https://api.hcisteelbuildings.com/api/monday-data";
 
-// const BACKEND_API_ENDPOINT = "/api/monday-data";
+const BACKEND_API_ENDPOINT = "/api/monday-data";
+// const BACKEND_API_ENDPOINT =
+// "https://api.hcisteelbuildings.com/api/monday-data";
 
 const CommonContext = createContext<CommonContextValue | any>({
   data: null,
   loading: true,
+  refreshData: async () => {}, // Default function
 });
 
 export const CommonContextProvider: React.FC<CommonProviderProps> = ({
@@ -24,43 +25,43 @@ export const CommonContextProvider: React.FC<CommonProviderProps> = ({
 }) => {
   const [boardData, setBoardData] = useState<MondayData | null>(null);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    async function loadBoardData() {
-      const fetchedData = await fetchDataFromMonday();
-      console.log(fetchedData);
 
-      if (fetchedData) {
-        const { columns, items } = fetchedData;
+  async function refreshData() {
+    setLoading(true);
+    const fetchedData = await fetchDataFromMonday();
+    if (fetchedData) {
+      const { columns, items } = fetchedData;
+      const adjustedColumns = columns.slice(2);
 
-        // Skip the first two columns
-        const adjustedColumns = columns.slice(2);
+      const normalizedItems: NormalizedItem[] = items.map((item: Item) => {
+        const normalizedItem: NormalizedItem = {
+          id: item.id,
+          name: item.name,
+        };
+        item.column_values.forEach(
+          (columnValue: ColumnValue, index: number) => {
+            const columnName = adjustedColumns[index].title;
+            normalizedItem[columnName] = columnValue.text;
+          }
+        );
+        return normalizedItem;
+      });
 
-        // Create normalized items
-        const normalizedItems: NormalizedItem[] = items?.map((item: Item) => {
-          const normalizedItem: NormalizedItem = { name: item.name };
-          item.column_values.forEach(
-            (columnValue: ColumnValue, index: number) => {
-              const columnName = adjustedColumns[index].title;
-              normalizedItem[columnName] = columnValue.text;
-            }
-          );
-          return normalizedItem;
-        });
-
-        setBoardData({
-          name: fetchedData.name,
-          items: normalizedItems,
-          columns: adjustedColumns,
-        });
-      }
-      setLoading(false);
+      setBoardData({
+        name: fetchedData.name,
+        items: normalizedItems,
+        columns: adjustedColumns,
+      });
     }
+    setLoading(false);
+  }
 
-    loadBoardData();
+  useEffect(() => {
+    refreshData();
   }, []);
 
   return (
-    <CommonContext.Provider value={{ data: boardData, loading }}>
+    <CommonContext.Provider value={{ data: boardData, loading, refreshData }}>
       {children}
     </CommonContext.Provider>
   );

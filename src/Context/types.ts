@@ -10,6 +10,7 @@ interface ColumnValue {
 
 interface NormalizedItem {
   name: string;
+  id: string;
   [key: string]: string | undefined;
 }
 
@@ -29,6 +30,7 @@ interface CommonProviderProps {
 interface Item {
   column_values: ColumnValue[];
   name: string;
+  id: string;
 }
 interface FetchedMondayData {
   name: string;
