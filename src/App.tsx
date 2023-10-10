@@ -26,6 +26,7 @@ import {
   calendarNumber,
   homeOutline,
   square,
+  ticket,
 } from "ionicons/icons";
 import Home from "./Pages/Home";
 import ProjectCenter from "./Pages/ProjectCenter";
@@ -54,6 +55,7 @@ import "react-awesome-button/dist/styles.css";
 import { useAuth0 } from "@auth0/auth0-react";
 import LoginButton from "./Components/LogInButton";
 import Calculator from "./Pages/Calculator";
+import Ticket from "./Pages/Ticket";
 
 setupIonicReact();
 
@@ -83,6 +85,9 @@ const App: React.FC = () => {
             <Route exact path="/calculator">
               <Calculator />
             </Route>
+            <Route exact path="/tickets">
+              <Ticket />
+            </Route>
           </IonRouterOutlet>
           <IonTabBar slot="bottom">
             <IonTabButton tab="home" href="/home">
@@ -104,6 +109,10 @@ const App: React.FC = () => {
             <IonTabButton tab="calculator" href="/calculator">
               <IonIcon icon={calculator} />
               <IonLabel>Calculator</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="tickets" href="/tickets">
+              <IonIcon icon={ticket} />
+              <IonLabel>Tickets</IonLabel>
             </IonTabButton>
           </IonTabBar>
         </IonTabs>

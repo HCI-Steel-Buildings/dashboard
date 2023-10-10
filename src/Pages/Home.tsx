@@ -35,6 +35,11 @@ const Home: React.FC = () => {
         <Header />
 
         <IonGrid>
+          <IonRow>
+            <IonCol>
+              <MessageOfTheDay />
+            </IonCol>
+          </IonRow>
           {/* Row for App Navigation Boxes */}
           <IonRow>
             {cardData.map((card, index) => (
@@ -49,11 +54,6 @@ const Home: React.FC = () => {
           </IonRow>
 
           {/* Row for Message of the Day */}
-          <IonRow>
-            <IonCol>
-              <MessageOfTheDay />
-            </IonCol>
-          </IonRow>
         </IonGrid>
       </IonContent>
     </IonPage>
