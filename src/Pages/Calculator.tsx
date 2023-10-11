@@ -15,6 +15,7 @@ import {
 import React from "react";
 import ComponentCalculator from "../Components/Calculators/ComponentCalculator";
 import GutterCalculator from "../Components/Calculators/GutterCalculator";
+import WallSquareFootageCalculator from "../Components/Calculators/WallSquareFootageCalculator";
 
 const Calculator: React.FC = () => {
   return (
@@ -43,13 +44,20 @@ const Calculator: React.FC = () => {
               <IonCard>
                 <IonCardHeader>
                   <IonCardTitle>
-                    <strong>OTHER CALCULATOR COMING SOON</strong>
-                    <IonCardSubtitle>
-                      For now you have 2 of the same calculator!
-                    </IonCardSubtitle>
+                    <strong>Normal TEMP Calculator</strong>
                   </IonCardTitle>
                 </IonCardHeader>
                 <GutterCalculator />
+              </IonCard>
+            </IonCol>
+            <IonCol>
+              <IonCard>
+                <IonCardHeader>
+                  <IonCardTitle>
+                    <strong>Wall SF Calculator</strong>
+                  </IonCardTitle>
+                </IonCardHeader>
+                <WallSquareFootageCalculator />
               </IonCard>
             </IonCol>
           </IonRow>
