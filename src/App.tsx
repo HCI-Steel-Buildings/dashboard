@@ -60,8 +60,7 @@ import Ticket from "./Pages/Ticket";
 setupIonicReact();
 
 const App: React.FC = () => {
-  // const { isAuthenticated } = useAuth0();
-  const isAuthenticated = true;
+  const { isAuthenticated } = useAuth0();
 
   return isAuthenticated ? (
     <IonApp>
