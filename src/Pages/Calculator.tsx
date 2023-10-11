@@ -14,6 +14,7 @@ import {
 } from "@ionic/react";
 import React from "react";
 import ComponentCalculator from "../Components/Calculators/ComponentCalculator";
+import GutterCalculator from "../Components/Calculators/GutterCalculator";
 
 const Calculator: React.FC = () => {
   return (
@@ -48,7 +49,7 @@ const Calculator: React.FC = () => {
                     </IonCardSubtitle>
                   </IonCardTitle>
                 </IonCardHeader>
-                <ComponentCalculator />
+                <GutterCalculator />
               </IonCard>
             </IonCol>
           </IonRow>

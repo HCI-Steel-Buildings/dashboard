@@ -34,6 +34,7 @@ const ComponentCalculator: React.FC = () => {
     hhrStitchScrewsOverage: number;
     hhrStitchScrewsTotal: number;
     hhrClosures: number;
+    hhrSquareFootage: number;
     rssStructuralScrews: number;
     rssStructuralScrewsOverage: number;
     rssStructuralScrewsTotal: number;
@@ -42,6 +43,7 @@ const ComponentCalculator: React.FC = () => {
     rssClipsTotal: number;
     panheadScrews: number;
     rssClosures: number;
+    rssSquareFootage: number;
   }>({
     hhrPanels: 0,
     rssPanels: 0,
@@ -54,6 +56,7 @@ const ComponentCalculator: React.FC = () => {
     hhrStitchScrewsOverage: 0,
     hhrStitchScrewsTotal: 0,
     hhrClosures: 0,
+    hhrSquareFootage: 0,
     rssStructuralScrews: 0,
     rssStructuralScrewsOverage: 0,
     rssStructuralScrewsTotal: 0,
@@ -62,6 +65,7 @@ const ComponentCalculator: React.FC = () => {
     rssClipsTotal: 0,
     panheadScrews: 0,
     rssClosures: 0,
+    rssSquareFootage: 0,
   });
 
   const calculate = () => {
@@ -80,8 +84,10 @@ const ComponentCalculator: React.FC = () => {
     const hhrStitchScrewsOverage = hhrStitchScrews * 0.1;
     const hhrStitchScrewsTotal = hhrStitchScrews + hhrStitchScrewsOverage;
     const hhrClosures = hhrPanels * 2;
+    const hhrSquareFootage = hhrPanels * panelLength * 3;
 
     // Calculating RSS Components
+
     const rssStructuralScrews = rssPanels * 8;
     const rssStructuralScrewsOverage = rssStructuralScrews * 0.1;
     const rssStructuralScrewsTotal =
@@ -91,6 +97,7 @@ const ComponentCalculator: React.FC = () => {
     const rssClipsTotal = rssClips + rssClipsOverage;
     const panheadScrews = rssClips * 2;
     const rssClosures = rssPanels;
+    const rssSquareFootage = rssPanels * panelLength * 1.5;
 
     setResults({
       hhrPanels,
@@ -104,6 +111,7 @@ const ComponentCalculator: React.FC = () => {
       hhrStitchScrewsOverage,
       hhrStitchScrewsTotal,
       hhrClosures,
+      hhrSquareFootage,
       rssStructuralScrews,
       rssStructuralScrewsOverage,
       rssStructuralScrewsTotal,
@@ -112,6 +120,7 @@ const ComponentCalculator: React.FC = () => {
       rssClipsTotal,
       panheadScrews,
       rssClosures,
+      rssSquareFootage,
     });
   };
 
@@ -132,6 +141,7 @@ const ComponentCalculator: React.FC = () => {
       hhrStitchScrewsOverage: 0,
       hhrStitchScrewsTotal: 0,
       hhrClosures: 0,
+      hhrSquareFootage: 0,
       rssStructuralScrews: 0,
       rssStructuralScrewsOverage: 0,
       rssStructuralScrewsTotal: 0,
@@ -140,6 +150,7 @@ const ComponentCalculator: React.FC = () => {
       rssClipsTotal: 0,
       panheadScrews: 0,
       rssClosures: 0,
+      rssSquareFootage: 0,
     });
   };
 
@@ -255,6 +266,9 @@ const ComponentCalculator: React.FC = () => {
                 <p>
                   <strong>Closures:</strong> {results.hhrClosures}
                 </p>
+                <p>
+                  <strong>Roof SF:</strong> {results.hhrSquareFootage}
+                </p>
               </IonLabel>
             </IonCardContent>
           </IonCard>
@@ -313,6 +327,9 @@ const ComponentCalculator: React.FC = () => {
                 </p>
                 <p>
                   <strong>Closures:</strong> {results.rssClosures}
+                </p>
+                <p>
+                  <strong>Roof SF:</strong> {results.rssSquareFootage}
                 </p>
               </IonLabel>
             </IonCardContent>
