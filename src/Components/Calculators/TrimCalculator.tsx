@@ -12,6 +12,8 @@ import {
   IonSelectOption,
   IonSearchbar,
   IonText,
+  IonItemDivider,
+  IonList,
 } from "@ionic/react";
 import React, { useState } from "react";
 
@@ -25,62 +27,74 @@ export interface Component {
 // Interface for the array of components
 export type Components = Component[];
 
-// Add how many can fit in per coil in object
-// Add history
+// TODO: Add history
 
 const components: Components = [
-  { price: "3.14", name: "C-1", amountPerCoil: 3 },
-  { price: "1.57", name: "C-2", amountPerCoil: 3 },
-  { price: "0.63", name: "C-3", amountPerCoil: 3 },
-  { price: "1.05", name: "C-4" },
-  { price: "1.57", name: "C-5" },
-  { price: "1.57", name: "C-6" },
-  { price: "1.05", name: "C-7" },
-  { price: "1.57", name: "C-8" },
-  { price: "1.05", name: "C-9" },
-  { price: "1.05", name: "C-10" },
-  { price: "1.05", name: "C-11" },
-  { price: "0.79", name: "C-12" },
-  { price: "0.39", name: "C-13" },
-  { price: "0.79", name: "C-14" },
-  { price: "0.52", name: "C-15" },
-  { price: "1.57", name: "C-16" },
-  { price: "0.79", name: "C-17" },
-  { price: "0.31", name: "C-18" },
-  { price: "0.39", name: "C-19" },
-  { price: "0.79", name: "C-20" },
-  { price: "0.79", name: "C-21" },
-  { price: "0.35", name: "C-22" },
-  { price: "0.79", name: "C-24" },
-  { price: "0.79", name: "C-25" },
-  { price: "0.52", name: "C-26" },
-  { price: "0.52", name: "C-27" },
-  { price: "0.52", name: "C-28" },
-  { price: "1.05", name: "C-29" },
-  { price: "1.05", name: "C-30" },
-  { price: "1.05", name: "C-31" },
-  { price: "0.29", name: "C-32" },
-  { price: "0.79", name: "C-3BG" },
-  { price: "1.05", name: "C-4A" },
-  { price: "3.14", name: "R-3" },
-  { price: "0.79", name: "R-4" },
-  { price: "1.57", name: "R-5" },
-  { price: "0.63", name: "R-6" },
-  { price: "1.05", name: "R-7" },
-  { price: "0.63", name: "R-8" },
-  { price: "1.57", name: "R-9" },
-  { price: "1.05", name: "R-10" },
-  { price: "0.79", name: "R-11" },
-  { price: "0.79", name: "R-12" },
-  { price: "0.45", name: "R-13" },
-  { price: "1.05", name: "R-14" },
-  { price: "3.14", name: "R-15" },
-  { price: "0.63", name: "R-16" },
-  { price: "1.57", name: "R-18" },
-  { price: "3.14", name: "R-19" },
-  { price: "1.57", name: "R-20" },
-  { price: "1.57", name: "R-21" },
-  { price: "1.57", name: "R-22" },
+  { name: "C-1", amountPerCoil: 1, price: "3.14" },
+  { name: "C-2", amountPerCoil: 2, price: "1.57" },
+  { name: "C-3", amountPerCoil: 5, price: "0.63" },
+  { name: "C-4", amountPerCoil: 3, price: "1.05" },
+  { name: "C-5", amountPerCoil: 2, price: "1.57" },
+  { name: "C-6", amountPerCoil: 2, price: "1.57" },
+  { name: "C-7", amountPerCoil: 3, price: "1.05" },
+  { name: "C-8", amountPerCoil: 2, price: "1.57" },
+  { name: "C-9", amountPerCoil: 3, price: "1.05" },
+  { name: "C-10", amountPerCoil: 3, price: "1.05" },
+  { name: "C-11", amountPerCoil: 3, price: "1.05" },
+  { name: "C-12", amountPerCoil: 4, price: "0.79" },
+  { name: "C-13", amountPerCoil: 8, price: "0.39" },
+  { name: "C-14", amountPerCoil: 4, price: "0.79" },
+  { name: "C-15", amountPerCoil: 6, price: "0.52" },
+  { name: "C-16", amountPerCoil: 2, price: "1.57" },
+  { name: "C-17", amountPerCoil: 4, price: "0.79" },
+  { name: "C-18", amountPerCoil: 10, price: "0.31" },
+  { name: "C-19", amountPerCoil: 8, price: "0.39" },
+  { name: "C-20", amountPerCoil: 4, price: "0.79" },
+  { name: "C-21", amountPerCoil: 4, price: "0.79" },
+  { name: "C-22", amountPerCoil: 9, price: "0.35" },
+  { name: "C-24", amountPerCoil: 4, price: "0.79" },
+  { name: "C-25", amountPerCoil: 4, price: "0.79" },
+  { name: "C-26", amountPerCoil: 6, price: "0.52" },
+  { name: "C-27", amountPerCoil: 6, price: "0.52" },
+  { name: "C-28", amountPerCoil: 6, price: "0.52" },
+  { name: "C-29", amountPerCoil: 3, price: "1.05" },
+  { name: "C-30", amountPerCoil: 3, price: "1.05" },
+  { name: "C-31", amountPerCoil: 3, price: "1.05" },
+  { name: "C-32", amountPerCoil: 11, price: "0.29" },
+  { name: "C-3BG", amountPerCoil: 4, price: "0.79" },
+  { name: "C-4A", amountPerCoil: 3, price: "1.05" },
+  { name: "R-3", amountPerCoil: 1, price: "3.14" },
+  { name: "R-4", amountPerCoil: 4, price: "0.79" },
+  { name: "R-5", amountPerCoil: 2, price: "1.57" },
+  { name: "R-6", amountPerCoil: 5, price: "0.63" },
+  { name: "R-7", amountPerCoil: 4, price: "0.79" },
+  { name: "R-8", amountPerCoil: 4, price: "0.79" },
+  { name: "R-9", amountPerCoil: 3, price: "1.05" },
+  { name: "R-10", amountPerCoil: 2, price: "1.57" },
+  { name: "R-11", amountPerCoil: 6, price: "0.52" },
+  { name: "R-12", amountPerCoil: 3, price: "1.05" },
+  { name: "R-13", amountPerCoil: 2, price: "1.57" },
+  { name: "R-14", amountPerCoil: 2, price: "1.57" },
+  { name: "R-15", amountPerCoil: 2, price: "1.57" },
+  { name: "R-16", amountPerCoil: 3, price: "1.05" },
+  { name: "R-17", amountPerCoil: 4, price: "0.79" },
+  { name: "R-18", amountPerCoil: 4, price: "0.79" },
+  { name: "R-19", amountPerCoil: 3, price: "1.05" },
+  { name: "R-20", amountPerCoil: 4, price: "0.79" },
+  { name: "R-21", amountPerCoil: 4, price: "0.79" },
+  { name: "R-22", amountPerCoil: 6, price: "0.52" },
+  { name: "R-23", amountPerCoil: 4, price: "0.79" },
+  { name: "R-24", amountPerCoil: 4, price: "0.79" },
+  { name: "R-25", amountPerCoil: 6, price: "0.52" },
+  { name: "R-26", amountPerCoil: 6, price: "0.52" },
+  { name: "R-27", amountPerCoil: 6, price: "0.52" },
+  { name: "R-28", amountPerCoil: 6, price: "0.52" },
+  { name: "R-29", amountPerCoil: 3, price: "1.05" },
+  { name: "R-30", amountPerCoil: 3, price: "1.05" },
+  { name: "R-31", amountPerCoil: 3, price: "1.05" },
+  { name: "R-32", amountPerCoil: 11, price: "0.29" },
+  { name: "R-3BG", amountPerCoil: 4, price: "0.79" },
+  { name: "R-4A", amountPerCoil: 3, price: "1.05" },
 ];
 
 const TrimCalculator: React.FC = () => {
@@ -90,6 +104,24 @@ const TrimCalculator: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [feet, setFeet] = useState<number>(0);
   const [inches, setInches] = useState<number>(0);
+  type HistoryItem = {
+    date: Date;
+    component: string;
+    quantity: number;
+    feet: number;
+    inches: number;
+    results: {
+      pricePerLinearFoot: number;
+      totalPrice: number;
+      linearFoot: number;
+      totalPriceRounded: number;
+      total: number;
+      totalLinearFeetNeeded: number;
+      coil: number;
+    };
+  };
+
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const percentage = 5;
 
   const [results, setResults] = useState<{
@@ -98,12 +130,16 @@ const TrimCalculator: React.FC = () => {
     linearFoot: number;
     totalPriceRounded: number;
     total: number;
+    totalLinearFeetNeeded: number;
+    coil: number;
   }>({
     pricePerLinearFoot: 0,
     totalPrice: 0,
     linearFoot: 0,
     totalPriceRounded: 0,
     total: 0,
+    totalLinearFeetNeeded: 0,
+    coil: 0,
   });
 
   const filteredComponents = components.filter((comp) =>
@@ -111,6 +147,9 @@ const TrimCalculator: React.FC = () => {
   );
   const feetAndInchesToDecimal = (feet: number, inches: number) => {
     return feet + inches / 12;
+  };
+  const clearHistory = () => {
+    setHistory([]);
   };
 
   const calculate = () => {
@@ -121,31 +160,58 @@ const TrimCalculator: React.FC = () => {
     const amountPerCoil = selectedComp?.amountPerCoil || 1; // Defaulting to 1 if not available
 
     const pricePerLinearFoot = parseFloat(selectedComponentPrice) * percentage;
-    const totalPrice = pricePerLinearFoot * quantity;
+    const linearFeet = feetAndInchesToDecimal(feet, inches);
+    const totalLinearFeetNeeded = linearFeet * quantity;
+    const totalPrice = totalLinearFeetNeeded * pricePerLinearFoot;
     const totalPriceRounded = Math.round(totalPrice * 100) / 100; // round to 2 decimal places
-    const totalLinearFeet = feetAndInchesToDecimal(feet, inches);
-
-    const total = (totalLinearFeet * quantity) / amountPerCoil; // Use amountPerCoil here
+    const total = (linearFeet * quantity) / amountPerCoil; // Use amountPerCoil here
+    const coil = totalLinearFeetNeeded / selectedComp?.amountPerCoil!;
 
     setResults({
       pricePerLinearFoot,
       totalPrice,
-      linearFoot: totalLinearFeet,
+      linearFoot: linearFeet,
       totalPriceRounded,
       total,
+      totalLinearFeetNeeded,
+      coil,
     });
+
+    setHistory((prevHistory) => [
+      ...prevHistory,
+      {
+        date: new Date(),
+        component: selectedComponent,
+        quantity,
+        feet,
+        inches,
+        results: {
+          pricePerLinearFoot,
+          totalPrice,
+          linearFoot: linearFeet,
+          totalPriceRounded,
+          total,
+          totalLinearFeetNeeded,
+          coil,
+        },
+      },
+    ]);
   };
 
   const reset = () => {
     setQuantity(0);
     setSelectedComponent("");
     setSearchTerm("");
+    setFeet(0);
+    setInches(0);
     setResults({
       pricePerLinearFoot: 0,
       totalPrice: 0,
       linearFoot: 0,
       totalPriceRounded: 0,
       total: 0,
+      totalLinearFeetNeeded: 0,
+      coil: 0,
     });
   };
 
@@ -282,11 +348,85 @@ const TrimCalculator: React.FC = () => {
           <IonCard style={{ textAlign: "center" }}>
             <IonCardContent>
               <strong>
-                <h2>Linear Foot</h2>
+                <h2>LF Decimal</h2>
               </strong>
               <strong style={{ fontSize: "2rem" }}>
-                {results.total.toFixed(2)}'
+                {results.linearFoot.toFixed(2)}'
               </strong>
+            </IonCardContent>
+          </IonCard>
+        </IonCol>
+
+        <IonCol>
+          <IonCard style={{ textAlign: "center" }}>
+            <IonCardContent>
+              <strong>
+                <h2>Total Linear Feet</h2>
+              </strong>
+              <strong style={{ fontSize: "2rem" }}>
+                {results.totalLinearFeetNeeded.toFixed(2)}'
+              </strong>
+            </IonCardContent>
+          </IonCard>
+        </IonCol>
+        <IonCol>
+          <IonCard style={{ textAlign: "center" }}>
+            <IonCardContent>
+              <strong>
+                <h2>Coil Needed</h2>
+              </strong>
+              <strong style={{ fontSize: "2rem" }}>
+                {results.coil.toFixed(2)}'
+              </strong>
+            </IonCardContent>
+          </IonCard>
+        </IonCol>
+      </IonRow>
+      <IonRow>
+        <IonCol>
+          <IonCard>
+            <IonCardContent>
+              <IonList>
+                <div>
+                  <h2>Calculation History</h2>
+                  <IonButton
+                    expand="full"
+                    color="warning"
+                    onClick={clearHistory}
+                  >
+                    Clear History
+                  </IonButton>
+                </div>
+                {history.map((item: any, index: number) => (
+                  <IonItem>
+                    <IonGrid key={index}>
+                      <IonRow>
+                        <IonCol>
+                          <strong>Component:</strong> {item.component}
+                        </IonCol>
+                        <IonCol>
+                          <strong>Quantity:</strong> {item.quantity}
+                        </IonCol>
+                        <IonCol>
+                          <strong>Length:</strong> {item.feet}'{item.inches}"
+                        </IonCol>
+                        <IonCol>
+                          <strong>Total Price:</strong> $
+                          {item.results.totalPriceRounded.toFixed(2)}
+                        </IonCol>
+                        <IonCol>
+                          <strong>Total Linear Feet:</strong>
+                          {item.results.totalLinearFeetNeeded.toFixed(2)}'
+                        </IonCol>
+                        <IonCol>
+                          <strong>Coil Needed:</strong>{" "}
+                          {item.results.coil.toFixed(2)}'
+                        </IonCol>
+                      </IonRow>
+                    </IonGrid>
+                  </IonItem>
+                ))}
+              </IonList>
             </IonCardContent>
           </IonCard>
         </IonCol>
