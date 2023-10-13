@@ -1,9 +1,4 @@
 import {
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonTitle,
-  IonToolbar,
   IonInput,
   IonLabel,
   IonItem,
@@ -132,7 +127,7 @@ const WallSquareFootageCalculator: React.FC = () => {
           <IonCard style={{ textAlign: "center" }}>
             <IonCardContent>
               <strong>
-                <h2>Base SF</h2>
+                <h2>Base Walls SF</h2>
               </strong>
               <strong style={{ fontSize: "2rem" }}>
                 {results.totalBaseArea} sf
@@ -150,13 +145,15 @@ const WallSquareFootageCalculator: React.FC = () => {
                   <h2>Gable Eave SF</h2>
                 </strong>
                 <strong style={{ fontSize: "2rem" }}>
-                  {results.eaveArea} sf
+                  {results.eaveArea.toFixed(2)} sf
                 </strong>
               </IonLabel>
             </IonCardContent>
           </IonCard>
           {/* Additional Results */}
         </IonCol>
+      </IonRow>
+      <IonRow>
         <IonCol>
           <IonCard style={{ textAlign: "center" }} color={"primary"}>
             <IonCardContent>
@@ -166,7 +163,24 @@ const WallSquareFootageCalculator: React.FC = () => {
                 </strong>
                 <IonText style={{ fontWeight: "bold" }}>
                   <strong style={{ fontSize: "2rem" }}>
-                    {results.totalBaseArea + results.eaveArea} sf
+                    {results.totalBaseArea + results.eaveArea.toFixed(2)} sf
+                  </strong>
+                </IonText>
+              </IonLabel>
+            </IonCardContent>
+          </IonCard>
+        </IonCol>
+
+        <IonCol>
+          <IonCard style={{ textAlign: "center" }}>
+            <IonCardContent>
+              <IonLabel>
+                <strong>
+                  <h2>Foundation SF</h2>
+                </strong>
+                <IonText style={{ fontWeight: "bold" }}>
+                  <strong style={{ fontSize: "2rem" }}>
+                    {width * length} sf
                   </strong>
                 </IonText>
               </IonLabel>

@@ -153,6 +153,9 @@ const TrimCalculator: React.FC = () => {
   };
 
   const calculate = () => {
+    if (quantity === 0 && feet === 0 && inches === 0) {
+      return;
+    }
     const selectedComp = components.find(
       (comp) => comp.name === selectedComponent
     );
