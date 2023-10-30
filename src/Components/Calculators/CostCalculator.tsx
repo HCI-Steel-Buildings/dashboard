@@ -74,6 +74,13 @@ const CostCalculator: React.FC = () => {
     }
   };
 
+  const resetValues = () => {
+    setWidth(null);
+    setLength(null);
+    setBuildingCost(null);
+    setResults(null);
+  };
+
   return (
     <IonGrid>
       <IonRow>
@@ -107,6 +114,9 @@ const CostCalculator: React.FC = () => {
 
           <IonButton expand="block" onClick={calculate}>
             Calculate
+          </IonButton>
+          <IonButton expand="block" onClick={resetValues} color="medium">
+            Reset
           </IonButton>
 
           {results && (
