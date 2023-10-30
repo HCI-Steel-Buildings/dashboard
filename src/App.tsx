@@ -5,12 +5,14 @@ import {
   IonCard,
   IonCardContent,
   IonCardSubtitle,
+  IonContent,
   IonHeader,
   IonIcon,
   IonImg,
   IonLabel,
   IonPage,
   IonRouterOutlet,
+  IonSpinner,
   IonTabBar,
   IonTabButton,
   IonTabs,
@@ -32,35 +34,64 @@ import Home from "./Pages/Home";
 import ProjectCenter from "./Pages/ProjectCenter";
 import Minis from "./Pages/Minis";
 import Charts from "./Pages/Charts";
+import Calculator from "./Pages/Calculator";
+import Ticket from "./Pages/Ticket";
+import LoginButton from "./Components/LogInButton";
 
-/* Core CSS required for Ionic components to work properly */
+import { useAuth0 } from "@auth0/auth0-react";
+
+/* CSS Imports */
 import "@ionic/react/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 import "@ionic/react/css/normalize.css";
 import "@ionic/react/css/structure.css";
 import "@ionic/react/css/typography.css";
-
-/* Optional CSS utils that can be commented out */
 import "@ionic/react/css/padding.css";
 import "@ionic/react/css/float-elements.css";
 import "@ionic/react/css/text-alignment.css";
 import "@ionic/react/css/text-transformation.css";
 import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
-
-/* Theme variables */
 import "./theme/variables.css";
 import "react-awesome-button/dist/styles.css";
-import { useAuth0 } from "@auth0/auth0-react";
-import LoginButton from "./Components/LogInButton";
-import Calculator from "./Pages/Calculator";
-import Ticket from "./Pages/Ticket";
 
 setupIonicReact();
 
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuth0();
+  const { isAuthenticated, isLoading } = useAuth0();
+
+  if (isLoading) {
+    return (
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>Loading...</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding ion-text-center">
+          <div className="loading-container">
+            <IonSpinner name="crescent" color="primary" />
+            <IonText color="primary">
+              <h2>Please wait...</h2>
+            </IonText>
+          </div>
+        </IonContent>
+        <style>{`
+          .loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 90%; /* Adjust as needed */
+          }
+
+          h2 {
+            margin-top: 20px;
+            font-weight: normal;
+          }
+        `}</style>
+      </IonPage>
+    );
+  }
 
   return isAuthenticated ? (
     <IonApp>

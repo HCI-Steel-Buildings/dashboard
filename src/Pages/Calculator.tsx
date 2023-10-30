@@ -16,6 +16,7 @@ import React from "react";
 import ComponentCalculator from "../Components/Calculators/ComponentCalculator";
 import WallSquareFootageCalculator from "../Components/Calculators/WallSquareFootageCalculator";
 import TrimCalculator from "../Components/Calculators/TrimCalculator";
+import CostCalculator from "../Components/Calculators/CostCalculator";
 
 const Calculator: React.FC = () => {
   return (
@@ -58,6 +59,19 @@ const Calculator: React.FC = () => {
                   </IonCardTitle>
                 </IonCardHeader>
                 <WallSquareFootageCalculator />
+              </IonCard>
+            </IonCol>
+          </IonRow>
+          <IonRow>
+            <IonCol>
+              <IonCard>
+                <IonCardHeader>
+                  <IonCardTitle>
+                    <strong>Engineering Cost Calculator 🤖</strong>
+                  </IonCardTitle>
+                </IonCardHeader>
+
+                <CostCalculator />
               </IonCard>
             </IonCol>
           </IonRow>
