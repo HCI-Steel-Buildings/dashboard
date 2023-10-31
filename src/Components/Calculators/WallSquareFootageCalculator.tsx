@@ -163,7 +163,9 @@ const WallSquareFootageCalculator: React.FC = () => {
                 </strong>
                 <IonText style={{ fontWeight: "bold" }}>
                   <strong style={{ fontSize: "2rem" }}>
-                    {results.totalBaseArea + results.eaveArea.toFixed(2)} sf
+                    {Number(results.totalBaseArea) +
+                      Number(results.eaveArea.toFixed(2))}{" "}
+                    sf
                   </strong>
                 </IonText>
               </IonLabel>
