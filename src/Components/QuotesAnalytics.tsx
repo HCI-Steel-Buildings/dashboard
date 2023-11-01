@@ -93,7 +93,7 @@ const QuotesAnalytics: FC = () => {
           <IonCard>
             <IonCardContent>
               <h2 style={{ fontSize: "2em", fontWeight: "bold" }}>
-                Total Quotes in October: {totalQuotes}
+                Total Quotes in November: {totalQuotes}
               </h2>
             </IonCardContent>
           </IonCard>
