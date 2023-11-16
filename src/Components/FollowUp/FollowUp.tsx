@@ -231,40 +231,34 @@ const FollowUp: FC = () => {
                           onIonChange={async (e) => {
                             if (e.detail.checked) {
                               // Wait for 2 seconds
-                              setTimeout(async () => {
-                                const dataToSend = {
-                                  itemId: item?.id,
-                                };
+                              const dataToSend = {
+                                itemId: item?.id,
+                              };
 
-                                // Optimistically remove the item from the list
-                                const newFollowUps = [...followUps];
-                                newFollowUps[currentSlideIndex] = newFollowUps[
-                                  currentSlideIndex
-                                ].filter((i) => i.id !== item.id);
-                                setFollowUps(newFollowUps);
+                              // Optimistically remove the item from the list
+                              const newFollowUps = [...followUps];
+                              newFollowUps[currentSlideIndex] = newFollowUps[
+                                currentSlideIndex
+                              ].filter((i) => i.id !== item.id);
+                              setFollowUps(newFollowUps);
 
-                                const response = await sendPostRequest(
-                                  dataToSend
+                              const response = await sendPostRequest(
+                                dataToSend
+                              );
+                              if (!response) {
+                                // If request failed, revert the UI changes
+                                const revertedFollowUps = [...followUps];
+                                revertedFollowUps[currentSlideIndex].push(item);
+                                setFollowUps(revertedFollowUps);
+
+                                // Notify the user of the error
+                                alert(
+                                  "Error updating follow-up status. Please try again."
                                 );
-                                if (!response) {
-                                  // If request failed, revert the UI changes
-                                  const revertedFollowUps = [...followUps];
-                                  revertedFollowUps[currentSlideIndex].push(
-                                    item
-                                  );
-                                  setFollowUps(revertedFollowUps);
-
-                                  // Notify the user of the error
-                                  alert(
-                                    "Error updating follow-up status. Please try again."
-                                  );
-                                } else {
-                                  // Optionally notify the user of success
-                                  alert(
-                                    "Follow-up status updated successfully."
-                                  );
-                                }
-                              }, 2000);
+                              } else {
+                                // Optionally notify the user of success
+                                alert("Follow-up status updated successfully.");
+                              }
                             }
                           }}
                         />

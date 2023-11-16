@@ -10,6 +10,7 @@ import {
 import "./ProjectCenter.css";
 import { useCommonContext } from "../Context/CommonContext";
 import { getCurrentMonthName, getMonthlyCount } from "../Utils/dateUtils";
+import EcoBuildingCalculator from "../Components/EcoBuildingCalculator/EcoBuildingCalculator";
 
 const Charts: React.FC = () => {
   const { data, weeklyCounts } = useCommonContext();
@@ -25,7 +26,9 @@ const Charts: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        <IonCard>Hello</IonCard>
+        <IonCard>
+          <EcoBuildingCalculator />
+        </IonCard>
       </IonContent>
     </IonPage>
   );
