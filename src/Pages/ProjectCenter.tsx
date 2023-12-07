@@ -17,21 +17,27 @@ const Charts: React.FC = () => {
 
   const aggregateLFByColor = (
     items: any[]
-  ): Record<string, { totalLF: number; jobNumbers: string[] }> => {
-    const lfByColor: Record<string, { totalLF: number; jobNumbers: string[] }> =
-      {};
+  ): Record<
+    string,
+    { totalLF: number; totalWeight: number; jobNumbers: string[] }
+  > => {
+    const lfByColor: Record<
+      string,
+      { totalLF: number; totalWeight: number; jobNumbers: string[] }
+    > = {};
 
     items.forEach((item: any) => {
       ["Trim", "Roof", "Wall"].forEach((part) => {
         const color = item[`${part} Color`];
         const lf = Number(item[`${part} LF`]) || 0;
-        const jobNumber = item["Job Number"]; // Make sure this matches your data field
+        const jobNumber = item["Job Number"];
 
         if (color) {
           if (!lfByColor[color]) {
-            lfByColor[color] = { totalLF: 0, jobNumbers: [] };
+            lfByColor[color] = { totalLF: 0, totalWeight: 0, jobNumbers: [] };
           }
           lfByColor[color].totalLF += lf;
+          lfByColor[color].totalWeight += lf * 2; // Calculating total weight
           if (jobNumber && !lfByColor[color].jobNumbers.includes(jobNumber)) {
             lfByColor[color].jobNumbers.push(jobNumber);
           }
@@ -55,16 +61,19 @@ const Charts: React.FC = () => {
         <IonCard>
           <IonCardContent>
             {Object.entries(totalLFByColor).map(
-              ([color, { totalLF, jobNumbers }]: [
+              ([color, { totalLF, totalWeight, jobNumbers }]: [
                 string,
-                { totalLF: number; jobNumbers: string[] }
+                { totalLF: number; totalWeight: number; jobNumbers: string[] }
               ]) => (
                 <div key={color}>
                   <strong>{color}:</strong> {totalLF} LF
                   <p>
-                    {" "}
-                    <strong>Job Numbers</strong> {jobNumbers.join(", ")}
+                    <strong>Total Weight:</strong> {totalWeight} lbs
                   </p>
+                  <p>
+                    <strong>Job Numbers:</strong> {jobNumbers.join(", ")}
+                  </p>
+                  <br />
                 </div>
               )
             )}
