@@ -8,11 +8,14 @@ import {
   IonToolbar,
 } from "@ionic/react";
 import "./MessageOfTheDay.css";
+
 const MessageOfTheDay = () => {
   return (
     <IonCard className="messageOfTheDayCard">
-      <IonCardTitle>Greetings! Welcome to HCI's new app.</IonCardTitle>
-      <IonCardSubtitle>Click one of the apps above to explore!</IonCardSubtitle>
+      <IonCardTitle>Happy Holidays!!</IonCardTitle>
+      <IonCardSubtitle>
+        Click one of the apps below to launch one of the microservices.
+      </IonCardSubtitle>
     </IonCard>
   );
 };
