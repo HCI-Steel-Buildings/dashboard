@@ -178,16 +178,7 @@ const ComponentCalculator: React.FC = () => {
               onIonChange={(e) => setLength(Number(e.detail.value))}
             ></IonInput>
           </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">
-              <strong>Roof Pitch</strong>
-            </IonLabel>
-            <IonInput
-              type="number"
-              value={roofPitch}
-              onIonChange={(e) => setRoofPitch(Number(e.detail.value))}
-            ></IonInput>
-          </IonItem>
+
           <IonItem>
             <IonLabel position="stacked">
               <strong>Eave Height</strong>
@@ -196,6 +187,16 @@ const ComponentCalculator: React.FC = () => {
               type="number"
               value={eaveHeight}
               onIonChange={(e) => setEaveHeight(Number(e.detail.value))}
+            ></IonInput>
+          </IonItem>
+          <IonItem>
+            <IonLabel position="stacked">
+              <strong>Roof Pitch</strong>
+            </IonLabel>
+            <IonInput
+              type="number"
+              value={roofPitch}
+              onIonChange={(e) => setRoofPitch(Number(e.detail.value))}
             ></IonInput>
           </IonItem>
         </IonCol>

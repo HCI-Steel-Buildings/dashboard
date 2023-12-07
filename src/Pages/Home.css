@@ -24,3 +24,18 @@
   justify-content: space-between;
   align-items: center;
 }
+
+/* Update background colors, text colors, etc. */
+.title {
+  color: green; /* Example: Change title color to green */
+  font-weight: bold;
+}
+
+.interactive-card {
+  background-color: red; /* Example: Change card background to red */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* You may add more CSS here to change other elements */

@@ -1,416 +1,524 @@
+import React, { useState } from "react";
 import {
   IonButton,
   IonCard,
   IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
   IonCol,
-  IonGrid,
   IonInput,
   IonItem,
   IonLabel,
   IonRow,
   IonSelect,
   IonSelectOption,
-  IonText,
 } from "@ionic/react";
-import React, { useState } from "react";
 
-interface CalculationDetails {
-  size: string;
-  height: string;
-  basePrice: number;
-  windowPrice: number;
-  windows: number;
-  windowsCost: number;
-  sideWallPrice: number;
-  sideWall: number;
-  sideWallCost: number;
-  endWallPrice: number;
-  endWall: number;
-  endWallCost: number;
-  legsPricePerSet: number;
-  legs: number;
-  legsCost: number;
-  anchorsPriceEach: number;
-  anchors: number;
-  anchorsCost: number;
+interface BreakdownDetail {
+  item: string;
+  quantity: number;
+  unitPrice: number;
   total: number;
-  baseLegs: number;
-  baseLegsCost: number;
-  additionalLegs: number;
-  additionalLegsCost: number;
-  stitchScrewsPriceEach: number;
-  stitchScrews: number;
-  stitchScrewsCost: number;
-  structuralScrewsPriceEach: number;
-  structuralScrews: number;
-  structuralScrewsCost: number;
-  tekScrewsPriceEach: number;
-  tekScrews: number;
-  tekScrewsCost: number;
-  elbowBracePriceEach: number;
-  elbowBrace: number;
-  elbowBraceCost: number;
-  rafterPriceEach: number;
-  rafters: number;
-  raftersCost: number;
-  runners: number;
-  runnersCost: number;
-  runnersPriceEach: number;
 }
 
-// Eco building pricing data.
-export const PRICING_DATA: any = {
-  "12x20": {
-    "Height A (8')": {
-      "Base Price": 2495.0,
-      Window: 385.0,
-      Legs: 46.32,
-      Anchor: 45.0, // 1 anchor per leg
-      "Anchors w/ Concrete": 10, // 1 anchor per leg
-      "Side Wall": 445.0,
-      "Stitch Screws": 0.2, //20 screws
-      "Strucutral Screws": 0.2, //80 screws
-      "End Wall": 714.26,
-      "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
-      Rafter: 118.7, //5 rafters
-      "Elbow Brace": 27, //6 braces
-      Runners: 269.66,
-    },
-    "Height B (10')": {
-      "Base Price": 2495.0,
-      Window: 385.0,
-      Legs: 57.9,
-      Anchor: 45.0, // 1 anchor per leg
-      "Anchors w/ Concrete": 10, // 1 anchor per leg
-      "Side Wall": 583.0,
-      "Stitch Screws": 0.6, //30 screws
-      "Strucutral Screws": 0.2, //90 screws
-      "End Wall": 783.46,
-      "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
-      Rafter: 118.7, //5 rafters
-      "Elbow Brace": 27, //6 braces
-      Runners: 269.66,
-    },
-    "Height C (12')": {
-      "Base Price": 2495.0,
-      Window: 385.0,
-      Legs: 69.48,
-      Anchor: 45.0,
-      "Anchors w/ Concrete": 10,
-      "Side Wall": 715.0,
-      "Stitch Screws": 0.2, //30 screws
-      "Strucutral Screws": 0.2, //100 screws
-      "End Wall": 852.66,
-      "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
-      Rafter: 118.7, //5 rafters
-      "Elbow Brace": 27, //6 braces
-      Runners: 269.66,
-    },
-  },
-  "18x20": {
-    "Height A (8')": {
-      "Base Price": 2695.0,
-      Window: 385.0,
-      Legs: 47.1, // set of 10
-      Anchor: 45.0, // 1 anchor per leg
-      "Anchors w/ Concrete": 10, // 1 anchor per leg
-      "Side Wall": 445.0,
-      "Stitch Screws": 0.2, //20 screws
-      "Strucutral Screws": 0.2, //80 screws
-      "End Wall": 909.38,
-      "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
-      Rafter: 118.7, //5 rafters
-      "Elbow Brace": 27, //6 braces
-      Runners: 269.66,
-    },
-    "Height B (10')": {
-      "Base Price": 2695.0,
-      Window: 385.0,
-      Legs: 58.9, // set of 10
-      Anchor: 45.0, // 1 anchor per leg
-      "Anchors w/ Concrete": 10, // 1 anchor per leg
-      "Side Wall": 583.0,
-      "Stitch Screws": 0.2, //30 screws
-      "Strucutral Screws": 0.2, //90 screws
-      "End Wall": 1006.76,
-      "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
-      Rafter: 118.7, //5 rafters
-      "Elbow Brace": 27, //6 braces
-      Runners: 269.66,
-    },
-    "Height C (12')": {
-      "Base Price": 2695.0,
-      Windows: 385.0,
-      Legs: 70.68, // set of 10
-      Anchor: 45.0, // 1 anchor per leg
-      "Anchors w/ Concrete": 10,
-      "Side Wall": 715.0,
-      "Stitch Screws": 0.2, //30 screws
-      "Strucutral Screws": 0.2, //100 screws
-      "End Wall": 1104.14,
-      "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
-      Rafter: 118.7, //5 rafters
-      "Elbow Brace": 27, //6 braces
-      Runners: 269.66,
-    },
-  },
-  "20x20": {
-    "Height A (8')": {
-      "Base Price": 3095.0,
-      Windows: 385.0,
-      Legs: 47.1, // set of 10
-      Anchor: 45.0,
-      "Anchors w/ Concrete": 10,
-      "Side Wall": 445.0,
-      "Stitch Screws": 0.2, //20 screws
-      "Strucutral Screws": 0.2, //80 screws
-      "End Wall": 952.46,
-      "Tek Screws": 0.25, // 100 screws
-      Rafter: 271.06, //5 rafters
-      "Elbow Brace": 27, //10 braces
-      Runners: 269.66,
-    },
-    "Height B (10')": {
-      "Base Price": 3095.0,
-      Windows: 385.0,
-      Legs: 58.9, // set of 10
-      Anchor: 45.0,
-      "Anchors w/ Concrete": 10,
-      "Side Wall": 583.0,
-      "Stitch Screws": 0.2, //30 screws
-      "Strucutral Screws": 0.2, //90 screws
-      "End Wall": 1060.66,
-      "Tek Screws": 0.25, //100 screws
-      Rafter: 271.06, //5 rafters
-      "Elbow Brace": 27, //10 braces
-      Runners: 269.66,
-    },
-    "Height C (12')": {
-      "Base Price": 3095.0,
-      Windows: 385.0,
-      Legs: 70.68, // set of 10
-      Anchor: 45.0,
-      "Anchors w/ Concrete": 10,
-      "Side Wall": 715.0,
-      "Stitch Screws": 0.2, //30 screws
-      "Strucutral Screws": 0.2, //100 screws
-      "End Wall": 1168.86,
-      "Tek Screws": 0.25, //100 screws
-      Rafter: 271.06, //5 rafters
-      "Elbow Brace": 27, //10 braces
-      Runners: 269.66,
-    },
-  },
-  "24x20": {
-    "Height A (8')": {
-      "Base Price": 3795.0,
-      Windows: 385.0,
-      Legs: 47.1, // set of 10
-      Anchor: 45.0,
-      "Anchors w/ Concrete": 10,
-      "Side Wall": 445.0,
-      "Stitch Screws": 0.2, //20 screws
-      "Strucutral Screws": 0.2, //80 screws
-      "End Wall": 1004.86,
-      "Tek Screws": 0.25, //100 screws
-      "Elbow Brace": 36, //6 braces
-      Rafter: 300.06, //5 rafters
-      Runners: 269.66,
-    },
-    "Height B (10')": {
-      "Base Price": 3795.0,
-      Windows: 385.0,
-      Legs: 58.9, // set of 10
-      Anchor: 45.0,
-      "Anchors w/ Concrete": 10,
-      "Side Wall": 583.0,
-      "Stitch Screws": 0.2, //30 screws
-      "Strucutral Screws": 0.2, //90 screws
-      "End Wall": 1113.46,
-      "Tek Screws": 0.25, //100 screws
-      "Elbow Brace": 36, //6 braces
-      Rafter: 300.06, //5 rafters
-      Runners: 269.66,
-    },
-    "Height C (12')": {
-      "Base Price": 3795.0,
-      Windows: 385.0,
-      Legs: 70.68, // set of 10
-      Anchor: 45.0,
-      "Anchors w/ Concrete": 10,
-      "Side Wall": 715.0,
-      "Stitch Screws": 0.2, //30 screws
-      "Strucutral Screws": 0.2, //100 screws
-      "End Wall": 1222.06,
-      "Tek Screws": 0.25, //100 screws
-      "Elbow Brace": 36, //6 braces
-      Rafter: 300.06, //5 rafters
-      Runners: 269.66,
-    },
-  },
-};
+interface SideWallPackage {
+  Sheathing: number;
+  "Structural Screws": number;
+  "Stitch Screws": number;
+}
 
-const SIZES = ["12x20", "18x20", "20x20", "24x20"];
-const HEIGHTS = ["Height A (8')", "Height B (10')", "Height C (12')"];
-const GROUND_TYPE = {
-  REGULAR: "Regular Ground",
-  CONCRETE: "Concrete",
-};
+const EcoBuildingCalculator = () => {
+  const SIZES = ["12x20", "18x20", "20x20", "24x20"];
+  const HEIGHTS = ["8' Height", "10' Height", "12' Height"];
+  const GROUND_TYPE = { REGULAR: "Regular", CONCRETE: "Concrete" };
 
-const EcoBuildingCalculator: React.FC = () => {
-  const [selectedSize, setSelectedSize] = useState<string>(SIZES[0]);
-  const [selectedHeight, setSelectedHeight] = useState<string>(HEIGHTS[0]);
-  const [windowQuantity, setWindowQuantity] = useState<number>(0);
-  const [sideWallQuantity, setSideWallQuantity] = useState<number>(0);
-  const [endWallQuantity, setEndWallQuantity] = useState<number>(0);
-  const [groundType, setGroundType] = useState<string>(GROUND_TYPE.REGULAR);
-  const [calculationDetails, setCalculationDetails] =
-    useState<CalculationDetails | null>(null);
-  const calculateTotalPrice = () => {
-    const sizeData = PRICING_DATA[selectedSize];
-    const heightData = sizeData[selectedHeight];
-    const windowPrice = heightData.Window || heightData.Windows || 0;
-    const windowsCost = windowPrice * windowQuantity;
-    const sideWallCost = heightData["Side Wall"] * sideWallQuantity;
-    const endWallCost = heightData["End Wall"] * endWallQuantity;
+  const [selectedSize, setSelectedSize] = useState("12x20");
+  const [selectedHeight, setSelectedHeight] = useState("8' Height");
+  const [groundType, setGroundType] = useState(GROUND_TYPE.REGULAR);
+  const [windowQuantity, setWindowQuantity] = useState(0);
+  const [sideWallQuantity, setSideWallQuantity] = useState(0);
+  const [endWallQuantity, setEndWallQuantity] = useState(0);
+  const [totalCost, setTotalCost] = useState(0);
+  const [breakdown, setBreakdown] = useState<BreakdownDetail[]>([]);
+  const [sidewallPackageEnabled, setSidewallPackageEnabled] = useState(false);
 
-    // Determine the quantity of stitch screws and structural screws based on height
-    let stitchScrewsQuantity = 0;
-    let structuralScrewsQuantity = 0;
-    let rafterQuantity = 5;
-    let runnersQuantity = 2;
-    let tekScrewsQuantity = 0;
-    let elbowBraceQuantity = 0;
-    if (selectedHeight === "Height A (8')") {
-      stitchScrewsQuantity = 20; // 20 stitch screws for 8' height
-      structuralScrewsQuantity = 80; // 80 structural screws for 8' height
-    } else if (selectedHeight === "Height B (10')") {
-      stitchScrewsQuantity = 30; // 30 stitch screws for 10' height
-      structuralScrewsQuantity = 90; // 90 structural screws for 10' height
-    } else if (selectedHeight === "Height C (12')") {
-      stitchScrewsQuantity = 30; // 30 stitch screws for 12' height
-      structuralScrewsQuantity = 100; // 100 structural screws for 12' height
+  const BASE_PACKAGES: any = {
+    "12x20": {
+      "8' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 5,
+        Anchor: 10,
+        Clips: 35,
+        "Tek Screws": 72,
+        "Structural Screws": 170,
+        "Stitch Screws": 40,
+        Rafter: 5,
+        "Elbow Brace": 6,
+        // "Hat Channel": 4,
+      },
+      "10' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 5,
+        Anchor: 10,
+        Clips: 35,
+        "Tek Screws": 72,
+        "Structural Screws": 180,
+        "Stitch Screws": 50,
+        Rafter: 5,
+        "Elbow Brace": 10,
+        "Corner Brace": 4,
+        "Hat Channel": 4,
+      },
+      "12' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 5,
+        Anchor: 10,
+        Clips: 35,
+        "Tek Screws": 72,
+        "Structural Screws": 190,
+        "Stitch Screws": 60,
+        Rafter: 5,
+        "Elbow Brace": 6,
+        "Corner Brace": 4,
+        "Hat Channel": 4,
+      },
+    },
+    "18x20": {
+      "8' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 6,
+        Anchor: 10,
+        Clips: 35,
+        "Tek Screws": 72,
+        "Structural Screws": 180,
+        "Stitch Screws": 60,
+        Rafter: 5,
+        "Elbow Brace": 6,
+      },
+      "10' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 7,
+        Anchor: 10,
+        Clips: 35,
+        "Tek Screws": 72,
+        "Structural Screws": 190,
+        "Stitch Screws": 70,
+        Rafter: 5,
+        "Elbow Brace": 6,
+      },
+      "12' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 8,
+        Anchor: 10,
+        Clips: 35,
+        "Tek Screws": 72,
+        "Structural Screws": 200,
+        "Stitch Screws": 80,
+        "Elbow Brace": 6,
+        Rafter: 5,
+      },
+    },
+    "20x20": {
+      "8' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 7,
+        Anchor: 10,
+        Clips: 32,
+        "Tek Screws": 36,
+        "Structural Screws": 190,
+        "Stitch Screws": 80,
+        "Elbow Brace": 10,
+        Rafter: 5,
+      },
+      "10' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 8,
+        Anchor: 10,
+        Clips: 32,
+        "Tek Screws": 36,
+        "Structural Screws": 200,
+        "Stitch Screws": 90,
+        "Elbow Brace": 10,
+        Rafter: 5,
+      },
+      "12' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 9,
+        Anchor: 10,
+        Clips: 32,
+        "Tek Screws": 36,
+        "Structural Screws": 210,
+        "Stitch Screws": 100,
+        "Elbow Brace": 10,
+        Rafter: 5,
+      },
+    },
+    "24x20": {
+      "8' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 8,
+        Anchor: 10,
+        Clips: 6,
+        "Tek Screws": 40,
+        "Structural Screws": 190,
+        "Stitch Screws": 90,
+        "Elbow Brace": 6,
+        Rafter: 5,
+      },
+      "10' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 9,
+        Anchor: 10,
+        Clips: 6,
+        "Tek Screws": 40,
+        "Structural Screws": 200,
+        "Stitch Screws": 100,
+        "Elbow Brace": 6,
+        Rafter: 5,
+      },
+      "12' Height": {
+        Posts: 10,
+        Runners: 2,
+        RoofSheet: 10,
+        Anchor: 10,
+        Clips: 6,
+        "Tek Screws": 40,
+        "Structural Screws": 210,
+        "Stitch Screws": 110,
+        "Elbow Brace": 6,
+        Rafter: 5,
+      },
+    },
+  };
+  const PRICING_DATA: any = {
+    "12x20": {
+      "8' Height": {
+        Window: 385.0,
+        Posts: 46.32,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 445.0,
+        "Stitch Screws": 0.2, //20 screws
+        "Structural Screws": 0.2, //80 screws
+        "End Wall": 714.26,
+        "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
+        Rafter: 118.7, //5 rafters
+        "Elbow Brace": 27, //6 braces
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+        "Hat Channel": 60, //20ft
+        "Corner Brace": 24, //per brace
+      },
+      "10' Height": {
+        Window: 385.0,
+        Posts: 57.9,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 583.0,
+        "Stitch Screws": 0.6, //30 screws
+        "Structural Screws": 0.2, //90 screws
+        "End Wall": 783.46,
+        "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
+        Rafter: 118.7, //5 rafters
+        "Elbow Brace": 27, //6 braces
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+      },
+      "12' Height": {
+        Window: 385.0,
+        Posts: 69.48,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 715.0,
+        "Stitch Screws": 0.2, //30 screws
+        "Structural Screws": 0.2, //100 screws
+        "End Wall": 852.66,
+        "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
+        Rafter: 118.7, //5 rafters
+        "Elbow Brace": 27, //6 braces
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+      },
+    },
+    "18x20": {
+      "8' Height": {
+        Window: 385.0,
+        Posts: 47.1,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10, // 1 anchor per leg
+        "Side Wall": 445.0,
+        "Stitch Screws": 0.2, //20 screws
+        "Structural Screws": 0.2, //80 screws
+        "End Wall": 909.38,
+        "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
+        Rafter: 118.7, //5 rafters
+        "Elbow Brace": 27, //6 braces
+        Runners: 269.66,
+        RoofSheet: 95.58,
+        Clips: 15,
+      },
+      "10' Height": {
+        Window: 385.0,
+        Posts: 58.9,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 583.0,
+        "Stitch Screws": 0.2, //30 screws
+        "Structural Screws": 0.2, //90 screws
+        "End Wall": 1006.76,
+        "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
+        Rafter: 118.7, //5 rafters
+        "Elbow Brace": 27, //6 braces
+        Runners: 269.66,
+        RoofSheet: 95.58,
+        Clips: 15,
+      },
+      "12' Height": {
+        Windows: 385.0,
+        Posts: 70.68, // set of 10
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 715.0,
+        "Stitch Screws": 0.2, //30 screws
+        "Structural Screws": 0.2, //100 screws
+        "End Wall": 1104.14,
+        "Tek Screws": 0.25, //72 screws (Elbow brace and posts)
+        Rafter: 118.7, //5 rafters
+        "Elbow Brace": 27, //6 braces
+        Runners: 269.66,
+        RoofSheet: 95.58,
+        Clips: 15,
+      },
+    },
+    "20x20": {
+      "8' Height": {
+        Window: 385.0,
+        Posts: 47.1,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 445.0,
+        "Stitch Screws": 0.2, //20 screws
+        "Structural Screws": 0.2, //80 screws
+        "End Wall": 952.46,
+        "Tek Screws": 0.25, // 100 screws
+        Rafter: 271.06, //5 rafters
+        "Elbow Brace": 27, //10 braces
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+      },
+      "10' Height": {
+        Window: 385.0,
+        Posts: 58.9,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 583.0,
+        "Stitch Screws": 0.2, //30 screws
+        "Structural Screws": 0.2, //90 screws
+        "End Wall": 1060.66,
+        "Tek Screws": 0.25, //100 screws
+        Rafter: 271.06, //5 rafters
+        "Elbow Brace": 27, //10 braces
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+      },
+      "12' Height": {
+        Window: 385.0,
+        Posts: 70.68,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 715.0,
+        "Stitch Screws": 0.2, //30 screws
+        "Structural Screws": 0.2, //100 screws
+        "End Wall": 1168.86,
+        "Tek Screws": 0.25, //100 screws
+        Rafter: 271.06, //5 rafters
+        "Elbow Brace": 27, //10 braces
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+      },
+    },
+    "24x20": {
+      "8' Height": {
+        Window: 385.0,
+        Posts: 47.1,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 445.0,
+        "Stitch Screws": 0.2, //20 screws
+        "Structural Screws": 0.2, //80 screws
+        "End Wall": 1004.86,
+        "Tek Screws": 0.25, //100 screws
+        "Elbow Brace": 36, //10 braces
+        Rafter: 300.06, //5 rafters
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+      },
+      "10' Height": {
+        Window: 385.0,
+        Posts: 58.9,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 583.0,
+        "Stitch Screws": 0.2, //30 screws
+        "Structural Screws": 0.2, //90 screws
+        "End Wall": 1113.46,
+        "Tek Screws": 0.25, //100 screws
+        "Elbow Brace": 36, //10 braces
+        Rafter: 300.06, //5 rafters
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+      },
+      "12' Height": {
+        Window: 385.0,
+        Posts: 70.68,
+        Anchor: 45.0,
+        "Anchors w/ Concrete": 10,
+        "Side Wall": 715.0,
+        "Stitch Screws": 0.2, //30 screws
+        "Structural Screws": 0.2, //100 screws
+        "End Wall": 1222.06,
+        "Tek Screws": 0.25, //100 screws
+        "Elbow Brace": 36, //10 braces
+        Rafter: 300.06, //5 rafters
+        Runners: 269.66,
+        RoofSheet: 106.2,
+        Clips: 15,
+      },
+    },
+  };
+  const SIDEWALL_PACKAGE: any = {
+    Sheathing: 3,
+    "Structural Screws": 80,
+    "Stitch Screws": 30,
+  };
+
+  const calculateTotalCost = () => {
+    // Debugging: Log the current selections
+    console.log(
+      "Selected Size:",
+      selectedSize,
+      "Selected Height:",
+      selectedHeight
+    );
+
+    // Check if the selected size and height are valid and exist in BASE_PACKAGES
+    if (
+      !selectedSize ||
+      !selectedHeight ||
+      !BASE_PACKAGES[selectedSize] ||
+      !BASE_PACKAGES[selectedSize][selectedHeight]
+    ) {
+      alert("Please select a valid size and height.");
+      return;
     }
 
-    if (selectedSize === "12x20") {
-      tekScrewsQuantity = 72; // 72
-      elbowBraceQuantity = 6; // 6 elbow braces
-    } else if (selectedSize === "18x20") {
-      tekScrewsQuantity = 72; // 72
-      elbowBraceQuantity = 10; // 10 elbow braces
-    } else if (selectedSize === "20x20") {
-      tekScrewsQuantity = 100; // 100
-      elbowBraceQuantity = 10; // 10 elbow braces
-    } else if (selectedSize === "24x20") {
-      tekScrewsQuantity = 100; // 100
-      elbowBraceQuantity = 6; // 6 elbow braces
+    const basePackage = BASE_PACKAGES[selectedSize][selectedHeight];
+
+    // Adjusting the key generation to match PRICING_DATA keys
+    // The key should be exactly like the ones in PRICING_DATA, e.g., "8' Height"
+    const pricingKey = selectedHeight;
+
+    console.log("Pricing Key:", pricingKey);
+
+    const pricing = PRICING_DATA[selectedSize][pricingKey];
+
+    // Debugging: Log the retrieved package and pricing data
+    console.log("Base Package:", basePackage, "Pricing Data:", pricing);
+
+    if (!pricing) {
+      alert(`Pricing data not found for ${selectedSize} ${selectedHeight}`);
+      return;
     }
 
-    // Calculate costs for Tek Screws, Elbow Braces, and Rafters
-    const tekScrewsPrice = heightData["Tek Screws"];
-    const tekScrewsCost = tekScrewsPrice * tekScrewsQuantity; // Replace quantityNeeded with actual calculation
-    const elbowBracePrice = heightData["Elbow Brace"];
-    const elbowBraceCost = elbowBracePrice * elbowBraceQuantity; // Replace quantityNeeded with actual calculation
-    const rafterPrice = heightData.Rafter;
-    const raftersCost = rafterPrice * rafterQuantity; // Replace quantityNeeded with actual calculation
+    let calculatedTotalCost = 0;
+    let breakdownDetails: BreakdownDetail[] = [];
 
-    //Calculate costs for runners
-    const runnersPrice = heightData.Runners * runnersQuantity;
+    // Calculate cost for base package
+    for (const item in basePackage) {
+      const quantity = basePackage[item];
 
-    // Calculate costs for stitch screws and structural screws
-    const stitchScrewsPrice = heightData["Stitch Screws"];
-    const stitchScrewsCost = stitchScrewsPrice * stitchScrewsQuantity;
-    const structuralScrewsPrice = heightData["Strucutral Screws"];
-    const structuralScrewsCost =
-      structuralScrewsPrice * structuralScrewsQuantity;
+      // Debugging log to check each item
+      console.log(`Processing item: ${item}, Quantity: ${quantity}`);
 
-    // Base 10 legs are included in every building package
-    const baseLegs = 10;
-    const baseLegsCost = heightData.Legs * baseLegs;
+      // Check if the pricing data exists for the item
+      if (!pricing[item]) {
+        console.error(`Pricing data missing for item: ${item}`);
+        continue; // Skip this item if pricing data is not found
+      }
 
-    // Additional legs cost if end walls are added
-    const additionalLegs = 2 * endWallQuantity;
-    const additionalLegsCost = heightData.Legs * additionalLegs;
+      const itemCost = pricing[item] * quantity;
+      calculatedTotalCost += itemCost;
+      breakdownDetails.push({
+        item,
+        quantity,
+        unitPrice: pricing[item],
+        total: itemCost,
+      });
+    }
 
-    // Determine anchor price based on ground type
-    const anchorPrice =
-      groundType === GROUND_TYPE.CONCRETE
-        ? heightData["Anchors w/ Concrete"]
-        : heightData.Anchor;
+    // Add costs for additional items
+    calculatedTotalCost += pricing["Window"] * windowQuantity;
+    calculatedTotalCost += pricing["Side Wall"] * sideWallQuantity;
+    calculatedTotalCost += pricing["End Wall"] * endWallQuantity;
 
-    // Including the base 10 anchors, plus 2 anchors per end wall
-    const totalAnchors = baseLegs + additionalLegs;
-    const anchorsCost = anchorPrice * totalAnchors; // Cost for all anchors including the base 10
+    // Add Sidewall package cost if enabled
+    // Add Sidewall package cost based on quantity
+    if (sideWallQuantity > 0) {
+      for (const item in SIDEWALL_PACKAGE) {
+        const quantity = SIDEWALL_PACKAGE[item] * sideWallQuantity;
+        const itemCost = pricing[item] ? pricing[item] * quantity : 0;
+        calculatedTotalCost += itemCost;
+        breakdownDetails.push({
+          item,
+          quantity,
+          unitPrice: pricing[item] || 0,
+          total: itemCost,
+        });
+      }
+    }
 
-    // Calculate the total price
-    const total =
-      //! heightData["Base Price"] +
-      windowsCost +
-      sideWallCost +
-      endWallCost +
-      baseLegsCost +
-      additionalLegsCost +
-      anchorsCost +
-      stitchScrewsCost +
-      structuralScrewsCost +
-      tekScrewsCost +
-      elbowBraceCost +
-      raftersCost +
-      runnersPrice;
+    setTotalCost(calculatedTotalCost);
+    setBreakdown(breakdownDetails);
+  };
 
-    // Set the calculation details
-    setCalculationDetails({
-      size: selectedSize,
-      height: selectedHeight,
-      basePrice: heightData["Base Price"],
-      windowPrice: windowPrice,
-      windows: windowQuantity,
-      windowsCost: windowsCost,
-      sideWallPrice: heightData["Side Wall"],
-      sideWall: sideWallQuantity,
-      sideWallCost: sideWallCost,
-      endWallPrice: heightData["End Wall"],
-      endWall: endWallQuantity,
-      endWallCost: endWallCost,
-      legsPricePerSet: heightData.Legs,
-      legs: totalAnchors, // Updated to include the additional legs for end walls
-      legsCost: baseLegsCost + additionalLegsCost,
-      anchorsPriceEach: anchorPrice,
-      anchors: totalAnchors, // Updated to reflect the total number of anchors
-      anchorsCost: anchorsCost,
-      baseLegs: baseLegs,
-      baseLegsCost: heightData.Legs * 10,
-      additionalLegs: additionalLegs,
-      additionalLegsCost: additionalLegsCost,
-      stitchScrewsPriceEach: stitchScrewsPrice,
-      stitchScrews: stitchScrewsQuantity, // Replace with actual quantity
-      stitchScrewsCost: stitchScrewsCost,
-      structuralScrewsPriceEach: structuralScrewsPrice,
-      structuralScrews: structuralScrewsQuantity, // Replace with actual quantity
-      structuralScrewsCost: structuralScrewsCost,
-      tekScrewsPriceEach: tekScrewsPrice,
-      tekScrews: tekScrewsQuantity, // Replace with actual quantity
-      tekScrewsCost: tekScrewsCost,
-      elbowBracePriceEach: elbowBracePrice,
-      elbowBrace: elbowBraceQuantity, // Replace with actual quantity
-      elbowBraceCost: elbowBraceCost,
-      rafterPriceEach: rafterPrice,
-      rafters: rafterQuantity, // Replace with actual quantity
-      raftersCost: raftersCost,
-      runners: runnersQuantity,
-      runnersCost: runnersPrice,
-      runnersPriceEach: heightData.Runners,
-      total: total,
-    });
+  const resetCalculator = () => {
+    setSelectedSize("");
+    setSelectedHeight("");
+    setGroundType(GROUND_TYPE.REGULAR);
+    setWindowQuantity(0);
+    setSideWallQuantity(0);
+    setEndWallQuantity(0);
+    setTotalCost(0);
+    setBreakdown([]);
   };
 
   return (
-    <IonGrid>
+    <div>
       <IonRow>
         <IonCol>
           <IonItem>
             <IonLabel position="stacked">Select Size:</IonLabel>
             <IonSelect
+              //label="Select Size"
               value={selectedSize}
               onIonChange={(e) => setSelectedSize(e.detail.value)}
             >
@@ -424,6 +532,7 @@ const EcoBuildingCalculator: React.FC = () => {
           <IonItem>
             <IonLabel position="stacked">Select Height:</IonLabel>
             <IonSelect
+              //label="Select Height"
               value={selectedHeight}
               onIonChange={(e) => setSelectedHeight(e.detail.value)}
             >
@@ -451,6 +560,7 @@ const EcoBuildingCalculator: React.FC = () => {
           <IonItem>
             <IonLabel position="stacked">Window Quantity:</IonLabel>
             <IonInput
+              //label="Window Quantity"
               type="number"
               value={windowQuantity}
               onIonChange={(e: any) =>
@@ -462,156 +572,67 @@ const EcoBuildingCalculator: React.FC = () => {
           <IonItem>
             <IonLabel position="stacked">Side Wall Quantity:</IonLabel>
             <IonInput
+              //label="Side Wall Quantity"
               type="number"
               value={sideWallQuantity}
               onIonChange={(e: any) =>
                 setSideWallQuantity(parseInt(e.detail.value))
               }
               min="0"
+              max="2"
             />
           </IonItem>
           <IonItem>
             <IonLabel position="stacked">End Wall Quantity:</IonLabel>
             <IonInput
+              //label="End Wall Quantity"
               type="number"
               value={endWallQuantity}
               onIonChange={(e: any) =>
                 setEndWallQuantity(parseInt(e.detail.value))
               }
               min="0"
+              max="2"
             />
           </IonItem>
         </IonCol>
       </IonRow>
       <IonRow>
         <IonCol>
-          <IonButton expand="full" onClick={calculateTotalPrice}>
-            Calculate
+          <IonButton color="primary" expand="full" onClick={calculateTotalCost}>
+            Calculate Total
+          </IonButton>
+        </IonCol>
+        <IonCol>
+          <IonButton color="secondary" expand="full" onClick={resetCalculator}>
+            Reset
           </IonButton>
         </IonCol>
       </IonRow>
-      {calculationDetails && (
-        <>
-          <IonRow>
-            <IonCol>
-              <IonCard>
-                <IonCardContent>
-                  <h2>Building Details:</h2>
-                  <p>Size: {calculationDetails.size}</p>
-                  <p>Height: {calculationDetails.height}</p>
+      <IonRow>
+        <IonCol>
+          <IonCard>
+            <IonCardHeader>
+              <IonCardTitle>Cost Breakdown</IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              {breakdown.map((detail, index) => (
+                <div key={index}>
                   <p>
-                    Base Price: ${calculationDetails.basePrice.toFixed(2)}{" "}
-                    (Currently not included)
+                    {detail.item}: Quantity {detail.quantity}, Unit Price: $
+                    {detail.unitPrice.toFixed(2)}, Total: $
+                    {detail.total.toFixed(2)}
                   </p>
-                  <p>
-                    Base Legs (10 included): $
-                    {calculationDetails.baseLegsCost.toFixed(2)}
-                  </p>
-                  <p>
-                    Base Anchors (10 included): $
-                    {calculationDetails.anchorsCost.toFixed(2)}
-                  </p>
-                  <p>
-                    Stitch Screws (each): $
-                    {calculationDetails.stitchScrewsPriceEach.toFixed(2)}x{" "}
-                    {calculationDetails.stitchScrews} (Total: $
-                    {calculationDetails.stitchScrewsCost.toFixed(2)})
-                  </p>
-                  <p>
-                    Structural Screws (each): $
-                    {calculationDetails.structuralScrewsPriceEach.toFixed(2)}x{" "}
-                    {calculationDetails.structuralScrews} (Total: $
-                    {calculationDetails.structuralScrewsCost.toFixed(2)})
-                  </p>
-                  <p>
-                    Tek Screws (each): $
-                    {calculationDetails.tekScrewsPriceEach.toFixed(2)}x{" "}
-                    {calculationDetails.tekScrews} (Total: $
-                    {calculationDetails.tekScrewsCost.toFixed(2)})
-                  </p>
-                  <p>
-                    Elbow Braces (each): $
-                    {calculationDetails.elbowBracePriceEach.toFixed(2)}x{" "}
-                    {calculationDetails.elbowBrace} (Total: $
-                    {calculationDetails.elbowBraceCost.toFixed(2)})
-                  </p>
-                  <p>
-                    Rafters (each): $
-                    {calculationDetails.rafterPriceEach.toFixed(2)}x{" "}
-                    {calculationDetails.rafters} (Total: $
-                    {calculationDetails.raftersCost.toFixed(2)})
-                  </p>
-                  <p>
-                    Runners (2 @ 20'): $
-                    {calculationDetails.runnersPriceEach.toFixed(2)} x{" "}
-                    {calculationDetails.runners} (Total: $
-                    {calculationDetails.runnersCost.toFixed(2)})
-                  </p>
-                </IonCardContent>
-              </IonCard>
-            </IonCol>
-          </IonRow>
-          <IonRow>
-            <IonCol>
-              <IonCard>
-                <IonCardContent>
-                  <h2>Added Options:</h2>
-                  <p>
-                    Windows (each): ${calculationDetails.windowPrice.toFixed(2)}{" "}
-                    x {calculationDetails.windows} (Total: $
-                    {calculationDetails.windowsCost.toFixed(2)})
-                  </p>
-                  <p>
-                    Side Walls (each): $
-                    {calculationDetails.sideWallPrice.toFixed(2)} x{" "}
-                    {calculationDetails.sideWall} (Total: $
-                    {calculationDetails.sideWallCost.toFixed(2)})
-                  </p>
-                  <p>
-                    End Walls (each): $
-                    {calculationDetails.endWallPrice.toFixed(2)} x{" "}
-                    {calculationDetails.endWall} (Total: $
-                    {calculationDetails.endWallCost.toFixed(2)})
-                  </p>
-
-                  <p>
-                    Additional Anchors (for end walls): $
-                    {calculationDetails.anchorsPriceEach.toFixed(2)} x{" "}
-                    {calculationDetails.endWall * 2} (Total: $
-                    {(
-                      calculationDetails.anchorsPriceEach *
-                      calculationDetails.endWall *
-                      2
-                    ).toFixed(2)}
-                    )
-                  </p>
-                  <p>
-                    Additional Legs (for end walls): $
-                    {calculationDetails.legsPricePerSet.toFixed(2)} x{" "}
-                    {calculationDetails.additionalLegs} (Total: $
-                    {calculationDetails.additionalLegsCost.toFixed(2)})
-                  </p>
-
-                  <p>Ground Type: {groundType}</p>
-                </IonCardContent>
-              </IonCard>
-            </IonCol>
-          </IonRow>
-          <IonRow>
-            <IonCol>
-              <IonCard>
-                <IonCardContent style={{ textAlign: "center" }}>
-                  <h2>Total Cost:</h2>
-                  <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
-                    ${calculationDetails.total.toFixed(2)}
-                  </p>
-                </IonCardContent>
-              </IonCard>
-            </IonCol>
-          </IonRow>
-        </>
-      )}
-    </IonGrid>
+                </div>
+              ))}
+              <p>
+                <strong>Total Cost: ${totalCost.toFixed(2)}</strong>
+              </p>
+            </IonCardContent>
+          </IonCard>
+        </IonCol>
+      </IonRow>
+    </div>
   );
 };
 

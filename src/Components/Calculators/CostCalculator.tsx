@@ -86,19 +86,18 @@ const CostCalculator: React.FC = () => {
       <IonRow>
         <IonCol>
           <IonItem>
-            <IonLabel position="stacked">Length:</IonLabel>
-            <IonInput
-              value={length}
-              onIonChange={(e) => setLength(parseFloat(e.detail.value!))}
-              type="number"
-            />
-          </IonItem>
-
-          <IonItem>
             <IonLabel position="stacked">Width:</IonLabel>
             <IonInput
               value={width}
               onIonChange={(e) => setWidth(parseFloat(e.detail.value!))}
+              type="number"
+            />
+          </IonItem>
+          <IonItem>
+            <IonLabel position="stacked">Length:</IonLabel>
+            <IonInput
+              value={length}
+              onIonChange={(e) => setLength(parseFloat(e.detail.value!))}
               type="number"
             />
           </IonItem>

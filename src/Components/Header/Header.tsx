@@ -6,7 +6,6 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 const Header = () => {
   const { isAuthenticated, user } = useAuth0();
-  console.log(user);
   return (
     <IonHeader>
       <IonToolbar>

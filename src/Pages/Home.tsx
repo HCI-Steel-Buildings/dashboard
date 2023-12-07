@@ -5,6 +5,9 @@ import MessageOfTheDay from "../Components/MesssageOfTheDay/MessageOfTheDay";
 import "./Home.css";
 import AppCard from "../Components/AppCardComponent/AppCardComponent";
 import { useCommonContext } from "../Context/CommonContext";
+import Snowfall from "react-snowfall";
+
+// Inside your component return statement
 const Home: React.FC = () => {
   const cardData = [
     {
@@ -29,8 +32,12 @@ const Home: React.FC = () => {
     },
   ];
 
+  const { data } = useCommonContext();
+  console.log(data);
   return (
     <IonPage>
+      <Snowfall style={{ zIndex: 1000 }} color="white" snowflakeCount={50} />
+
       <IonContent fullscreen>
         <Header />
 
@@ -52,8 +59,6 @@ const Home: React.FC = () => {
               </IonCol>
             ))}
           </IonRow>
-
-          {/* Row for Message of the Day */}
         </IonGrid>
       </IonContent>
     </IonPage>
