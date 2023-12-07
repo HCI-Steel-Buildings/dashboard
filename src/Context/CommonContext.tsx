@@ -10,8 +10,7 @@ import {
   FetchedMondayData,
 } from "./types";
 
-const BACKEND_API_ENDPOINT =
-  "https://api.hcisteelbuildings.com/api/monday-data";
+const BACKEND_API_ENDPOINT = "https://api.hcisteelbuildings.com/api/purchasing";
 
 const CommonContext = createContext<CommonContextValue | any>({
   data: null,
@@ -51,6 +50,7 @@ export const CommonContextProvider: React.FC<CommonProviderProps> = ({
         items: normalizedItems,
         columns: adjustedColumns,
       });
+      console.log("Data fetched from Monday:", fetchedData);
     }
     setLoading(false);
   }
