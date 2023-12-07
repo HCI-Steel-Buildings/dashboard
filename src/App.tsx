@@ -26,6 +26,7 @@ import {
   barChart,
   calculator,
   calendarNumber,
+  cashOutline,
   homeOutline,
   square,
   ticket,
@@ -126,8 +127,8 @@ const App: React.FC = () => {
               <IonLabel>Home</IonLabel>
             </IonTabButton>
             <IonTabButton tab="projectCenter" href="/projectCenter">
-              <IonIcon icon={calendarNumber} />
-              <IonLabel>Project Center</IonLabel>
+              <IonIcon icon={cashOutline} />
+              <IonLabel>Purchasing</IonLabel>
             </IonTabButton>
             <IonTabButton tab="minis" href="/minis">
               <IonIcon icon={square} />
