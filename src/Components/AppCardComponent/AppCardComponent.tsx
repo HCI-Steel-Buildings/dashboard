@@ -25,7 +25,9 @@ const AppCard: React.FC<AppCardProps> = ({ title, description, route }) => {
         <IonRow>
           <IonCol>
             <IonCardContent>
-              <IonCardTitle>{title}</IonCardTitle>
+              <IonCardTitle>
+                <strong>{title}</strong>
+              </IonCardTitle>
               {description}
             </IonCardContent>
           </IonCol>

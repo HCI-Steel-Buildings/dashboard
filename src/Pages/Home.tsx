@@ -11,9 +11,9 @@ import Snowfall from "react-snowfall";
 const Home: React.FC = () => {
   const cardData = [
     {
-      title: "Project Center",
-      description: "Navigate to Project Center📅",
-      route: "/projectCenter",
+      title: "Purchasing",
+      description: "Navigate to Purchasing Hub💵",
+      route: "/purchasing",
     },
     {
       title: "Minis",
@@ -36,7 +36,7 @@ const Home: React.FC = () => {
   console.log(data);
   return (
     <IonPage>
-      <Snowfall style={{ zIndex: 1000 }} color="white" snowflakeCount={50} />
+      <Snowfall style={{ zIndex: 1000 }} color="red" snowflakeCount={50} />
 
       <IonContent fullscreen>
         <Header />

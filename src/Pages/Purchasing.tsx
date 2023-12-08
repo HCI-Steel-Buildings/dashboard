@@ -2,6 +2,7 @@ import React from "react";
 import {
   IonCard,
   IonCardContent,
+  IonCardSubtitle,
   IonCol,
   IonContent,
   IonGrid,
@@ -12,7 +13,6 @@ import {
   IonToolbar,
 } from "@ionic/react";
 import { useCommonContext } from "../Context/CommonContext";
-import "./ProjectCenter.css";
 
 // Define interfaces for your data structure
 interface Item {
@@ -21,10 +21,11 @@ interface Item {
 
 interface ColorInfo {
   totalLF: number;
+  totalWeight: number; // Added total weight
   jobNumbers: string[];
 }
 
-const Charts: React.FC = () => {
+const Purchasing: React.FC = () => {
   const { data } = useCommonContext();
   const items: Item[] = data?.items || [];
 
@@ -72,10 +73,12 @@ const Charts: React.FC = () => {
           if (!lfByColor[color]) {
             lfByColor[color] = {
               totalLF: 0,
+              totalWeight: 0, // Initialize total weight
               jobNumbers: [],
             };
           }
           lfByColor[color].totalLF += lf;
+          lfByColor[color].totalWeight += Math.round(lf * 2 * 1.1); // Calculate total weight and round to nearest whole number
           if (!lfByColor[color].jobNumbers.includes(item["Job Number"])) {
             lfByColor[color].jobNumbers.push(item["Job Number"]);
           }
@@ -91,13 +94,15 @@ const Charts: React.FC = () => {
     const totalLFByColor = aggregateLFByColor(filteredItems);
 
     return Object.entries(totalLFByColor).map(
-      ([color, { totalLF, jobNumbers }]) => {
+      ([color, { totalLF, totalWeight, jobNumbers }]) => {
         if (totalLF === 0) {
-          return null; // Skip rendering if totalLF is 0
+          return null;
         }
         return (
           <div key={color}>
             <strong>{color}:</strong> {totalLF} LF
+            <br />
+            <strong>Total Weight:</strong> {totalWeight} lbs
             <br />
             <strong>Job Numbers:</strong> {jobNumbers.join(", ")}
             <br />
@@ -113,6 +118,9 @@ const Charts: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonTitle>Project Center</IonTitle>
+          <IonCardSubtitle>
+            Please note that all weight includes 10% overage.
+          </IonCardSubtitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
@@ -122,7 +130,6 @@ const Charts: React.FC = () => {
               <IonRow>
                 <IonCol>
                   <IonCard>
-                    {/* Red Header */}
                     <h2 style={{ backgroundColor: "rgba(255, 0, 0, 0.5)" }}>
                       Red (Next 30 days)
                     </h2>
@@ -131,7 +138,6 @@ const Charts: React.FC = () => {
                 </IonCol>
                 <IonCol>
                   <IonCard>
-                    {/* Yellow Header */}
                     <h2 style={{ backgroundColor: "rgba(255, 255, 0, 0.5)" }}>
                       Yellow (31 to 45 days)
                     </h2>
@@ -140,7 +146,6 @@ const Charts: React.FC = () => {
                 </IonCol>
                 <IonCol>
                   <IonCard>
-                    {/* Green Header */}
                     <h2 style={{ backgroundColor: "rgba(0, 128, 0, 0.5)" }}>
                       Green (More than 45 days)
                     </h2>
@@ -157,4 +162,4 @@ const Charts: React.FC = () => {
   );
 };
 
-export default Charts;
+export default Purchasing;

@@ -32,7 +32,6 @@ import {
   ticket,
 } from "ionicons/icons";
 import Home from "./Pages/Home";
-import ProjectCenter from "./Pages/ProjectCenter";
 import Minis from "./Pages/Minis";
 import Charts from "./Pages/Charts";
 import Calculator from "./Pages/Calculator";
@@ -54,6 +53,7 @@ import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
 import "./theme/variables.css";
 import "react-awesome-button/dist/styles.css";
+import Purchasing from "./Pages/Purchasing";
 
 setupIonicReact();
 
@@ -82,7 +82,7 @@ const App: React.FC = () => {
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 90%; /* Adjust as needed */
+            height: 90%; 
           }
 
           h2 {
@@ -102,8 +102,8 @@ const App: React.FC = () => {
             <Route exact path="/home">
               <Home />
             </Route>
-            <Route exact path="/projectCenter">
-              <ProjectCenter />
+            <Route exact path="/purchasing">
+              <Purchasing />
             </Route>
             <Route path="/minis">
               <Minis />
@@ -126,7 +126,7 @@ const App: React.FC = () => {
               <IonIcon icon={homeOutline} />
               <IonLabel>Home</IonLabel>
             </IonTabButton>
-            <IonTabButton tab="projectCenter" href="/projectCenter">
+            <IonTabButton tab="purchasing" href="/purchasing">
               <IonIcon icon={cashOutline} />
               <IonLabel>Purchasing</IonLabel>
             </IonTabButton>
