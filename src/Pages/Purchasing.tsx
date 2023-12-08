@@ -21,7 +21,7 @@ interface Item {
 
 interface ColorInfo {
   totalLF: number;
-  totalWeight: number; // Added total weight
+  totalWeight: number;
   jobNumbers: string[];
 }
 
@@ -37,25 +37,20 @@ const Purchasing: React.FC = () => {
   };
 
   const getColorForDays = (days: number): string => {
-    if (days <= 30) return "red";
-    if (days <= 45) return "yellow";
-    return "green";
+    return days <= 60 ? "red" : "green";
   };
 
   const filterItemsByUrgencyAndColor = (
     items: Item[],
-    color: string,
-    daysLimit: number
+    color: string
   ): Item[] => {
     return items.filter((item: Item) => {
-      const daysUntilDelivery = getDaysUntilDelivery(item["Target Delivery"]);
-      if (color === "green") {
-        return daysUntilDelivery > 45;
+      const targetDelivery = item["Target Delivery"];
+      if (!targetDelivery) {
+        return false; // Exclude items without a target delivery date
       }
-      return (
-        getColorForDays(daysUntilDelivery) === color &&
-        daysUntilDelivery <= daysLimit
-      );
+      const daysUntilDelivery = getDaysUntilDelivery(targetDelivery);
+      return getColorForDays(daysUntilDelivery) === color;
     });
   };
 
@@ -73,12 +68,12 @@ const Purchasing: React.FC = () => {
           if (!lfByColor[color]) {
             lfByColor[color] = {
               totalLF: 0,
-              totalWeight: 0, // Initialize total weight
+              totalWeight: 0,
               jobNumbers: [],
             };
           }
           lfByColor[color].totalLF += lf;
-          lfByColor[color].totalWeight += Math.round(lf * 2 * 1.1); // Calculate total weight and round to nearest whole number
+          lfByColor[color].totalWeight += Math.round(lf * 2 * 1.1);
           if (!lfByColor[color].jobNumbers.includes(item["Job Number"])) {
             lfByColor[color].jobNumbers.push(item["Job Number"]);
           }
@@ -89,8 +84,8 @@ const Purchasing: React.FC = () => {
     return lfByColor;
   };
 
-  const displayLFByColorAndUrgency = (color: string, daysLimit: number) => {
-    const filteredItems = filterItemsByUrgencyAndColor(items, color, daysLimit);
+  const displayLFByColorAndUrgency = (color: string) => {
+    const filteredItems = filterItemsByUrgencyAndColor(items, color);
     const totalLFByColor = aggregateLFByColor(filteredItems);
 
     return Object.entries(totalLFByColor).map(
@@ -131,29 +126,20 @@ const Purchasing: React.FC = () => {
                 <IonCol>
                   <IonCard>
                     <h2 style={{ backgroundColor: "rgba(255, 0, 0, 0.5)" }}>
-                      Red (Next 30 days)
+                      Red (Next 60 days)
                     </h2>
-                    {displayLFByColorAndUrgency("red", 30)}
-                  </IonCard>
-                </IonCol>
-                <IonCol>
-                  <IonCard>
-                    <h2 style={{ backgroundColor: "rgba(255, 255, 0, 0.5)" }}>
-                      Yellow (31 to 45 days)
-                    </h2>
-                    {displayLFByColorAndUrgency("yellow", 45)}
+                    {displayLFByColorAndUrgency("red")}
                   </IonCard>
                 </IonCol>
                 <IonCol>
                   <IonCard>
                     <h2 style={{ backgroundColor: "rgba(0, 128, 0, 0.5)" }}>
-                      Green (More than 45 days)
+                      Green (More than 60 days)
                     </h2>
-                    {displayLFByColorAndUrgency("green", Infinity)}
+                    {displayLFByColorAndUrgency("green")}
                   </IonCard>
                 </IonCol>
               </IonRow>
-              <IonRow></IonRow>
             </IonGrid>
           </IonCardContent>
         </IonCard>
