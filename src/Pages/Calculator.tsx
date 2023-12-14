@@ -1,33 +1,38 @@
+import React, { useState } from "react";
 import {
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonTitle,
-  IonToolbar,
+  IonButton,
   IonCard,
-  IonGrid,
-  IonCol,
-  IonRow,
   IonCardHeader,
   IonCardTitle,
-  IonCardSubtitle,
+  IonCol,
+  IonContent,
+  IonGrid,
+  IonHeader,
+  IonPage,
+  IonRow,
+  IonToolbar,
+  IonTitle,
+  IonIcon,
 } from "@ionic/react";
-import React from "react";
 import ComponentCalculator from "../Components/Calculators/ComponentCalculator";
 import WallSquareFootageCalculator from "../Components/Calculators/WallSquareFootageCalculator";
 import TrimCalculator from "../Components/Calculators/TrimCalculator";
 import CostCalculator from "../Components/Calculators/CostCalculator";
+import { removeCircleOutline } from "ionicons/icons";
 
 const Calculator: React.FC = () => {
+  const [isComponentCalcMinimized, setComponentCalcMinimized] = useState(false);
+  const [isTrimCalcMinimized, setTrimCalcMinimized] = useState(false);
+  const [isWallSFCalcMinimized, setWallSFCalcMinimized] = useState(false);
+  const [isCostCalcMinimized, setCostCalcMinimized] = useState(false);
+
   return (
     <IonPage>
-      {/* HEADER */}
       <IonHeader>
         <IonToolbar>
           <IonTitle>HCI Calculators</IonTitle>
         </IonToolbar>
       </IonHeader>
-      {/* MAIN CONTENT */}
       <IonContent>
         <IonGrid>
           <IonRow>
@@ -35,43 +40,85 @@ const Calculator: React.FC = () => {
               <IonCard>
                 <IonCardHeader>
                   <IonCardTitle>
-                    <strong> Component Calculator 🧮</strong>
+                    <strong>Component Calculator 🧮</strong>
+                    <IonButton
+                      onClick={() =>
+                        setComponentCalcMinimized(!isComponentCalcMinimized)
+                      }
+                    >
+                      {isComponentCalcMinimized ? (
+                        "+"
+                      ) : (
+                        <IonIcon icon={removeCircleOutline} />
+                      )}
+                    </IonButton>
                   </IonCardTitle>
                 </IonCardHeader>
-                <ComponentCalculator />
+                {!isComponentCalcMinimized && <ComponentCalculator />}
               </IonCard>
             </IonCol>
+
             <IonCol>
               <IonCard>
                 <IonCardHeader>
                   <IonCardTitle>
-                    <strong>Trim Pricing Calculator🏛️</strong>
+                    <strong>Trim Pricing Calculator 🏛️</strong>
+                    <IonButton
+                      onClick={() => setTrimCalcMinimized(!isTrimCalcMinimized)}
+                    >
+                      {isTrimCalcMinimized ? (
+                        "+"
+                      ) : (
+                        <IonIcon icon={removeCircleOutline} />
+                      )}
+                    </IonButton>
                   </IonCardTitle>
                 </IonCardHeader>
-                <TrimCalculator />
+                {!isTrimCalcMinimized && <TrimCalculator />}
               </IonCard>
             </IonCol>
+
             <IonCol>
               <IonCard>
                 <IonCardHeader>
                   <IonCardTitle>
                     <strong>Wall SF Calculator 🧱</strong>
+                    <IonButton
+                      onClick={() =>
+                        setWallSFCalcMinimized(!isWallSFCalcMinimized)
+                      }
+                    >
+                      {isWallSFCalcMinimized ? (
+                        "+"
+                      ) : (
+                        <IonIcon icon={removeCircleOutline} />
+                      )}
+                    </IonButton>
                   </IonCardTitle>
                 </IonCardHeader>
-                <WallSquareFootageCalculator />
+                {!isWallSFCalcMinimized && <WallSquareFootageCalculator />}
               </IonCard>
             </IonCol>
           </IonRow>
+
           <IonRow>
             <IonCol>
               <IonCard>
                 <IonCardHeader>
                   <IonCardTitle>
                     <strong>Engineering Cost Calculator 🤖</strong>
+                    <IonButton
+                      onClick={() => setCostCalcMinimized(!isCostCalcMinimized)}
+                    >
+                      {isCostCalcMinimized ? (
+                        "+"
+                      ) : (
+                        <IonIcon icon={removeCircleOutline} />
+                      )}
+                    </IonButton>
                   </IonCardTitle>
                 </IonCardHeader>
-
-                <CostCalculator />
+                {!isCostCalcMinimized && <CostCalculator />}
               </IonCard>
             </IonCol>
           </IonRow>
@@ -80,4 +127,5 @@ const Calculator: React.FC = () => {
     </IonPage>
   );
 };
+
 export default Calculator;
