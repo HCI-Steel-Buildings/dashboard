@@ -313,7 +313,7 @@ const TrimCalculator: React.FC = () => {
     setSelectedComponent(selectedCompName);
     const comp = components.find((comp) => comp.name === selectedCompName);
     if (comp) {
-      const pricePerLinearFoot = parseFloat(comp.price) * percentage;
+      const pricePerLinearFoot = parseFloat(comp.price);
       setResults((prevResults) => ({
         ...prevResults,
         pricePerLinearFoot,
