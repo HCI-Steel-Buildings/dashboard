@@ -22,79 +22,164 @@ export interface Component {
   price: string;
   name: string;
   amountPerCoil?: number;
+  gauge: string;
 }
 
 // Interface for the array of components
 export type Components = Component[];
 
-// TODO: Add history
+// TODO: Add history``
 
 const components: Components = [
-  { name: "C-1", amountPerCoil: 1, price: "3.14" },
-  { name: "C-2", amountPerCoil: 2, price: "1.57" },
-  { name: "C-3", amountPerCoil: 5, price: "0.63" },
-  { name: "C-4", amountPerCoil: 3, price: "1.05" },
-  { name: "C-5", amountPerCoil: 2, price: "1.57" },
-  { name: "C-6", amountPerCoil: 2, price: "1.57" },
-  { name: "C-7", amountPerCoil: 3, price: "1.05" },
-  { name: "C-8", amountPerCoil: 2, price: "1.57" },
-  { name: "C-9", amountPerCoil: 3, price: "1.05" },
-  { name: "C-10", amountPerCoil: 3, price: "1.05" },
-  { name: "C-11", amountPerCoil: 3, price: "1.05" },
-  { name: "C-12", amountPerCoil: 4, price: "0.79" },
-  { name: "C-13", amountPerCoil: 8, price: "0.39" },
-  { name: "C-14", amountPerCoil: 4, price: "0.79" },
-  { name: "C-15", amountPerCoil: 6, price: "0.52" },
-  { name: "C-16", amountPerCoil: 2, price: "1.57" },
-  { name: "C-17", amountPerCoil: 4, price: "0.79" },
-  { name: "C-18", amountPerCoil: 10, price: "0.31" },
-  { name: "C-19", amountPerCoil: 8, price: "0.39" },
-  { name: "C-20", amountPerCoil: 4, price: "0.79" },
-  { name: "C-21", amountPerCoil: 4, price: "0.79" },
-  { name: "C-22", amountPerCoil: 9, price: "0.35" },
-  { name: "C-24", amountPerCoil: 4, price: "0.79" },
-  { name: "C-25", amountPerCoil: 4, price: "0.79" },
-  { name: "C-26", amountPerCoil: 6, price: "0.52" },
-  { name: "C-27", amountPerCoil: 6, price: "0.52" },
-  { name: "C-28", amountPerCoil: 6, price: "0.52" },
-  { name: "C-29", amountPerCoil: 3, price: "1.05" },
-  { name: "C-30", amountPerCoil: 3, price: "1.05" },
-  { name: "C-31", amountPerCoil: 3, price: "1.05" },
-  { name: "C-32", amountPerCoil: 11, price: "0.29" },
-  { name: "C-3BG", amountPerCoil: 4, price: "0.79" },
-  { name: "C-4A", amountPerCoil: 3, price: "1.05" },
-  { name: "R-3", amountPerCoil: 1, price: "3.14" },
-  { name: "R-4", amountPerCoil: 4, price: "0.79" },
-  { name: "R-5", amountPerCoil: 2, price: "1.57" },
-  { name: "R-6", amountPerCoil: 5, price: "0.63" },
-  { name: "R-7", amountPerCoil: 4, price: "0.79" },
-  { name: "R-8", amountPerCoil: 4, price: "0.79" },
-  { name: "R-9", amountPerCoil: 3, price: "1.05" },
-  { name: "R-10", amountPerCoil: 2, price: "1.57" },
-  { name: "R-11", amountPerCoil: 6, price: "0.52" },
-  { name: "R-12", amountPerCoil: 3, price: "1.05" },
-  { name: "R-13", amountPerCoil: 2, price: "1.57" },
-  { name: "R-14", amountPerCoil: 2, price: "1.57" },
-  { name: "R-15", amountPerCoil: 2, price: "1.57" },
-  { name: "R-16", amountPerCoil: 3, price: "1.05" },
-  { name: "R-17", amountPerCoil: 4, price: "0.79" },
-  { name: "R-18", amountPerCoil: 4, price: "0.79" },
-  { name: "R-19", amountPerCoil: 3, price: "1.05" },
-  { name: "R-20", amountPerCoil: 4, price: "0.79" },
-  { name: "R-21", amountPerCoil: 4, price: "0.79" },
-  { name: "R-22", amountPerCoil: 6, price: "0.52" },
-  { name: "R-23", amountPerCoil: 4, price: "0.79" },
-  { name: "R-24", amountPerCoil: 4, price: "0.79" },
-  { name: "R-25", amountPerCoil: 6, price: "0.52" },
-  { name: "R-26", amountPerCoil: 6, price: "0.52" },
-  { name: "R-27", amountPerCoil: 6, price: "0.52" },
-  { name: "R-28", amountPerCoil: 6, price: "0.52" },
-  { name: "R-29", amountPerCoil: 3, price: "1.05" },
-  { name: "R-30", amountPerCoil: 3, price: "1.05" },
-  { name: "R-31", amountPerCoil: 3, price: "1.05" },
-  { name: "R-32", amountPerCoil: 11, price: "0.29" },
-  { name: "R-3BG", amountPerCoil: 4, price: "0.79" },
-  { name: "R-4A", amountPerCoil: 3, price: "1.05" },
+  { name: "C-1", amountPerCoil: 1, price: "3.14", gauge: "26" },
+  { name: "C-2", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "C-3", amountPerCoil: 5, price: "0.63", gauge: "26" },
+  { name: "C-4", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "C-5", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "C-6", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "C-7", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "C-8", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "C-9", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "C-10", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "C-11", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "C-12", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "C-13", amountPerCoil: 8, price: "0.39", gauge: "26" },
+  { name: "C-14", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "C-15", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "C-16", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "C-17", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "C-18", amountPerCoil: 10, price: "0.31", gauge: "26" },
+  { name: "C-19", amountPerCoil: 8, price: "0.39", gauge: "26" },
+  { name: "C-20", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "C-21", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "C-22", amountPerCoil: 9, price: "0.35", gauge: "26" },
+  { name: "C-24", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "C-25", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "C-26", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "C-27", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "C-28", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "C-29", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "C-30", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "C-31", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "C-32", amountPerCoil: 11, price: "0.29", gauge: "26" },
+  { name: "C-3BG", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "C-4A", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "R-3", amountPerCoil: 1, price: "3.14", gauge: "26" },
+  { name: "R-4", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-5", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "R-6", amountPerCoil: 5, price: "0.63", gauge: "26" },
+  { name: "R-7", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-8", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-9", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "R-10", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "R-11", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "R-12", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "R-13", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "R-14", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "R-15", amountPerCoil: 2, price: "1.57", gauge: "26" },
+  { name: "R-16", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "R-17", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-18", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-19", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "R-20", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-21", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-22", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "R-23", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-24", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-25", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "R-26", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "R-27", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "R-28", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "R-29", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "R-30", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "R-31", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  { name: "R-32", amountPerCoil: 11, price: "0.29", gauge: "26" },
+  { name: "R-3BG", amountPerCoil: 4, price: "0.79", gauge: "26" },
+  { name: "R-4A", amountPerCoil: 3, price: "1.05", gauge: "26" },
+  {
+    name: "26 GA Comm. Downspouts",
+    amountPerCoil: 1,
+    price: "6.28",
+    gauge: "26",
+  },
+  {
+    name: "26 GA 1:12 HHR Comm. Gutters",
+    amountPerCoil: 1,
+    price: "6.28",
+    gauge: "26",
+  },
+  {
+    name: "26 GA 2:12 HHR Comm. Gutters",
+    amountPerCoil: 1,
+    price: "6.28",
+    gauge: "26",
+  },
+  {
+    name: "26 GA 3:12 HHR Comm. Gutters",
+    amountPerCoil: 1,
+    price: "6.28",
+    gauge: "26",
+  },
+  {
+    name: "26 GA 4:12 HHR Comm. Gutters",
+    amountPerCoil: 1,
+    price: "12.56",
+    gauge: "26",
+  },
+  {
+    name: "26 GA 1:12 RSS Comm. Gutters",
+    amountPerCoil: 1,
+    price: "12.56",
+    gauge: "26",
+  },
+  {
+    name: "26 GA 2:12 RSS Comm. Gutters",
+    amountPerCoil: 1,
+    price: "12.56",
+    gauge: "26",
+  },
+  {
+    name: "26 GA 3:12 RSS Comm. Gutters",
+    amountPerCoil: 1,
+    price: "12.56",
+    gauge: "26",
+  },
+  {
+    name: "26 GA 4:12 RSS Comm. Gutters",
+    amountPerCoil: 1,
+    price: "12.56",
+    gauge: "26",
+  },
+  {
+    name: "24 GA Comm. Downspout",
+    amountPerCoil: 1,
+    price: "10.32",
+    gauge: "24",
+  },
+  {
+    name: "24 GA 1:12 RSS Comm. Gutters",
+    amountPerCoil: 1,
+    price: "10.32",
+    gauge: "24",
+  },
+  {
+    name: "24 GA 2:12 RSS Comm. Gutters",
+    amountPerCoil: 1,
+    price: "10.32",
+    gauge: "24",
+  },
+  {
+    name: "24 GA 3:12 RSS Comm. Gutters",
+    amountPerCoil: 1,
+    price: "10.32",
+    gauge: "24",
+  },
+  {
+    name: "24 GA 4:12 RSS Comm. Gutters",
+    amountPerCoil: 1,
+    price: "10.32",
+    gauge: "24",
+  },
 ];
 
 const TrimCalculator: React.FC = () => {
@@ -104,6 +189,8 @@ const TrimCalculator: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [feet, setFeet] = useState<number>(0);
   const [inches, setInches] = useState<number>(0);
+  const [gaugeFilter, setGaugeFilter] = useState<string>("ALL");
+
   type HistoryItem = {
     date: Date;
     component: string;
@@ -142,9 +229,12 @@ const TrimCalculator: React.FC = () => {
     coil: 0,
   });
 
-  const filteredComponents = components.filter((comp) =>
-    comp.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredComponents = components.filter(
+    (comp) =>
+      comp.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (gaugeFilter === "ALL" || comp.gauge === gaugeFilter)
   );
+
   const feetAndInchesToDecimal = (feet: number, inches: number) => {
     return feet + inches / 12;
   };
@@ -242,6 +332,23 @@ const TrimCalculator: React.FC = () => {
           />
         </IonCol>
       </IonRow>
+      <IonRow>
+        <IonCol>
+          <IonItem>
+            <IonLabel>Gauge Filter</IonLabel>
+            <IonSelect
+              value={gaugeFilter}
+              placeholder="Select Gauge"
+              onIonChange={(e) => setGaugeFilter(e.detail.value)}
+            >
+              <IonSelectOption value="ALL">ALL</IonSelectOption>
+              <IonSelectOption value="24">24 Gauge</IonSelectOption>
+              <IonSelectOption value="26">26 Gauge</IonSelectOption>
+            </IonSelect>
+          </IonItem>
+        </IonCol>
+      </IonRow>
+
       <IonRow>
         <IonCol>
           <IonItem>

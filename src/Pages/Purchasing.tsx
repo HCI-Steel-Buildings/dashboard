@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   IonCard,
   IonCardContent,
@@ -7,6 +7,7 @@ import {
   IonContent,
   IonGrid,
   IonHeader,
+  IonModal,
   IonPage,
   IonRow,
   IonTitle,
@@ -28,6 +29,8 @@ interface ColorInfo {
 const Purchasing: React.FC = () => {
   const { data } = useCommonContext();
   const items: Item[] = data?.items || [];
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Item | null>(null);
 
   const getDaysUntilDelivery = (deliveryDateStr: string): number => {
     const deliveryDate = new Date(deliveryDateStr);
@@ -47,7 +50,7 @@ const Purchasing: React.FC = () => {
     return items.filter((item: Item) => {
       const targetDelivery = item["Target Delivery"];
       if (!targetDelivery) {
-        return false; // Exclude items without a target delivery date
+        return false;
       }
       const daysUntilDelivery = getDaysUntilDelivery(targetDelivery);
       return getColorForDays(daysUntilDelivery) === color;
@@ -84,6 +87,52 @@ const Purchasing: React.FC = () => {
     return lfByColor;
   };
 
+  const handleJobNumberClick = (jobNumber: string) => {
+    const job = items.find((item) => item["Job Number"] === jobNumber);
+    if (job) {
+      setSelectedJob(job);
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedJob(null);
+  };
+
+  const renderModalContent = () => {
+    if (!selectedJob) return null;
+
+    return (
+      <div>
+        <h2>Job Details</h2>
+        <p>
+          <strong>Job Number:</strong> {selectedJob["Job Number"]}
+        </p>
+        <p>
+          <strong>Color:</strong> {selectedJob["Color"]}
+        </p>
+        <p>
+          <strong>LF Needed:</strong> {selectedJob["LF"]}
+        </p>
+        <button onClick={closeModal}>Close</button>
+      </div>
+    );
+  };
+
+  const renderJobNumbers = (jobNumbers: string[]) => {
+    return jobNumbers.map((jobNumber) => (
+      <div key={jobNumber} style={{ margin: "5px 0" }}>
+        <span
+          onClick={() => handleJobNumberClick(jobNumber)}
+          style={{ cursor: "pointer", textDecoration: "underline" }}
+        >
+          {jobNumber}
+        </span>
+      </div>
+    ));
+  };
+
   const displayLFByColorAndUrgency = (color: string) => {
     const filteredItems = filterItemsByUrgencyAndColor(items, color);
     const totalLFByColor = aggregateLFByColor(filteredItems);
@@ -99,7 +148,7 @@ const Purchasing: React.FC = () => {
             <br />
             <strong>Total Weight:</strong> {totalWeight} lbs
             <br />
-            <strong>Job Numbers:</strong> {jobNumbers.join(", ")}
+            <strong>Job Numbers:</strong> {renderJobNumbers(jobNumbers)}
             <br />
             <br />
           </div>
@@ -144,6 +193,9 @@ const Purchasing: React.FC = () => {
           </IonCardContent>
         </IonCard>
       </IonContent>
+      <IonModal isOpen={isModalOpen} onDidDismiss={closeModal}>
+        {renderModalContent()}
+      </IonModal>
     </IonPage>
   );
 };
