@@ -252,7 +252,7 @@ const TrimCalculator: React.FC = () => {
     const selectedComponentPrice = selectedComp?.price || "0";
     const amountPerCoil = selectedComp?.amountPerCoil || 1; // Defaulting to 1 if not available
 
-    const pricePerLinearFoot = parseFloat(selectedComponentPrice) * percentage;
+    const pricePerLinearFoot = parseFloat(selectedComponentPrice);
     const linearFeet = feetAndInchesToDecimal(feet, inches);
     const totalLinearFeetNeeded = linearFeet * quantity;
     const totalPrice = totalLinearFeetNeeded * pricePerLinearFoot;

@@ -412,7 +412,6 @@ const EcoBuildingCalculator = () => {
   };
 
   const calculateTotalCost = () => {
-    // Debugging: Log the current selections
     console.log(
       "Selected Size:",
       selectedSize,
