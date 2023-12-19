@@ -20,6 +20,7 @@ const CostCalculator: React.FC = () => {
     engineeringCost: number;
     structuralCost: number;
     foundationCost: number;
+    totalCost: number;
   } | null>(null);
 
   const categories = {
@@ -65,11 +66,13 @@ const CostCalculator: React.FC = () => {
       );
       const structuralCost = 0.85 * engineeringCost;
       const foundationCost = 0.15 * engineeringCost;
+      const totalCost = buildingCost + structuralCost;
 
       setResults({
         engineeringCost,
         structuralCost,
         foundationCost,
+        totalCost,
       });
     }
   };
@@ -133,6 +136,11 @@ const CostCalculator: React.FC = () => {
                   </div>
                 </IonText>
               </IonCardContent>
+              <IonCard>
+                <IonText>
+                  <strong>SC + BC: {results.totalCost.toFixed(2)}</strong>
+                </IonText>
+              </IonCard>
             </IonCard>
           )}
         </IonCol>
