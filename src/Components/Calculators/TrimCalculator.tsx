@@ -45,7 +45,7 @@ const components: Components = [
   { name: "C-12", amountPerCoil: 4, price: "0.79", gauge: "26" },
   { name: "C-13", amountPerCoil: 8, price: "0.39", gauge: "26" },
   { name: "C-14", amountPerCoil: 4, price: "0.79", gauge: "26" },
-  { name: "C-15", amountPerCoil: 6, price: "0.52", gauge: "26" },
+  { name: "C-15", amountPerCoil: 6, price: "2.09", gauge: "26" },
   { name: "C-16", amountPerCoil: 2, price: "1.57", gauge: "26" },
   { name: "C-17", amountPerCoil: 4, price: "0.79", gauge: "26" },
   { name: "C-18", amountPerCoil: 10, price: "0.31", gauge: "26" },
@@ -209,7 +209,7 @@ const TrimCalculator: React.FC = () => {
   };
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const percentage = 5;
+  const percentage = 4;
 
   const [results, setResults] = useState<{
     pricePerLinearFoot: number;
@@ -251,11 +251,11 @@ const TrimCalculator: React.FC = () => {
     );
     const selectedComponentPrice = selectedComp?.price || "0";
     const amountPerCoil = selectedComp?.amountPerCoil || 1; // Defaulting to 1 if not available
-
     const pricePerLinearFoot = parseFloat(selectedComponentPrice);
     const linearFeet = feetAndInchesToDecimal(feet, inches);
     const totalLinearFeetNeeded = linearFeet * quantity;
-    const totalPrice = totalLinearFeetNeeded * pricePerLinearFoot;
+    let totalPrice = totalLinearFeetNeeded * pricePerLinearFoot;
+    totalPrice += totalPrice * percentage; // Adding the percentage to the total price
     const totalPriceRounded = Math.round(totalPrice * 100) / 100; // round to 2 decimal places
     const total = (linearFeet * quantity) / amountPerCoil; // Use amountPerCoil here
     const coil = totalLinearFeetNeeded / selectedComp?.amountPerCoil!;
