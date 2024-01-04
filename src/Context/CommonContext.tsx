@@ -78,15 +78,31 @@ export const useCommonContext = () => {
 
 async function fetchDataFromMonday(): Promise<FetchedMondayData | null> {
   try {
+    // Checking if the navigator is online
+    if (!navigator.onLine) {
+      console.error("No internet connection.");
+      return null;
+    }
+
     const response = await fetch(BACKEND_API_ENDPOINT);
+
+    // Logging response details
+    console.log(`Response Status: ${response.status}`);
+    console.log(`Response Headers:`, response.headers);
+
     if (!response.ok) {
       console.error("Error fetching data from backend:", response.statusText);
       return null;
     }
+
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching data from backend:", error);
+    // Enhanced error logging
+    console.error(
+      "Error in fetchDataFromMonday:",
+      (error as any).message || error
+    );
     return null;
   }
 }
