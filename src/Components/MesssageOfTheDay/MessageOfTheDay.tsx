@@ -12,7 +12,7 @@ import "./MessageOfTheDay.css";
 const MessageOfTheDay = () => {
   return (
     <IonCard className="messageOfTheDayCard">
-      <IonCardTitle>Happy Holidays!!</IonCardTitle>
+      <IonCardTitle>HAPPY NEW YEAR</IonCardTitle>
       <IonCardSubtitle>
         Click one of the apps below to launch one of the microservices.
       </IonCardSubtitle>

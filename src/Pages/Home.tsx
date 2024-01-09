@@ -1,11 +1,18 @@
 import React from "react";
-import { IonPage, IonContent, IonGrid, IonRow, IonCol } from "@ionic/react";
+import {
+  IonPage,
+  IonContent,
+  IonGrid,
+  IonRow,
+  IonCol,
+  isPlatform,
+} from "@ionic/react";
 import Header from "../Components/Header/Header";
 import MessageOfTheDay from "../Components/MesssageOfTheDay/MessageOfTheDay";
 import "./Home.css";
 import AppCard from "../Components/AppCardComponent/AppCardComponent";
 import { useCommonContext } from "../Context/CommonContext";
-import Snowfall from "react-snowfall";
+// import Snowfall from "react-snowfall";
 
 // Inside your component return statement
 const Home: React.FC = () => {
@@ -30,14 +37,18 @@ const Home: React.FC = () => {
       description: "All your calculations in one place✅",
       route: "/calculator",
     },
+    {
+      title: "Quotes",
+      description: "Create a quote📝",
+      route: "/quotes",
+    },
   ];
 
   const { data } = useCommonContext();
-  console.log(data);
+  const colSize = isPlatform("mobile") ? "12" : "6";
   return (
     <IonPage>
-      <Snowfall style={{ zIndex: 1000 }} color="red" snowflakeCount={50} />
-
+      {/* <Snowfall style={{ zIndex: 1000 }} color="red" snowflakeCount={50} /> */}
       <IonContent fullscreen>
         <Header />
 
@@ -47,10 +58,11 @@ const Home: React.FC = () => {
               <MessageOfTheDay />
             </IonCol>
           </IonRow>
+
           {/* Row for App Navigation Boxes */}
           <IonRow>
             {cardData.map((card, index) => (
-              <IonCol key={index}>
+              <IonCol key={index} size={colSize}>
                 <AppCard
                   title={card.title}
                   description={card.description}

@@ -25,18 +25,18 @@ import { IonReactRouter } from "@ionic/react-router";
 import {
   barChart,
   calculator,
-  calendarNumber,
   cashOutline,
   homeOutline,
+  paperPlane,
   square,
-  ticket,
 } from "ionicons/icons";
 import Home from "./Pages/Home";
 import Minis from "./Pages/Minis";
 import Charts from "./Pages/Charts";
 import Calculator from "./Pages/Calculator";
-import Ticket from "./Pages/Ticket";
+import Quotes from "./Pages/Quotes/Quotes";
 import LoginButton from "./Components/LogInButton";
+import Purchasing from "./Pages/Purchasing";
 
 import { useAuth0 } from "@auth0/auth0-react";
 
@@ -53,7 +53,6 @@ import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
 import "./theme/variables.css";
 import "react-awesome-button/dist/styles.css";
-import Purchasing from "./Pages/Purchasing";
 
 setupIonicReact();
 
@@ -117,8 +116,8 @@ const App: React.FC = () => {
             <Route exact path="/calculator">
               <Calculator />
             </Route>
-            <Route exact path="/tickets">
-              <Ticket />
+            <Route path="/quotes">
+              <Quotes />
             </Route>
           </IonRouterOutlet>
           <IonTabBar slot="bottom">
@@ -142,9 +141,9 @@ const App: React.FC = () => {
               <IonIcon icon={calculator} />
               <IonLabel>Calculator</IonLabel>
             </IonTabButton>
-            <IonTabButton tab="tickets" href="/tickets">
-              <IonIcon icon={ticket} />
-              <IonLabel>Tickets</IonLabel>
+            <IonTabButton tab="quotes" href="/quotes">
+              <IonIcon icon={paperPlane} />
+              <IonLabel>Quotes</IonLabel>
             </IonTabButton>
           </IonTabBar>
         </IonTabs>
