@@ -20,28 +20,56 @@ interface Item {
   [key: string]: any; // Adjust this based on your actual data structure
 }
 
+interface ColorAggregate {
+  totalLF: number;
+  jobNumbers: Set<string>;
+}
+
 const Purchasing: React.FC = () => {
   const { data } = useCommonContext();
   const items: Item[] = data?.items || [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Item | null>(null);
 
-  const getDaysUntilDelivery = (deliveryDateStr: string): number => {
-    const deliveryDate = new Date(deliveryDateStr);
-    const today = new Date();
-    const timeDiff = deliveryDate.getTime() - today.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24));
-  };
+  // Function to aggregate LF by color and collect job numbers
+  const aggregateLFByColor = (): Record<string, ColorAggregate> => {
+    const colorAggregates: Record<string, ColorAggregate> = {};
 
-  const filterItemsWithin60Days = (items: Item[]): Item[] => {
-    return items.filter((item: Item) => {
-      const targetDelivery = item["Target Delivery"];
-      if (!targetDelivery) {
-        return false;
+    items.forEach((item: Item) => {
+      const jobNumber = item["Job Number"];
+      let includeItem = true;
+
+      // Check if any of the material statuses are 'Ordered'
+      const parts = ["Trim", "Roof", "Wall"];
+      parts.forEach((part) => {
+        const status = item[`${part} Material Status`];
+        if (status === "Ordered") {
+          includeItem = false;
+        }
+      });
+
+      if (includeItem) {
+        parts.forEach((part) => {
+          const color = item[`${part} Color`];
+          const lf = Number(item[`${part} LF`]) || 0;
+
+          if (color) {
+            if (!colorAggregates[color]) {
+              colorAggregates[color] = {
+                totalLF: 0,
+                jobNumbers: new Set<string>(),
+              };
+            }
+            colorAggregates[color].totalLF += lf;
+            if (jobNumber) {
+              colorAggregates[color].jobNumbers.add(jobNumber);
+            }
+          }
+        });
       }
-      const daysUntilDelivery = getDaysUntilDelivery(targetDelivery);
-      return daysUntilDelivery <= 60;
     });
+
+    return colorAggregates;
   };
 
   const handleJobNumberClick = (jobNumber: string) => {
@@ -77,27 +105,25 @@ const Purchasing: React.FC = () => {
     );
   };
 
-  const displayItemsWithin60Days = () => {
-    const filteredItems = filterItemsWithin60Days(items);
+  const displayColorsWithLF = () => {
+    const colorData = aggregateLFByColor();
 
     return (
       <IonGrid>
-        {filteredItems.map((item, index) => (
-          <IonRow key={index}>
-            <IonCol>
+        <IonRow>
+          {Object.entries(colorData).map(([color, data]) => (
+            <IonCol key={color} size="4">
               <IonCard>
                 <IonCardContent>
-                  <h2>Item Details</h2>
-                  {Object.keys(item).map((key) => (
-                    <p key={key}>
-                      <strong>{key}:</strong> {item[key]}
-                    </p>
-                  ))}
+                  <h2>{color}</h2>
+                  <p>Total LF: {data.totalLF}</p>
+                  <p>Jobs: {Array.from(data.jobNumbers).join(", ")}</p>
+                  <p>Total Jobs: {data.jobNumbers.size}</p>
                 </IonCardContent>
               </IonCard>
             </IonCol>
-          </IonRow>
-        ))}
+          ))}
+        </IonRow>
       </IonGrid>
     );
   };
@@ -114,7 +140,7 @@ const Purchasing: React.FC = () => {
       </IonHeader>
       <IonContent fullscreen>
         <IonCard>
-          <IonCardContent>{displayItemsWithin60Days()}</IonCardContent>
+          <IonCardContent>{displayColorsWithLF()}</IonCardContent>
         </IonCard>
       </IonContent>
       <IonModal isOpen={isModalOpen} onDidDismiss={closeModal}>
