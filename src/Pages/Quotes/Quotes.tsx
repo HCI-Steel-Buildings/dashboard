@@ -22,6 +22,7 @@ import {
 } from "./types";
 
 import { BASE_UNIT_COSTS, BASE_SIZE } from "./PricingData";
+import * as XLSX from "xlsx";
 
 const Quotes = () => {
   const GROUND_TYPE = { REGULAR: "Regular", CONCRETE: "Concrete" };
@@ -173,11 +174,11 @@ const Quotes = () => {
     // Calculate R1s
     const r1Length = 4; // Default value of 4 feet
     const totalR1LF = gridLines * r1Length;
-    const r1Cost = totalR1LF * BASE_UNIT_COSTS["R1"];
+    const r1Cost = totalR1LF * BASE_UNIT_COSTS["R1Peak"];
     breakdownDetails.push({
-      item: "R1",
+      item: "R1 Peak",
       quantity: gridLines,
-      unitPrice: BASE_UNIT_COSTS["R1"],
+      unitPrice: BASE_UNIT_COSTS["R1Peak"],
       total: r1Cost,
       linearFeet: r1Length,
     });
@@ -252,6 +253,12 @@ const Quotes = () => {
   };
 
   const aggregatedBreakdown = getAggregatedBreakdown();
+
+  // Function to download the file
+  const downloadFile = (workbook: any, filename: any) => {
+    XLSX.writeFile(workbook, filename);
+  };
+
   return (
     <div>
       <IonRow>
