@@ -18,6 +18,8 @@ export const BASE_UNIT_COSTS = {
   TubeCap: 5.0, // per cap
   KingPin: 5.0, // per pin
   R1Peak: 50, // per r1
+  R2: 5.79, // per foot
+  SidewallSheet: 21.24, // per length foot
 };
 
 export const BASE_SIZE = { width: 10, length: 10, height: 8 }; // Base size for proportion calculation

@@ -3,7 +3,7 @@ interface BreakdownDetail {
   quantity: number;
   unitPrice: number;
   total: number;
-  linearFeet?: number;
+  linearFeet?: number | string; // Changed from number to string
 }
 
 interface AggregatedBreakdownDetail extends BreakdownDetail {

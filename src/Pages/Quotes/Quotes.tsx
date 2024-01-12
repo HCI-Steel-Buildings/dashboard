@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  InputChangeEventDetail,
   IonAlert,
   IonButton,
   IonCard,
@@ -28,7 +27,7 @@ const Quotes = () => {
   const GROUND_TYPE = { REGULAR: "Regular", CONCRETE: "Concrete" };
 
   const [width, setWidth] = useState("0");
-  const [length, setLength] = useState("0");
+  const [buildingLength, setBuildingLength] = useState("0");
   const [height, setHeight] = useState("0");
   const [groundType, setGroundType] = useState(GROUND_TYPE.REGULAR);
   const [windowQuantity, setWindowQuantity] = useState(0);
@@ -38,10 +37,20 @@ const Quotes = () => {
   const [breakdown, setBreakdown] = useState<BreakdownDetail[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const WALL_OPTIONS = {
+    NONE: "0'",
+    THREE_FEET: "3'",
+    SIX_FEET: "6'",
+    NINE_FEET: "9'",
+    FULLY_ENCLOSED: "Fully Enclosed",
+  };
+
+  const [leftWall, setLeftWall] = useState(WALL_OPTIONS.NONE);
+  const [rightWall, setRightWall] = useState(WALL_OPTIONS.NONE);
 
   const calculateTotalCost = () => {
     const numWidth = parseInt(width);
-    const numLength = parseInt(length);
+    const numLength = parseInt(buildingLength);
     const numHeight = parseInt(height);
     // Calculate the number of grid lines
     const gridLines = Math.ceil(numLength / 5);
@@ -90,8 +99,16 @@ const Quotes = () => {
     const maxHatChannelLength = 21; // Maximum length of a hat channel piece
     const numberOfHatChannels = Math.ceil(numWidth / hatChannelSpacing);
     let hatChannelCost = 0;
+    let hatChannelQuantity = 0;
+    if (numWidth < 16) {
+      hatChannelQuantity = 6;
+    } else if (numWidth <= 24) {
+      hatChannelQuantity = 8;
+    } else {
+      hatChannelQuantity = 12;
+    }
 
-    for (let i = 0; i < numberOfHatChannels; i++) {
+    for (let i = 0; i < hatChannelQuantity; i++) {
       const channelLength = Math.min(numLength, maxHatChannelLength);
       hatChannelCost += channelLength * BASE_UNIT_COSTS["HatChannel"];
 
@@ -183,6 +200,64 @@ const Quotes = () => {
       linearFeet: r1Length,
     });
 
+    // Calculate R2
+    const PITCH_RISE = 3;
+    const PITCH_RUN = 12;
+
+    const calculateTriangleDimensions = (
+      bottomSide: number,
+      pitchRise: number,
+      pitchRun: number
+    ) => {
+      const theta = Math.atan(pitchRise / pitchRun);
+      const height = bottomSide * Math.tan(theta);
+      const hypotenuse = bottomSide / Math.cos(theta);
+
+      return { height, hypotenuse };
+    };
+
+    // Inside calculateTotalCost function, after calculating other costs
+    const r2LengthPerPiece = calculateTriangleDimensions(
+      numWidth / 2,
+      PITCH_RISE,
+      PITCH_RUN
+    ).hypotenuse;
+    const r2Quantity = gridLines * 2; // Twice the quantity of R1
+    const totalR2LF = r2Quantity * r2LengthPerPiece;
+    const r2Cost = totalR2LF * BASE_UNIT_COSTS["R2"]; // Calculate cost based on per foot price
+
+    const decimalFeetToFeetInches = (decimalFeet: any) => {
+      const totalInches = decimalFeet * 12;
+      const feet = Math.floor(totalInches / 12);
+      const inches = Math.round(totalInches % 12);
+      return `${feet}' ${inches}"`;
+    };
+
+    const r2LengthPerPieceInFeetInches =
+      decimalFeetToFeetInches(r2LengthPerPiece);
+    breakdownDetails.push({
+      item: "R2",
+      quantity: r2Quantity,
+      unitPrice: BASE_UNIT_COSTS["R2"],
+      total: r2Cost,
+      linearFeet: r2LengthPerPieceInFeetInches, // Display as feet and inches
+    });
+
+    // Calculate KneeBrace for each R2
+    const kneeBraceQuantity = r2Quantity; // One KneeBrace per R2
+    const kneeBraceCost = kneeBraceQuantity * BASE_UNIT_COSTS["KneeBrace"];
+
+    // Add KneeBrace cost to the total cost
+    calculatedTotalCost += kneeBraceCost;
+
+    // Add KneeBrace to breakdown details
+    breakdownDetails.push({
+      item: "KneeBrace",
+      quantity: kneeBraceQuantity,
+      unitPrice: BASE_UNIT_COSTS["KneeBrace"],
+      total: kneeBraceCost,
+    });
+
     // Calculate Straight Clips for each King Pin
     const straightClipQuantity = gridLines * 4; // 4 Straight Clips per King Pin
     const straightClipCost =
@@ -194,6 +269,92 @@ const Quotes = () => {
       total: straightClipCost,
     });
 
+    let leftWallCost = 0;
+    let rightWallCost = 0;
+    const calculateSidewallSheets = (
+      wallSelection: any,
+      buildingLength: any
+    ) => {
+      let wallHeightFeet = 0;
+      switch (wallSelection) {
+        case WALL_OPTIONS.THREE_FEET:
+          wallHeightFeet = 3;
+          break;
+        case WALL_OPTIONS.SIX_FEET:
+          wallHeightFeet = 6;
+          break;
+        case WALL_OPTIONS.NINE_FEET:
+          wallHeightFeet = 9;
+          break;
+        case WALL_OPTIONS.FULLY_ENCLOSED:
+          wallHeightFeet = numHeight; // Assuming fully enclosed means up to the building height
+          break;
+        default:
+          wallHeightFeet = 0;
+      }
+
+      const panelsPerSection = Math.ceil(wallHeightFeet / 3); // 3' width per panel
+      const sections = Math.ceil(buildingLength / 21); // Max length per panel is 21'
+      const totalPanels = panelsPerSection * sections;
+
+      const sheets = [];
+      let remainingLength = buildingLength;
+
+      for (let i = 0; i < totalPanels; i++) {
+        let sheetLength = Math.min(21, remainingLength);
+        sheets.push({
+          height: wallHeightFeet,
+          length: sheetLength,
+        });
+        remainingLength -= sheetLength;
+      }
+
+      return sheets;
+    };
+
+    // Inside calculateTotalCost function
+    // Left Wall Sheets
+    let totalLeftWallLF = 0;
+    const leftWallSheets = calculateSidewallSheets(leftWall, numLength);
+    leftWallSheets.forEach((sheet) => {
+      totalLeftWallLF += sheet.length;
+    });
+    leftWallCost =
+      totalLeftWallLF *
+      leftWallSheets.length *
+      BASE_UNIT_COSTS["SidewallSheet"];
+
+    if (leftWallSheets.length > 0) {
+      breakdownDetails.push({
+        item: `Left Wall Sidewall Sheets`,
+        quantity: leftWallSheets.length,
+        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+        total: leftWallCost,
+        linearFeet: `${leftWallSheets[0].length}`, // Display LF of each sheet
+      });
+    }
+
+    // Right Wall Sheets
+    let totalRightWallLF = 0;
+    const rightWallSheets = calculateSidewallSheets(rightWall, numLength);
+    rightWallSheets.forEach((sheet) => {
+      totalRightWallLF += sheet.length;
+    });
+    rightWallCost =
+      totalRightWallLF *
+      rightWallSheets.length *
+      BASE_UNIT_COSTS["SidewallSheet"];
+
+    if (rightWallSheets.length > 0) {
+      breakdownDetails.push({
+        item: `Right Wall Sidewall Sheets`,
+        quantity: rightWallSheets.length,
+        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+        total: rightWallCost,
+        linearFeet: `${rightWallSheets[0].length}`, // Display LF of each sheet
+      });
+    }
+
     //! Update total cost
     calculatedTotalCost +=
       runnerCost +
@@ -204,7 +365,11 @@ const Quotes = () => {
       tubeCapCost +
       kingPinCost +
       r1Cost +
-      straightClipCost;
+      straightClipCost +
+      r2Cost +
+      kneeBraceCost +
+      rightWallCost +
+      leftWallCost;
 
     // Add window to breakdown
     if (windowQuantity > 0) {
@@ -217,14 +382,15 @@ const Quotes = () => {
       });
       calculatedTotalCost += windowTotalCost;
     }
-
     setTotalCost(calculatedTotalCost);
     setBreakdown(breakdownDetails);
   };
 
+  // Repeat for rightWall, frontWall, and rearWall
+
   const resetCalculator = () => {
     setWidth("");
-    setLength("");
+    setBuildingLength("");
     setHeight("");
     setGroundType(GROUND_TYPE.REGULAR);
     setWindowQuantity(0);
@@ -280,8 +446,8 @@ const Quotes = () => {
             </IonLabel>
             <IonInput
               type="number"
-              value={length}
-              onIonChange={(e) => setLength(e.detail.value ?? "")}
+              value={buildingLength}
+              onIonChange={(e) => setBuildingLength(e.detail.value ?? "")}
               min={10}
               max={100}
               defaultValue={0}
@@ -298,6 +464,39 @@ const Quotes = () => {
               defaultValue={0}
             />
           </IonItem>
+          <IonRow>
+            <IonCol>
+              <IonItem>
+                <IonLabel position="stacked">Left Wall:</IonLabel>
+                <IonSelect
+                  value={leftWall}
+                  onIonChange={(e) => setLeftWall(e.detail.value)}
+                >
+                  {Object.values(WALL_OPTIONS).map((option) => (
+                    <IonSelectOption key={`left-${option}`} value={option}>
+                      {option}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </IonItem>
+            </IonCol>
+            <IonCol>
+              <IonItem>
+                <IonLabel position="stacked">Right Wall:</IonLabel>
+                <IonSelect
+                  value={rightWall}
+                  onIonChange={(e) => setRightWall(e.detail.value)}
+                >
+                  {Object.values(WALL_OPTIONS).map((option) => (
+                    <IonSelectOption key={`right-${option}`} value={option}>
+                      {option}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </IonItem>
+            </IonCol>
+          </IonRow>
+
           <IonItem>
             <IonLabel position="stacked">Ground Type:</IonLabel>
             <IonSelect
@@ -323,18 +522,7 @@ const Quotes = () => {
               min="0"
             />
           </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Side Wall Quantity:</IonLabel>
-            <IonInput
-              type="number"
-              value={sideWallQuantity}
-              onIonChange={(e) =>
-                setSideWallQuantity(parseInt(e.detail.value ?? "0"))
-              }
-              min="0"
-              max="2"
-            />
-          </IonItem>
+
           <IonItem>
             <IonLabel position="stacked">End Wall Quantity:</IonLabel>
             <IonInput
