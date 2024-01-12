@@ -31,12 +31,11 @@ const Quotes = () => {
   const [height, setHeight] = useState("0");
   const [groundType, setGroundType] = useState(GROUND_TYPE.REGULAR);
   const [windowQuantity, setWindowQuantity] = useState(0);
-  const [sideWallQuantity, setSideWallQuantity] = useState(0);
-  const [endWallQuantity, setEndWallQuantity] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
   const [breakdown, setBreakdown] = useState<BreakdownDetail[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+
   const WALL_OPTIONS = {
     NONE: "0'",
     THREE_FEET: "3'",
@@ -47,6 +46,8 @@ const Quotes = () => {
 
   const [leftWall, setLeftWall] = useState(WALL_OPTIONS.NONE);
   const [rightWall, setRightWall] = useState(WALL_OPTIONS.NONE);
+  const [frontWall, setFrontWall] = useState(WALL_OPTIONS.NONE);
+  const [rearWall, setRearWall] = useState(WALL_OPTIONS.NONE);
 
   const calculateTotalCost = () => {
     const numWidth = parseInt(width);
@@ -146,7 +147,8 @@ const Quotes = () => {
 
     // Determine cost per leg
     const legCostPerUnit = BASE_UNIT_COSTS["Leg"];
-    const totalLegCost = totalLegs * legCostPerUnit;
+    const totalLegLF = totalLegs * numHeight; // Total linear feet for all legs
+    const totalLegCost = totalLegLF * legCostPerUnit; // Total cost for legs
 
     // Add legs to breakdown details
     breakdownDetails.push({
@@ -154,7 +156,7 @@ const Quotes = () => {
       quantity: totalLegs,
       unitPrice: legCostPerUnit,
       total: totalLegCost,
-      linearFeet: numHeight,
+      linearFeet: numHeight, // Individual leg height
     });
     // Calculate AngleClips required for each leg
     const angleClipQuantity = totalLegs * 4; // 4 AngleClips per leg
@@ -192,6 +194,7 @@ const Quotes = () => {
     const r1Length = 4; // Default value of 4 feet
     const totalR1LF = gridLines * r1Length;
     const r1Cost = totalR1LF * BASE_UNIT_COSTS["R1Peak"];
+    const r1Quantity = gridLines;
     breakdownDetails.push({
       item: "R1 Peak",
       quantity: gridLines,
@@ -199,6 +202,24 @@ const Quotes = () => {
       total: r1Cost,
       linearFeet: r1Length,
     });
+
+    // Calculate number of roof braces.
+    // Ensure that roofBraceQuantity does not go below 0
+    const roofBraceQuantity = r1Quantity; // One roof brace per R1
+    const roofBraceLength = 3; // Each roof brace is 3 feet long
+    const totalRoofBraceLF = roofBraceQuantity * roofBraceLength;
+    const roofBraceCost = totalRoofBraceLF * BASE_UNIT_COSTS["RoofBrace"];
+
+    // Add roof braces to breakdown details
+    if (roofBraceQuantity > 0) {
+      breakdownDetails.push({
+        item: "Roof Brace",
+        quantity: roofBraceQuantity,
+        unitPrice: BASE_UNIT_COSTS["RoofBrace"],
+        total: roofBraceCost,
+        linearFeet: roofBraceLength,
+      });
+    }
 
     // Calculate R2
     const PITCH_RISE = 3;
@@ -215,23 +236,22 @@ const Quotes = () => {
 
       return { height, hypotenuse };
     };
-
-    // Inside calculateTotalCost function, after calculating other costs
-    const r2LengthPerPiece = calculateTriangleDimensions(
-      numWidth / 2,
-      PITCH_RISE,
-      PITCH_RUN
-    ).hypotenuse;
-    const r2Quantity = gridLines * 2; // Twice the quantity of R1
-    const totalR2LF = r2Quantity * r2LengthPerPiece;
-    const r2Cost = totalR2LF * BASE_UNIT_COSTS["R2"]; // Calculate cost based on per foot price
-
     const decimalFeetToFeetInches = (decimalFeet: any) => {
       const totalInches = decimalFeet * 12;
       const feet = Math.floor(totalInches / 12);
       const inches = Math.round(totalInches % 12);
       return `${feet}' ${inches}"`;
     };
+    // Inside calculateTotalCost function, after calculating other costs
+    const r2HypotenuseLength = calculateTriangleDimensions(
+      numWidth / 2,
+      PITCH_RISE,
+      PITCH_RUN
+    ).hypotenuse;
+    const r2LengthPerPiece = Math.max(r2HypotenuseLength - 24 / 12, 0); // Subtract 24inches, converted to feet
+    const r2Quantity = gridLines * 2; // Twice the quantity of R1
+    const totalR2LF = r2Quantity * r2LengthPerPiece;
+    const r2Cost = totalR2LF * BASE_UNIT_COSTS["R2"]; // Calculate cost based on per foot price
 
     const r2LengthPerPieceInFeetInches =
       decimalFeetToFeetInches(r2LengthPerPiece);
@@ -241,6 +261,26 @@ const Quotes = () => {
       unitPrice: BASE_UNIT_COSTS["R2"],
       total: r2Cost,
       linearFeet: r2LengthPerPieceInFeetInches, // Display as feet and inches
+    });
+    // Calculate Roof Sheathing
+    const roofSheetWidth = 2.5; // Width of each roof sheet
+    const totalRoofSheets = Math.ceil(numLength / roofSheetWidth) * 2; // Total number of roof sheets for both sides
+    const roofSheetLengthInDecimalFeet = Math.min(r2LengthPerPiece + 2, 21); // Max length of roof sheet is 21 feet
+    const roofSheetLengthInFeetInches = decimalFeetToFeetInches(
+      roofSheetLengthInDecimalFeet
+    );
+
+    const roofSheetCostPerSheet =
+      roofSheetLengthInDecimalFeet * BASE_UNIT_COSTS["RoofSheet"];
+    const totalRoofSheetCost = totalRoofSheets * roofSheetCostPerSheet; // Total cost for all roof sheets
+
+    // Add Roof Sheathing to breakdown details
+    breakdownDetails.push({
+      item: "Roof Sheathing",
+      quantity: totalRoofSheets,
+      unitPrice: roofSheetCostPerSheet,
+      total: totalRoofSheetCost,
+      linearFeet: roofSheetLengthInFeetInches, // Length of each roof sheet in feet and inches
     });
 
     // Calculate KneeBrace for each R2
@@ -311,6 +351,25 @@ const Quotes = () => {
 
       return sheets;
     };
+    const calculateFrontRearWallCost = (
+      wallSelection: any,
+      buildingWidth: any
+    ) => {
+      let wallCost = 0;
+      let totalWallLF = 0;
+      const wallSheets = calculateSidewallSheets(wallSelection, buildingWidth);
+      wallSheets.forEach((sheet) => {
+        totalWallLF += sheet.length;
+      });
+      wallCost =
+        totalWallLF * wallSheets.length * BASE_UNIT_COSTS["SidewallSheet"];
+
+      return {
+        cost: wallCost,
+        linearFeet: wallSheets.length > 0 ? `${wallSheets[0].length}'` : "0'",
+        quantity: wallSheets.length,
+      };
+    };
 
     // Inside calculateTotalCost function
     // Left Wall Sheets
@@ -354,6 +413,59 @@ const Quotes = () => {
         linearFeet: `${rightWallSheets[0].length}`, // Display LF of each sheet
       });
     }
+    // Calculate costs for front and rear walls
+    const frontWallData = calculateFrontRearWallCost(frontWall, numWidth);
+    if (frontWallData.quantity > 0) {
+      breakdownDetails.push({
+        item: `Front Wall Sheets`,
+        quantity: frontWallData.quantity,
+        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+        total: frontWallData.cost,
+        linearFeet: frontWallData.linearFeet,
+      });
+    }
+
+    const rearWallData = calculateFrontRearWallCost(rearWall, numWidth);
+    if (rearWallData.quantity > 0) {
+      breakdownDetails.push({
+        item: `Rear Wall Sheets`,
+        quantity: rearWallData.quantity,
+        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+        total: rearWallData.cost,
+        linearFeet: rearWallData.linearFeet,
+      });
+    }
+    // Inside calculateTotalCost function, after existing calculations
+    // Calculate Tek Screws
+    const tekScrewCostPerUnit = BASE_UNIT_COSTS["TekScrew"];
+    let totalTekScrews = 0;
+    let tekScrewCost = 0;
+
+    // Tek Screws for AngleClips
+    const tekScrewsForAngleClips = angleClipQuantity * 4;
+    totalTekScrews += tekScrewsForAngleClips;
+
+    // Tek Screws for Straight Clips
+    const tekScrewsForStraightClips = straightClipQuantity * 4;
+    totalTekScrews += tekScrewsForStraightClips;
+
+    // Tek Screws for R1s
+    const tekScrewsForR2s = gridLines * 32; // Assuming one R1 per grid line
+    totalTekScrews += tekScrewsForR2s;
+
+    // Tek Screws for Roof Braces
+    const tekScrewsForRoofBraces = roofBraceQuantity * 8; // 8 Tek Screws per Roof Brace
+    totalTekScrews += tekScrewsForRoofBraces;
+
+    tekScrewCost = totalTekScrews * tekScrewCostPerUnit;
+
+    // Add Tek Screws to breakdown details
+    breakdownDetails.push({
+      item: "Tek Screw",
+      quantity: totalTekScrews,
+      unitPrice: tekScrewCostPerUnit,
+      total: tekScrewCost,
+    });
 
     //! Update total cost
     calculatedTotalCost +=
@@ -369,8 +481,12 @@ const Quotes = () => {
       r2Cost +
       kneeBraceCost +
       rightWallCost +
-      leftWallCost;
-
+      leftWallCost +
+      tekScrewCost +
+      frontWallData.cost +
+      rearWallData.cost +
+      roofBraceCost +
+      totalRoofSheetCost;
     // Add window to breakdown
     if (windowQuantity > 0) {
       const windowTotalCost = windowQuantity * BASE_UNIT_COSTS["Window"];
@@ -394,9 +510,11 @@ const Quotes = () => {
     setHeight("");
     setGroundType(GROUND_TYPE.REGULAR);
     setWindowQuantity(0);
-    setSideWallQuantity(0);
-    setEndWallQuantity(0);
     setTotalCost(0);
+    setLeftWall(WALL_OPTIONS.NONE);
+    setRightWall(WALL_OPTIONS.NONE);
+    setFrontWall(WALL_OPTIONS.NONE);
+    setRearWall(WALL_OPTIONS.NONE);
     setBreakdown([]);
   };
   const getAggregatedBreakdown = (): AggregatedBreakdownDetail[] => {
@@ -495,6 +613,36 @@ const Quotes = () => {
                 </IonSelect>
               </IonItem>
             </IonCol>
+            <IonCol>
+              <IonItem>
+                <IonLabel position="stacked">Front Wall:</IonLabel>
+                <IonSelect
+                  value={frontWall}
+                  onIonChange={(e) => setFrontWall(e.detail.value)}
+                >
+                  {Object.values(WALL_OPTIONS).map((option) => (
+                    <IonSelectOption key={`front-${option}`} value={option}>
+                      {option}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </IonItem>
+            </IonCol>
+            <IonCol>
+              <IonItem>
+                <IonLabel position="stacked">Rear Wall:</IonLabel>
+                <IonSelect
+                  value={rearWall}
+                  onIonChange={(e) => setRearWall(e.detail.value)}
+                >
+                  {Object.values(WALL_OPTIONS).map((option) => (
+                    <IonSelectOption key={`rear-${option}`} value={option}>
+                      {option}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </IonItem>
+            </IonCol>
           </IonRow>
 
           <IonItem>
@@ -520,19 +668,6 @@ const Quotes = () => {
                 setWindowQuantity(parseInt(e.detail.value ?? "0"))
               }
               min="0"
-            />
-          </IonItem>
-
-          <IonItem>
-            <IonLabel position="stacked">End Wall Quantity:</IonLabel>
-            <IonInput
-              type="number"
-              value={endWallQuantity}
-              onIonChange={(e) =>
-                setEndWallQuantity(parseInt(e.detail.value ?? "0"))
-              }
-              min="0"
-              max="2"
             />
           </IonItem>
         </IonCol>

@@ -2,7 +2,7 @@ export const BASE_UNIT_COSTS = {
   Window: 385.0, // per window
   Leg: 5.79, // per foot
   Runner: 26.97, // per foot
-  RoofSheet: 21.24, // per sheet
+  RoofSheet: 21.24, // per length foot
   Anchor: 4.5, // per anchor
   AngleClip: 1.5, // per clip
   StraightClip: 1.5, // per clip
@@ -11,7 +11,7 @@ export const BASE_UNIT_COSTS = {
   StitchScrew: 0.2, // per screw
   Rafter: 118, // per rafter
   KneeBrace: 10.49, // per brace
-  RoofBrace: 8, // per brace
+  RoofBrace: 8, // per foot
   HatChannel: 2.97, // per foot
   RebarAnchor: 5.0, // per anchor (example cost)
   ConcreteAnchor: 6.0, // per anchor (example cost)
