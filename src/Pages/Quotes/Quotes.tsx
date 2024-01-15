@@ -7,9 +7,12 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCol,
+  IonContent,
+  IonHeader,
   IonInput,
   IonItem,
   IonLabel,
+  IonPage,
   IonRow,
   IonSelect,
   IonSelectOption,
@@ -22,6 +25,7 @@ import {
 
 import { BASE_UNIT_COSTS, BASE_SIZE } from "./PricingData";
 import * as XLSX from "xlsx";
+import { channel } from "diagnostics_channel";
 
 const Quotes = () => {
   const GROUND_TYPE = { REGULAR: "Regular", CONCRETE: "Concrete" };
@@ -36,7 +40,17 @@ const Quotes = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  const WALL_OPTIONS = {
+  // Define the type for WALL_OPTIONS
+  type WallOptionsType = {
+    NONE: "0'";
+    THREE_FEET: "3'";
+    SIX_FEET: "6'";
+    NINE_FEET: "9'";
+    FULLY_ENCLOSED: "Fully Enclosed";
+  };
+
+  // Explicitly declare WALL_OPTIONS with its type
+  const WALL_OPTIONS: WallOptionsType = {
     NONE: "0'",
     THREE_FEET: "3'",
     SIX_FEET: "6'",
@@ -44,17 +58,18 @@ const Quotes = () => {
     FULLY_ENCLOSED: "Fully Enclosed",
   };
 
-  const [leftWall, setLeftWall] = useState(WALL_OPTIONS.NONE);
-  const [rightWall, setRightWall] = useState(WALL_OPTIONS.NONE);
-  const [frontWall, setFrontWall] = useState(WALL_OPTIONS.NONE);
-  const [rearWall, setRearWall] = useState(WALL_OPTIONS.NONE);
+  // Define the initial state using the keys of WALL_OPTIONS
+  const [leftWall, setLeftWall] = useState<keyof WallOptionsType>("NONE");
+  const [rightWall, setRightWall] = useState<keyof WallOptionsType>("NONE");
+  const [frontWall, setFrontWall] = useState<keyof WallOptionsType>("NONE");
+  const [rearWall, setRearWall] = useState<keyof WallOptionsType>("NONE");
 
   const calculateTotalCost = () => {
     const numWidth = parseInt(width);
     const numLength = parseInt(buildingLength);
     const numHeight = parseInt(height);
     // Calculate the number of grid lines
-    const gridLines = Math.ceil(numLength / 5);
+    const gridLines = Math.ceil(numLength / 5) + 1;
     let calculatedTotalCost = 0;
     let breakdownDetails = [];
     const legsPerRunner = Math.ceil(numLength / 5);
@@ -65,7 +80,7 @@ const Quotes = () => {
       return;
     }
     if (numLength < 10 || numLength > 100 || isNaN(numLength)) {
-      setAlertMessage("Length must be between 10' and 100'.");
+      setAlertMessage("Length must be between 10' and 100'");
       setShowAlert(true);
       return;
     }
@@ -123,7 +138,7 @@ const Quotes = () => {
     }
 
     // Calculate total number of legs (5' increments)
-    const totalLegs = Math.ceil(totalRunnerLF / 5);
+    const totalLegs = Math.ceil(totalRunnerLF / 5) + 2;
 
     // Determine anchor type and cost
     let anchorType = "";
@@ -176,6 +191,141 @@ const Quotes = () => {
       quantity: tubeCapQuantity,
       unitPrice: BASE_UNIT_COSTS["TubeCap"],
       total: tubeCapCost,
+    });
+
+    // Define a type for the keys of WALL_OPTIONS
+
+    // Updated getWallHeight function with explicit parameter type
+    const getWallHeight = (wallOption: any) => {
+      switch (wallOption) {
+        case "3'":
+          return 3;
+        case "6'":
+          return 6;
+        case "9'":
+          return 9;
+        case "FULLY_ENCLOSED":
+          return numHeight; // Assuming fully enclosed means up to the building height
+        default:
+          return 0; // For 'NONE' or unrecognized values
+      }
+    };
+
+    // Calculate tallest sidewall height
+    const leftWallHeight = getWallHeight(leftWall);
+    const rightWallHeight = getWallHeight(rightWall);
+    console.log(leftWallHeight, rightWallHeight);
+    const tallestSidewallHeight = Math.max(leftWallHeight, rightWallHeight);
+    console.log(tallestSidewallHeight);
+    const calculateSidewallSheets = (
+      wallSelection: any,
+      buildingLength: any
+    ) => {
+      let wallHeightFeet = 0;
+      switch (wallSelection) {
+        case WALL_OPTIONS.THREE_FEET:
+          wallHeightFeet = 3;
+          break;
+        case WALL_OPTIONS.SIX_FEET:
+          wallHeightFeet = 6;
+          break;
+        case WALL_OPTIONS.NINE_FEET:
+          wallHeightFeet = 9;
+          break;
+        case WALL_OPTIONS.FULLY_ENCLOSED:
+          wallHeightFeet = numHeight; // Assuming fully enclosed means up to the building height
+          break;
+        default:
+          wallHeightFeet = 0;
+      }
+
+      const panelsPerSection = Math.ceil(wallHeightFeet / 3); // 3' width per panel
+      const sections = Math.ceil(buildingLength / 21); // Max length per panel is 21'
+      const totalPanels = panelsPerSection * sections;
+
+      const sheets = [];
+      let remainingLength = buildingLength;
+
+      for (let i = 0; i < totalPanels; i++) {
+        let sheetLength = Math.min(21, remainingLength);
+        sheets.push({
+          height: wallHeightFeet,
+          length: sheetLength,
+        });
+        remainingLength -= sheetLength;
+      }
+
+      return sheets;
+    };
+    const calculateTotalWallHeight = (wallSelection: any, numHeight: any) => {
+      let wallHeightFeet = 0;
+
+      switch (wallSelection) {
+        case WALL_OPTIONS.THREE_FEET:
+          wallHeightFeet = 3;
+          break;
+        case WALL_OPTIONS.SIX_FEET:
+          wallHeightFeet = 6;
+          break;
+        case WALL_OPTIONS.NINE_FEET:
+          wallHeightFeet = 9;
+          break;
+        case WALL_OPTIONS.FULLY_ENCLOSED:
+          wallHeightFeet = numHeight;
+          break;
+        default:
+          wallHeightFeet = 0;
+      }
+
+      const sheets = calculateSidewallSheets(wallSelection, numHeight);
+      const totalHeight = sheets.length * wallHeightFeet;
+
+      return totalHeight;
+    };
+
+    // Inside calculateTotalCost
+    const totalLeftWallHeight = calculateTotalWallHeight(leftWall, numHeight);
+    const totalRightWallHeight = calculateTotalWallHeight(rightWall, numHeight);
+
+    const totalM29TrimLength = totalLeftWallHeight + totalRightWallHeight;
+
+    // Assume a unit cost for M-29 Trim per linear foot
+    const m29TrimCostPerUnit = BASE_UNIT_COSTS["M29Trim"];
+    const totalM29TrimCost = totalM29TrimLength * m29TrimCostPerUnit;
+
+    // Add M-29 Trim to breakdown details
+    breakdownDetails.push({
+      item: "M-29 Trim",
+      quantity: totalM29TrimLength,
+      unitPrice: m29TrimCostPerUnit,
+      total: totalM29TrimCost,
+    });
+
+    // Structural Screw Calculation
+    const screwsPerLeg = 4; // Assuming 4 screws are needed per leg
+    const structuralScrewQuantityForLegs =
+      totalLegs * screwsPerLeg * tallestSidewallHeight;
+
+    // Calculate total structural screws for Hat Channel
+    let totalHatChannelLF = 0;
+    for (let i = 0; i < hatChannelQuantity; i++) {
+      const channelLength = Math.min(numLength, maxHatChannelLength);
+      totalHatChannelLF += channelLength;
+    }
+    const structuralScrewQuantityForHatChannel = totalHatChannelLF;
+
+    // Combine structural screws from hat channel and legs
+    const totalStructuralScrews =
+      structuralScrewQuantityForHatChannel + structuralScrewQuantityForLegs;
+    const totalStructuralScrewsCost =
+      totalStructuralScrews * BASE_UNIT_COSTS["StructuralScrew"];
+
+    // Ensure to add structural screw cost to breakdown details and total cost
+    breakdownDetails.push({
+      item: "Structural Screw",
+      quantity: totalStructuralScrews,
+      unitPrice: BASE_UNIT_COSTS["StructuralScrew"],
+      total: totalStructuralScrewsCost,
     });
 
     // Calculate King Pins
@@ -283,6 +433,24 @@ const Quotes = () => {
       linearFeet: roofSheetLengthInFeetInches, // Length of each roof sheet in feet and inches
     });
 
+    // Calcualte stich screws
+    const stitchScrewCostPerUnit = BASE_UNIT_COSTS["StitchScrew"];
+
+    // Calculate the number of stitch screws needed
+    const totalStitchScrews = Math.ceil(
+      ((totalRoofSheets * roofSheetLengthInDecimalFeet) / 2) * 1.1
+    );
+
+    // Calculate the total cost for stitch screws
+    const totalStitchScrewCost = totalStitchScrews * stitchScrewCostPerUnit;
+
+    // Add stitch screws to breakdown details
+    breakdownDetails.push({
+      item: "Stitch Screw",
+      quantity: totalStitchScrews,
+      unitPrice: stitchScrewCostPerUnit,
+      total: totalStitchScrewCost,
+    });
     // Calculate KneeBrace for each R2
     const kneeBraceQuantity = r2Quantity; // One KneeBrace per R2
     const kneeBraceCost = kneeBraceQuantity * BASE_UNIT_COSTS["KneeBrace"];
@@ -311,46 +479,7 @@ const Quotes = () => {
 
     let leftWallCost = 0;
     let rightWallCost = 0;
-    const calculateSidewallSheets = (
-      wallSelection: any,
-      buildingLength: any
-    ) => {
-      let wallHeightFeet = 0;
-      switch (wallSelection) {
-        case WALL_OPTIONS.THREE_FEET:
-          wallHeightFeet = 3;
-          break;
-        case WALL_OPTIONS.SIX_FEET:
-          wallHeightFeet = 6;
-          break;
-        case WALL_OPTIONS.NINE_FEET:
-          wallHeightFeet = 9;
-          break;
-        case WALL_OPTIONS.FULLY_ENCLOSED:
-          wallHeightFeet = numHeight; // Assuming fully enclosed means up to the building height
-          break;
-        default:
-          wallHeightFeet = 0;
-      }
 
-      const panelsPerSection = Math.ceil(wallHeightFeet / 3); // 3' width per panel
-      const sections = Math.ceil(buildingLength / 21); // Max length per panel is 21'
-      const totalPanels = panelsPerSection * sections;
-
-      const sheets = [];
-      let remainingLength = buildingLength;
-
-      for (let i = 0; i < totalPanels; i++) {
-        let sheetLength = Math.min(21, remainingLength);
-        sheets.push({
-          height: wallHeightFeet,
-          length: sheetLength,
-        });
-        remainingLength -= sheetLength;
-      }
-
-      return sheets;
-    };
     const calculateFrontRearWallCost = (
       wallSelection: any,
       buildingWidth: any
@@ -486,7 +615,11 @@ const Quotes = () => {
       frontWallData.cost +
       rearWallData.cost +
       roofBraceCost +
-      totalRoofSheetCost;
+      totalRoofSheetCost +
+      totalStructuralScrewsCost +
+      totalStitchScrewCost +
+      totalM29TrimCost;
+
     // Add window to breakdown
     if (windowQuantity > 0) {
       const windowTotalCost = windowQuantity * BASE_UNIT_COSTS["Window"];
@@ -511,10 +644,10 @@ const Quotes = () => {
     setGroundType(GROUND_TYPE.REGULAR);
     setWindowQuantity(0);
     setTotalCost(0);
-    setLeftWall(WALL_OPTIONS.NONE);
-    setRightWall(WALL_OPTIONS.NONE);
-    setFrontWall(WALL_OPTIONS.NONE);
-    setRearWall(WALL_OPTIONS.NONE);
+    setLeftWall("NONE");
+    setRightWall("NONE");
+    setFrontWall("NONE");
+    setRearWall("NONE");
     setBreakdown([]);
   };
   const getAggregatedBreakdown = (): AggregatedBreakdownDetail[] => {
@@ -544,178 +677,199 @@ const Quotes = () => {
   };
 
   return (
-    <div>
-      <IonRow>
-        <IonCol>
-          <IonItem>
-            <IonLabel position="stacked">Width (Min: 10', Max: 30'):</IonLabel>
-            <IonInput
-              type="number"
-              value={width}
-              onIonChange={(e) => setWidth(e.detail.value ?? "")}
-              min={10}
-              max={30}
-              defaultValue={0}
-            />
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">
-              Length (Min: 10', Max: 100'):
-            </IonLabel>
-            <IonInput
-              type="number"
-              value={buildingLength}
-              onIonChange={(e) => setBuildingLength(e.detail.value ?? "")}
-              min={10}
-              max={100}
-              defaultValue={0}
-            />
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Height (Min: 6', Max: 12'):</IonLabel>
-            <IonInput
-              type="number"
-              value={height}
-              onIonChange={(e) => setHeight(e.detail.value ?? "")}
-              min={6}
-              max={12}
-              defaultValue={0}
-            />
-          </IonItem>
-          <IonRow>
-            <IonCol>
-              <IonItem>
-                <IonLabel position="stacked">Left Wall:</IonLabel>
-                <IonSelect
-                  value={leftWall}
-                  onIonChange={(e) => setLeftWall(e.detail.value)}
-                >
-                  {Object.values(WALL_OPTIONS).map((option) => (
-                    <IonSelectOption key={`left-${option}`} value={option}>
-                      {option}
-                    </IonSelectOption>
-                  ))}
-                </IonSelect>
-              </IonItem>
-            </IonCol>
-            <IonCol>
-              <IonItem>
-                <IonLabel position="stacked">Right Wall:</IonLabel>
-                <IonSelect
-                  value={rightWall}
-                  onIonChange={(e) => setRightWall(e.detail.value)}
-                >
-                  {Object.values(WALL_OPTIONS).map((option) => (
-                    <IonSelectOption key={`right-${option}`} value={option}>
-                      {option}
-                    </IonSelectOption>
-                  ))}
-                </IonSelect>
-              </IonItem>
-            </IonCol>
-            <IonCol>
-              <IonItem>
-                <IonLabel position="stacked">Front Wall:</IonLabel>
-                <IonSelect
-                  value={frontWall}
-                  onIonChange={(e) => setFrontWall(e.detail.value)}
-                >
-                  {Object.values(WALL_OPTIONS).map((option) => (
-                    <IonSelectOption key={`front-${option}`} value={option}>
-                      {option}
-                    </IonSelectOption>
-                  ))}
-                </IonSelect>
-              </IonItem>
-            </IonCol>
-            <IonCol>
-              <IonItem>
-                <IonLabel position="stacked">Rear Wall:</IonLabel>
-                <IonSelect
-                  value={rearWall}
-                  onIonChange={(e) => setRearWall(e.detail.value)}
-                >
-                  {Object.values(WALL_OPTIONS).map((option) => (
-                    <IonSelectOption key={`rear-${option}`} value={option}>
-                      {option}
-                    </IonSelectOption>
-                  ))}
-                </IonSelect>
-              </IonItem>
-            </IonCol>
-          </IonRow>
-
-          <IonItem>
-            <IonLabel position="stacked">Ground Type:</IonLabel>
-            <IonSelect
-              value={groundType}
-              onIonChange={(e) => setGroundType(e.detail.value as string)}
-            >
-              <IonSelectOption value={GROUND_TYPE.REGULAR}>
-                {GROUND_TYPE.REGULAR}
-              </IonSelectOption>
-              <IonSelectOption value={GROUND_TYPE.CONCRETE}>
-                {GROUND_TYPE.CONCRETE}
-              </IonSelectOption>
-            </IonSelect>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">Window Quantity:</IonLabel>
-            <IonInput
-              type="number"
-              value={windowQuantity}
-              onIonChange={(e) =>
-                setWindowQuantity(parseInt(e.detail.value ?? "0"))
-              }
-              min="0"
-            />
-          </IonItem>
-        </IonCol>
-      </IonRow>
-      <IonRow>
-        <IonCol>
-          <IonButton color="primary" expand="full" onClick={calculateTotalCost}>
-            Calculate Total
-          </IonButton>
-        </IonCol>
-        <IonCol>
-          <IonButton color="secondary" expand="full" onClick={resetCalculator}>
-            Reset
-          </IonButton>
-        </IonCol>
-      </IonRow>
-      <IonRow>
-        <IonCol>
-          <IonCard>
+    <IonPage>
+      <IonContent>
+        <IonRow>
+          <IonHeader>
             <IonCardHeader>
-              <IonCardTitle>Cost Breakdown</IonCardTitle>
+              <IonCardTitle>
+                <strong>Quotes Calculator 🧮</strong>
+              </IonCardTitle>
             </IonCardHeader>
-            <IonCardContent>
-              {aggregatedBreakdown.map((detail, index) => (
-                <div key={index}>
-                  <p>
-                    {detail.item}: Quantity: {detail.quantity},
-                    {detail.linearFeet ? ` LF: ${detail.linearFeet}', ` : ""}
-                    Unit Price: ${detail.unitPrice.toFixed(2)}, Total: $
-                    {detail.total.toFixed(2)}
-                  </p>
-                </div>
-              ))}
-              <p>
-                <strong>Total Cost: ${totalCost.toFixed(2)}</strong>
-              </p>
-            </IonCardContent>
-          </IonCard>
-        </IonCol>
-      </IonRow>
-      <IonAlert
-        isOpen={showAlert}
-        onDidDismiss={() => setShowAlert(false)}
-        header={"Alert"}
-        message={alertMessage}
-        buttons={["OOPS"]}
-      />
-    </div>
+          </IonHeader>
+          <IonCol>
+            <IonItem>
+              <IonLabel position="stacked">
+                Width (Min: 10', Max: 30'):
+              </IonLabel>
+              <IonInput
+                type="number"
+                value={width}
+                onIonChange={(e) => setWidth(e.detail.value ?? "")}
+                min={10}
+                max={30}
+                defaultValue={0}
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">
+                Length (Min: 10', Max: 100'):
+              </IonLabel>
+              <IonInput
+                type="number"
+                value={buildingLength}
+                onIonChange={(e) => setBuildingLength(e.detail.value ?? "")}
+                min={10}
+                max={100}
+                defaultValue={0}
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">
+                Height (Min: 6', Max: 12'):
+              </IonLabel>
+              <IonInput
+                type="number"
+                value={height}
+                onIonChange={(e) => setHeight(e.detail.value ?? "")}
+                min={6}
+                max={12}
+                defaultValue={0}
+              />
+            </IonItem>
+            <IonRow>
+              <IonCol>
+                <IonItem>
+                  <IonLabel position="stacked">Left Wall:</IonLabel>
+                  <IonSelect
+                    value={leftWall}
+                    onIonChange={(e) => setLeftWall(e.detail.value)}
+                  >
+                    {Object.values(WALL_OPTIONS).map((option) => (
+                      <IonSelectOption key={`left-${option}`} value={option}>
+                        {option}
+                      </IonSelectOption>
+                    ))}
+                  </IonSelect>
+                </IonItem>
+              </IonCol>
+              <IonCol>
+                <IonItem>
+                  <IonLabel position="stacked">Right Wall:</IonLabel>
+                  <IonSelect
+                    value={rightWall}
+                    onIonChange={(e) => setRightWall(e.detail.value)}
+                  >
+                    {Object.values(WALL_OPTIONS).map((option) => (
+                      <IonSelectOption key={`right-${option}`} value={option}>
+                        {option}
+                      </IonSelectOption>
+                    ))}
+                  </IonSelect>
+                </IonItem>
+              </IonCol>
+              <IonCol>
+                <IonItem>
+                  <IonLabel position="stacked">Front Wall:</IonLabel>
+                  <IonSelect
+                    value={frontWall}
+                    onIonChange={(e) => setFrontWall(e.detail.value)}
+                  >
+                    {Object.values(WALL_OPTIONS).map((option) => (
+                      <IonSelectOption key={`front-${option}`} value={option}>
+                        {option}
+                      </IonSelectOption>
+                    ))}
+                  </IonSelect>
+                </IonItem>
+              </IonCol>
+              <IonCol>
+                <IonItem>
+                  <IonLabel position="stacked">Rear Wall:</IonLabel>
+                  <IonSelect
+                    value={rearWall}
+                    onIonChange={(e) => setRearWall(e.detail.value)}
+                  >
+                    {Object.values(WALL_OPTIONS).map((option) => (
+                      <IonSelectOption key={`rear-${option}`} value={option}>
+                        {option}
+                      </IonSelectOption>
+                    ))}
+                  </IonSelect>
+                </IonItem>
+              </IonCol>
+            </IonRow>
+
+            <IonItem>
+              <IonLabel position="stacked">Ground Type:</IonLabel>
+              <IonSelect
+                value={groundType}
+                onIonChange={(e) => setGroundType(e.detail.value as string)}
+              >
+                <IonSelectOption value={GROUND_TYPE.REGULAR}>
+                  {GROUND_TYPE.REGULAR}
+                </IonSelectOption>
+                <IonSelectOption value={GROUND_TYPE.CONCRETE}>
+                  {GROUND_TYPE.CONCRETE}
+                </IonSelectOption>
+              </IonSelect>
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">Window Quantity:</IonLabel>
+              <IonInput
+                type="number"
+                value={windowQuantity}
+                onIonChange={(e) =>
+                  setWindowQuantity(parseInt(e.detail.value ?? "0"))
+                }
+                min="0"
+              />
+            </IonItem>
+          </IonCol>
+        </IonRow>
+        <IonRow>
+          <IonCol>
+            <IonButton
+              color="primary"
+              expand="full"
+              onClick={calculateTotalCost}
+            >
+              Calculate Total
+            </IonButton>
+          </IonCol>
+          <IonCol>
+            <IonButton
+              color="secondary"
+              expand="full"
+              onClick={resetCalculator}
+            >
+              Reset
+            </IonButton>
+          </IonCol>
+        </IonRow>
+        <IonRow>
+          <IonCol>
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>Cost Breakdown</IonCardTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                {aggregatedBreakdown.map((detail, index) => (
+                  <div key={index}>
+                    <p>
+                      {detail.item}: Quantity: {detail.quantity},
+                      {detail.linearFeet ? ` LF: ${detail.linearFeet}', ` : ""}
+                      Unit Price: ${detail.unitPrice.toFixed(2)}, Total: $
+                      {detail.total.toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+                <p>
+                  <strong>Total Cost: ${totalCost.toFixed(2)}</strong>
+                </p>
+              </IonCardContent>
+            </IonCard>
+          </IonCol>
+        </IonRow>
+        <IonAlert
+          isOpen={showAlert}
+          onDidDismiss={() => setShowAlert(false)}
+          header={"Alert"}
+          message={alertMessage}
+          buttons={["OOPS"]}
+        />
+      </IonContent>
+    </IonPage>
   );
 };
 

@@ -20,6 +20,7 @@ export const BASE_UNIT_COSTS = {
   R1Peak: 50, // per r1
   R2: 5.79, // per foot
   SidewallSheet: 21.24, // per length foot
+  M29Trim: 5.79, // per foot
 };
 
 export const BASE_SIZE = { width: 10, length: 10, height: 8 }; // Base size for proportion calculation
