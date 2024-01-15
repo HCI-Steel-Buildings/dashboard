@@ -316,15 +316,20 @@ const Quotes = () => {
 
     // Calculate King Pins
     const kingPinLength = 3; // Default value of 3 feet
+
+    // Check if width is greater than 24 feet
     const totalKingPinLF = gridLines * kingPinLength;
     const kingPinCost = totalKingPinLF * BASE_UNIT_COSTS["KingPin"];
-    breakdownDetails.push({
-      item: "King Pin",
-      quantity: gridLines,
-      unitPrice: BASE_UNIT_COSTS["KingPin"],
-      total: kingPinCost,
-      linearFeet: kingPinLength,
-    });
+
+    if (numWidth > 24) {
+      breakdownDetails.push({
+        item: "King Pin",
+        quantity: gridLines,
+        unitPrice: BASE_UNIT_COSTS["KingPin"],
+        total: kingPinCost,
+        linearFeet: kingPinLength,
+      });
+    }
 
     // Calculate R1s
     const r1Length = 4; // Default value of 4 feet
@@ -594,7 +599,7 @@ const Quotes = () => {
     // Add updated M29GableTrim details to the breakdown
     breakdownDetails.push({
       item: "M29GableTrim",
-      quantity: 1,
+      quantity: 4,
       unitPrice: BASE_UNIT_COSTS["M29GableTrim"],
       total: m29GableTrimCost,
       linearFeet: `${m29GableTrimLength.toFixed(2)}'`,
