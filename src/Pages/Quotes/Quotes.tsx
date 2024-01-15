@@ -9,6 +9,7 @@ import {
   IonCol,
   IonContent,
   IonHeader,
+  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
@@ -26,32 +27,24 @@ import {
 import { BASE_UNIT_COSTS, BASE_SIZE } from "./PricingData";
 import * as XLSX from "xlsx";
 import { channel } from "diagnostics_channel";
+import { downloadOutline } from "ionicons/icons";
 
 const Quotes = () => {
-  const GROUND_TYPE = { REGULAR: "Regular", CONCRETE: "Concrete" };
+  const FOUNDATION = { REGULAR: "Regular", CONCRETE: "Concrete" };
 
   const [width, setWidth] = useState("0");
   const [buildingLength, setBuildingLength] = useState("0");
   const [height, setHeight] = useState("0");
-  const [groundType, setGroundType] = useState(GROUND_TYPE.REGULAR);
+  const [foundation, setFoundation] = useState(FOUNDATION.REGULAR);
   const [windowQuantity, setWindowQuantity] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
   const [breakdown, setBreakdown] = useState<BreakdownDetail[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Define the type for WALL_OPTIONS
-  type WallOptionsType = {
-    NONE: "0'";
-    THREE_FEET: "3'";
-    SIX_FEET: "6'";
-    NINE_FEET: "9'";
-    FULLY_ENCLOSED: "Fully Enclosed";
-  };
-
   // Explicitly declare WALL_OPTIONS with its type
-  const WALL_OPTIONS: WallOptionsType = {
-    NONE: "0'",
+  const WALL_OPTIONS = {
+    ZERO: 0,
     THREE_FEET: "3'",
     SIX_FEET: "6'",
     NINE_FEET: "9'",
@@ -59,10 +52,10 @@ const Quotes = () => {
   };
 
   // Define the initial state using the keys of WALL_OPTIONS
-  const [leftWall, setLeftWall] = useState<keyof WallOptionsType>("NONE");
-  const [rightWall, setRightWall] = useState<keyof WallOptionsType>("NONE");
-  const [frontWall, setFrontWall] = useState<keyof WallOptionsType>("NONE");
-  const [rearWall, setRearWall] = useState<keyof WallOptionsType>("NONE");
+  const [leftWall, setLeftWall] = useState(0);
+  const [rightWall, setRightWall] = useState(0);
+  const [frontWall, setFrontWall] = useState(0);
+  const [rearWall, setRearWall] = useState(0);
 
   const calculateTotalCost = () => {
     const numWidth = parseInt(width);
@@ -143,10 +136,10 @@ const Quotes = () => {
     // Determine anchor type and cost
     let anchorType = "";
     let anchorCostPerUnit = 0;
-    if (groundType === GROUND_TYPE.REGULAR) {
+    if (foundation === FOUNDATION.REGULAR) {
       anchorType = '30" Rebar Anchor';
       anchorCostPerUnit = BASE_UNIT_COSTS["RebarAnchor"];
-    } else if (groundType === GROUND_TYPE.CONCRETE) {
+    } else if (foundation === FOUNDATION.CONCRETE) {
       anchorType = "Concrete Anchor";
       anchorCostPerUnit = BASE_UNIT_COSTS["ConcreteAnchor"];
     }
@@ -207,7 +200,7 @@ const Quotes = () => {
         case "FULLY_ENCLOSED":
           return numHeight; // Assuming fully enclosed means up to the building height
         default:
-          return 0; // For 'NONE' or unrecognized values
+          return 0; // For '0' or unrecognized values
       }
     };
 
@@ -257,49 +250,42 @@ const Quotes = () => {
 
       return sheets;
     };
-    const calculateTotalWallHeight = (wallSelection: any, numHeight: any) => {
-      let wallHeightFeet = 0;
+    const calculateTrimForWall = (wallHeight: any, wallSide: string) => {
+      if (wallHeight !== WALL_OPTIONS.ZERO) {
+        const trimLF =
+          wallHeight === WALL_OPTIONS.FULLY_ENCLOSED
+            ? numHeight
+            : parseInt(wallHeight);
+        const trimCost = 2 * trimLF * BASE_UNIT_COSTS["M29Trim"]; // 2 pieces per wall
 
-      switch (wallSelection) {
-        case WALL_OPTIONS.THREE_FEET:
-          wallHeightFeet = 3;
-          break;
-        case WALL_OPTIONS.SIX_FEET:
-          wallHeightFeet = 6;
-          break;
-        case WALL_OPTIONS.NINE_FEET:
-          wallHeightFeet = 9;
-          break;
-        case WALL_OPTIONS.FULLY_ENCLOSED:
-          wallHeightFeet = numHeight;
-          break;
-        default:
-          wallHeightFeet = 0;
+        breakdownDetails.push({
+          item: `${wallSide} Wall M-29 Trim`,
+          quantity: 2,
+          unitPrice: BASE_UNIT_COSTS["M29Trim"],
+          total: trimCost,
+          linearFeet: `${trimLF}'`,
+        });
+
+        return trimCost;
       }
-
-      const sheets = calculateSidewallSheets(wallSelection, numHeight);
-      const totalHeight = sheets.length * wallHeightFeet;
-
-      return totalHeight;
+      return 0;
     };
 
-    // Inside calculateTotalCost
-    const totalLeftWallHeight = calculateTotalWallHeight(leftWall, numHeight);
-    const totalRightWallHeight = calculateTotalWallHeight(rightWall, numHeight);
+    let totalM29TrimCost = 0;
+    totalM29TrimCost += calculateTrimForWall(leftWall, "Left");
+    totalM29TrimCost += calculateTrimForWall(rightWall, "Right");
 
-    const totalM29TrimLength = totalLeftWallHeight + totalRightWallHeight;
+    // Calculate M-29 Trim for front and rear walls if needed
+    const calculateTrimFrontRear = () => {
+      // Only add trim to the front/rear walls if the corresponding side wall does not have trim
+      if (leftWall === WALL_OPTIONS.ZERO && rightWall === WALL_OPTIONS.ZERO) {
+        let frontWallTrimCost = calculateTrimForWall(frontWall, "Front");
+        let rearWallTrimCost = calculateTrimForWall(rearWall, "Rear");
+        totalM29TrimCost += frontWallTrimCost + rearWallTrimCost;
+      }
+    };
 
-    // Assume a unit cost for M-29 Trim per linear foot
-    const m29TrimCostPerUnit = BASE_UNIT_COSTS["M29Trim"];
-    const totalM29TrimCost = totalM29TrimLength * m29TrimCostPerUnit;
-
-    // Add M-29 Trim to breakdown details
-    breakdownDetails.push({
-      item: "M-29 Trim",
-      quantity: totalM29TrimLength,
-      unitPrice: m29TrimCostPerUnit,
-      total: totalM29TrimCost,
-    });
+    calculateTrimFrontRear();
 
     // Structural Screw Calculation
     const screwsPerLeg = 4; // Assuming 4 screws are needed per leg
@@ -412,6 +398,7 @@ const Quotes = () => {
       total: r2Cost,
       linearFeet: r2LengthPerPieceInFeetInches, // Display as feet and inches
     });
+
     // Calculate Roof Sheathing
     const roofSheetWidth = 2.5; // Width of each roof sheet
     const totalRoofSheets = Math.ceil(numLength / roofSheetWidth) * 2; // Total number of roof sheets for both sides
@@ -596,6 +583,88 @@ const Quotes = () => {
       total: tekScrewCost,
     });
 
+    // Calculate M29GableTrim
+    let m29GableTrimLength = r2HypotenuseLength; // Same length as the R2 hypotenuse
+    let m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
+
+    // M29GableTrim calculations with overlap
+    m29GableTrimLength += 0.5; // Add 6 inches for overlap
+    m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
+
+    // Add updated M29GableTrim details to the breakdown
+    breakdownDetails.push({
+      item: "M29GableTrim",
+      quantity: 1,
+      unitPrice: BASE_UNIT_COSTS["M29GableTrim"],
+      total: m29GableTrimCost,
+      linearFeet: `${m29GableTrimLength.toFixed(2)}'`,
+    });
+    // Eave Trim calculations
+    const maxEaveTrimLength = 14.5; // Max length for an individual eave trim piece in feet
+    const buildingLengthInFeet = numLength; // Assuming 'numLength' is the length of the building in feet
+    let totalEaveTrimLength = buildingLengthInFeet;
+    let eaveTrimPieces = 1;
+    let eaveTrimLengthPerPiece = buildingLengthInFeet;
+
+    // Splitting into even lengths if the total length exceeds the max length of an eave trim piece
+    if (totalEaveTrimLength > maxEaveTrimLength) {
+      eaveTrimPieces = Math.ceil(totalEaveTrimLength / maxEaveTrimLength);
+      eaveTrimLengthPerPiece = totalEaveTrimLength / eaveTrimPieces;
+      // Adjust to ensure even distribution without exceeding max length
+      eaveTrimLengthPerPiece = Math.floor(eaveTrimLengthPerPiece * 10) / 10; // Round down to nearest tenth
+    }
+
+    // Calculate the cost of eave trim
+    let eaveTrimCostPerUnit = BASE_UNIT_COSTS["EaveTrim"]; // Ensure this is defined in your BASE_UNIT_COSTS
+    let eaveTrimCost =
+      eaveTrimPieces * eaveTrimLengthPerPiece * eaveTrimCostPerUnit;
+    // Eave Trim calculations with overlap
+    eaveTrimLengthPerPiece += 0.5; // Add 6 inches for overlap
+    eaveTrimCost =
+      eaveTrimPieces * eaveTrimLengthPerPiece * eaveTrimCostPerUnit;
+
+    // Add updated Eave Trim details to the breakdown
+    breakdownDetails.push({
+      item: "Eave Trim",
+      quantity: eaveTrimPieces,
+      unitPrice: eaveTrimCostPerUnit,
+      total: eaveTrimCost,
+      linearFeet: `${eaveTrimLengthPerPiece.toFixed(1)}' per piece`,
+    });
+
+    // Ridge Cap calculations
+    const maxRidgeCapLength = 14.5; // Max length for an individual eave trim piece in feet
+    let totalRidgeCapLength = numLength;
+    let ridgeCapPieces = 1;
+    let ridgeCapLengthPerPiece = buildingLengthInFeet;
+
+    // Splitting into even lengths if the total length exceeds the max length of an eave trim piece
+    if (totalRidgeCapLength > maxRidgeCapLength) {
+      ridgeCapPieces = Math.ceil(totalEaveTrimLength / maxRidgeCapLength);
+      ridgeCapLengthPerPiece = totalEaveTrimLength / ridgeCapPieces;
+      // Adjust to ensure even distribution without exceeding max length
+      ridgeCapLengthPerPiece = Math.floor(ridgeCapLengthPerPiece * 10) / 10; // Round down to nearest tenth
+    }
+
+    // Calculate the cost of eave trim
+    let ridgeCapCostPerUnit = BASE_UNIT_COSTS["RidgeCap"]; // Ensure this is defined in your BASE_UNIT_COSTS
+    let ridgeCapCost =
+      ridgeCapPieces * ridgeCapLengthPerPiece * ridgeCapCostPerUnit;
+
+    // Ridge Cap calculations with overlap
+    ridgeCapLengthPerPiece += 0.5; // Add 6 inches for overlap
+    ridgeCapCost =
+      ridgeCapPieces * ridgeCapLengthPerPiece * ridgeCapCostPerUnit;
+
+    // Add updated Ridge Cap details to the breakdown
+    breakdownDetails.push({
+      item: "Ridge Cap",
+      quantity: ridgeCapPieces,
+      unitPrice: ridgeCapCostPerUnit,
+      total: ridgeCapCost,
+      linearFeet: `${ridgeCapLengthPerPiece.toFixed(1)}' per piece`,
+    });
+
     //! Update total cost
     calculatedTotalCost +=
       runnerCost +
@@ -618,7 +687,10 @@ const Quotes = () => {
       totalRoofSheetCost +
       totalStructuralScrewsCost +
       totalStitchScrewCost +
-      totalM29TrimCost;
+      totalM29TrimCost +
+      m29GableTrimCost +
+      eaveTrimCost +
+      ridgeCapCost;
 
     // Add window to breakdown
     if (windowQuantity > 0) {
@@ -641,13 +713,13 @@ const Quotes = () => {
     setWidth("");
     setBuildingLength("");
     setHeight("");
-    setGroundType(GROUND_TYPE.REGULAR);
+    setFoundation(FOUNDATION.REGULAR);
     setWindowQuantity(0);
     setTotalCost(0);
-    setLeftWall("NONE");
-    setRightWall("NONE");
-    setFrontWall("NONE");
-    setRearWall("NONE");
+    setLeftWall(0);
+    setRightWall(0);
+    setFrontWall(0);
+    setRearWall(0);
     setBreakdown([]);
   };
   const getAggregatedBreakdown = (): AggregatedBreakdownDetail[] => {
@@ -670,10 +742,99 @@ const Quotes = () => {
   };
 
   const aggregatedBreakdown = getAggregatedBreakdown();
+  const exportToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(aggregatedBreakdown);
 
-  // Function to download the file
-  const downloadFile = (workbook: any, filename: any) => {
-    XLSX.writeFile(workbook, filename);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Breakdown");
+
+    // Function to set value in a cell
+    const setValue = (cell: any, value: any) => {
+      if (ws[cell]) {
+        ws[cell].v = value;
+      } else {
+        ws[cell] = { t: "n", v: value };
+      }
+    };
+
+    // Update the worksheet based on aggregatedBreakdown
+    aggregatedBreakdown.forEach((detail) => {
+      switch (detail.item) {
+        case "Runner":
+          setValue("Q26", detail.quantity);
+          setValue("N26", detail.linearFeet);
+          break;
+        case "Hat Channel":
+          setValue("Q35", detail.quantity);
+          setValue("N35", detail.linearFeet);
+          break;
+        case "Concrete Anchor":
+        case '30" Rebar Anchor':
+          setValue("Q55", detail.quantity);
+          break;
+        case "Leg":
+          setValue("Q27", detail.quantity);
+          setValue("N27", detail.linearFeet);
+          break;
+        case "AngleClip":
+          setValue("Q57", detail.quantity);
+          break;
+        case "TubeCap":
+          setValue("Q59", detail.quantity);
+          break;
+        case "Structural Screw":
+          setValue("Q51", detail.quantity);
+          break;
+        case "King Pin":
+          setValue("Q36", detail.quantity);
+          setValue("N36", detail.linearFeet);
+          break;
+        case "R1 Peak":
+          setValue("Q28", detail.quantity);
+          break;
+        case "Roof Brace":
+          setValue("Q33", detail.quantity);
+          setValue("N33", detail.linearFeet);
+          break;
+        case "R2":
+          setValue("Q30", detail.quantity);
+          setValue("N30", detail.linearFeet);
+          break;
+        case "Roof Sheathing":
+          setValue("Q12", detail.quantity);
+          setValue("N12", detail.linearFeet);
+          break;
+        case "Stitch Screw":
+          setValue("Q52", detail.quantity);
+          break;
+        case "KneeBrace":
+          setValue("Q32", detail.quantity);
+          setValue("N32", detail.linearFeet);
+          break;
+        case "Straight Clip":
+          setValue("Q58", detail.quantity);
+          break;
+        case "Tek Screw":
+          setValue("Q54", detail.quantity);
+          break;
+        case "M29GableTrim":
+          setValue("Q19", detail.quantity);
+          setValue("N19", detail.linearFeet);
+          break;
+        case "Eave Trim":
+          setValue("Q21", detail.quantity);
+          setValue("N21", detail.linearFeet);
+          break;
+        case "Ridge Cap":
+          setValue("Q24", detail.quantity);
+          setValue("N24", detail.linearFeet);
+          break;
+        // Add more cases as necessary for other items
+      }
+    });
+
+    // Write the updated workbook to a file
+    XLSX.writeFile(wb, "UpdatedShopOrder.xlsx");
   };
 
   return (
@@ -793,14 +954,14 @@ const Quotes = () => {
             <IonItem>
               <IonLabel position="stacked">Ground Type:</IonLabel>
               <IonSelect
-                value={groundType}
-                onIonChange={(e) => setGroundType(e.detail.value as string)}
+                value={foundation}
+                onIonChange={(e) => setFoundation(e.detail.value as string)}
               >
-                <IonSelectOption value={GROUND_TYPE.REGULAR}>
-                  {GROUND_TYPE.REGULAR}
+                <IonSelectOption value={FOUNDATION.REGULAR}>
+                  {FOUNDATION.REGULAR}
                 </IonSelectOption>
-                <IonSelectOption value={GROUND_TYPE.CONCRETE}>
-                  {GROUND_TYPE.CONCRETE}
+                <IonSelectOption value={FOUNDATION.CONCRETE}>
+                  {FOUNDATION.CONCRETE}
                 </IonSelectOption>
               </IonSelect>
             </IonItem>
@@ -834,6 +995,12 @@ const Quotes = () => {
               onClick={resetCalculator}
             >
               Reset
+            </IonButton>
+          </IonCol>
+          <IonCol>
+            <IonButton expand="full" onClick={exportToExcel}>
+              Export To Excel
+              <IonIcon icon={downloadOutline} />
             </IonButton>
           </IonCol>
         </IonRow>

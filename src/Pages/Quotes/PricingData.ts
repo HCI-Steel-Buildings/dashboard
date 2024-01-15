@@ -21,6 +21,9 @@ export const BASE_UNIT_COSTS = {
   R2: 5.79, // per foot
   SidewallSheet: 21.24, // per length foot
   M29Trim: 5.79, // per foot
+  M29GableTrim: 5.79, // per foot
+  EaveTrim: 5.79, // per foot
+  RidgeCap: 5.79, // per foot
 };
 
 export const BASE_SIZE = { width: 10, length: 10, height: 8 }; // Base size for proportion calculation
