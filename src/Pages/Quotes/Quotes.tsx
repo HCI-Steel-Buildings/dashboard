@@ -25,9 +25,8 @@ import {
 } from "./types";
 
 import { BASE_UNIT_COSTS, BASE_SIZE } from "./PricingData";
-import * as XLSX from "xlsx";
-import { channel } from "diagnostics_channel";
 import { downloadOutline } from "ionicons/icons";
+import Excel from "exceljs";
 
 const Quotes = () => {
   const FOUNDATION = { REGULAR: "Regular", CONCRETE: "Concrete" };
@@ -41,6 +40,7 @@ const Quotes = () => {
   const [breakdown, setBreakdown] = useState<BreakdownDetail[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [file, setFile] = useState(null);
 
   // Explicitly declare WALL_OPTIONS with its type
   const WALL_OPTIONS = {
@@ -747,99 +747,96 @@ const Quotes = () => {
   };
 
   const aggregatedBreakdown = getAggregatedBreakdown();
-  const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(aggregatedBreakdown);
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Breakdown");
+  const exportToExcel = async () => {
+    try {
+      const workbook = new Excel.Workbook();
+      const worksheet = workbook.addWorksheet("Breakdown");
 
-    // Function to set value in a cell
-    const setValue = (cell: any, value: any) => {
-      if (ws[cell]) {
-        ws[cell].v = value;
-      } else {
-        ws[cell] = { t: "n", v: value };
-      }
-    };
+      // Reorder columns as per the new requirement
+      worksheet.columns = [
+        { header: "Item", key: "item", width: 30 },
+        { header: "Quantity", key: "quantity", width: 10 },
+        { header: "Linear Feet", key: "linearFeet", width: 15 },
+        { header: "Unit Price", key: "unitPrice", width: 10 },
+        { header: "Total", key: "total", width: 10 },
+      ];
 
-    // Update the worksheet based on aggregatedBreakdown
-    aggregatedBreakdown.forEach((detail) => {
-      switch (detail.item) {
-        case "Runner":
-          setValue("Q26", detail.quantity);
-          setValue("N26", detail.linearFeet);
-          break;
-        case "Hat Channel":
-          setValue("Q35", detail.quantity);
-          setValue("N35", detail.linearFeet);
-          break;
-        case "Concrete Anchor":
-        case '30" Rebar Anchor':
-          setValue("Q55", detail.quantity);
-          break;
-        case "Leg":
-          setValue("Q27", detail.quantity);
-          setValue("N27", detail.linearFeet);
-          break;
-        case "AngleClip":
-          setValue("Q57", detail.quantity);
-          break;
-        case "TubeCap":
-          setValue("Q59", detail.quantity);
-          break;
-        case "Structural Screw":
-          setValue("Q51", detail.quantity);
-          break;
-        case "King Pin":
-          setValue("Q36", detail.quantity);
-          setValue("N36", detail.linearFeet);
-          break;
-        case "R1 Peak":
-          setValue("Q28", detail.quantity);
-          break;
-        case "Roof Brace":
-          setValue("Q33", detail.quantity);
-          setValue("N33", detail.linearFeet);
-          break;
-        case "R2":
-          setValue("Q30", detail.quantity);
-          setValue("N30", detail.linearFeet);
-          break;
-        case "Roof Sheathing":
-          setValue("Q12", detail.quantity);
-          setValue("N12", detail.linearFeet);
-          break;
-        case "Stitch Screw":
-          setValue("Q52", detail.quantity);
-          break;
-        case "KneeBrace":
-          setValue("Q32", detail.quantity);
-          setValue("N32", detail.linearFeet);
-          break;
-        case "Straight Clip":
-          setValue("Q58", detail.quantity);
-          break;
-        case "Tek Screw":
-          setValue("Q54", detail.quantity);
-          break;
-        case "M29GableTrim":
-          setValue("Q19", detail.quantity);
-          setValue("N19", detail.linearFeet);
-          break;
-        case "Eave Trim":
-          setValue("Q21", detail.quantity);
-          setValue("N21", detail.linearFeet);
-          break;
-        case "Ridge Cap":
-          setValue("Q24", detail.quantity);
-          setValue("N24", detail.linearFeet);
-          break;
-        // Add more cases as necessary for other items
-      }
-    });
+      // Apply bold style to headers and set header background
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFFFFFFF" },
+        bgColor: { argb: "FF0000FF" },
+      };
+      const borderStyle = {
+        top: { style: "thin", color: { argb: "FF000000" } },
+        left: { style: "thin", color: { argb: "FF000000" } },
+        bottom: { style: "thin", color: { argb: "FF000000" } },
+        right: { style: "thin", color: { argb: "FF000000" } },
+      };
+      // Add data rows
+      const aggregatedBreakdown = getAggregatedBreakdown();
+      aggregatedBreakdown.forEach((item, index) => {
+        const row = worksheet.addRow({
+          item: item.item,
+          quantity: item.quantity,
+          linearFeet: item.linearFeet || "",
+          unitPrice: item.unitPrice,
+          total: item.total,
+        });
 
-    // Write the updated workbook to a file
-    XLSX.writeFile(wb, "UpdatedShopOrder.xlsx");
+        // Apply alternating fills to rows and border style to each cell
+        row.eachCell({ includeEmpty: true }, (cell: any, colNumber) => {
+          cell.border = borderStyle;
+          cell.fill =
+            index % 2 === 0
+              ? {
+                  type: "pattern",
+                  pattern: "solid",
+                  fgColor: { argb: "FFF0F0F0" },
+                }
+              : {
+                  type: "pattern",
+                  pattern: "solid",
+                  fgColor: { argb: "FFFFFFFF" },
+                };
+        });
+      });
+      // Apply borders to header after defining all cells to avoid overwriting
+      worksheet.getRow(1).eachCell({ includeEmpty: true }, (cell: any) => {
+        cell.border = borderStyle;
+      });
+
+      // Write the workbook to a buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+
+      // Create a Blob from the buffer
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      // Use the triggerDownload function to initiate the download
+      triggerDownload(blob);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      alert("An error occurred while exporting to Excel.");
+    }
+  };
+
+  const triggerDownload = (blob: any) => {
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "updatedQuoteOrder.xlsx";
+    document.body.appendChild(anchor);
+    anchor.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(anchor);
+
+    // Debugging: Log to confirm download was triggered
+    console.log("Download triggered");
   };
 
   return (
