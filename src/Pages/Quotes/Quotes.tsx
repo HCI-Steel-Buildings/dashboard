@@ -402,7 +402,7 @@ const Quotes = () => {
       quantity: gridLines,
       unitPrice: BASE_UNIT_COSTS["R1Peak"],
       total: r1Cost,
-      linearFeet: r1Length,
+      linearFeet: `${r1Length}'`,
     });
 
     // Calculate number of roof braces.
@@ -523,6 +523,7 @@ const Quotes = () => {
       quantity: kneeBraceQuantity,
       unitPrice: BASE_UNIT_COSTS["KneeBrace"],
       total: kneeBraceCost,
+      linearFeet: `3'`,
     });
 
     // Calculate Straight Clips for each King Pin
