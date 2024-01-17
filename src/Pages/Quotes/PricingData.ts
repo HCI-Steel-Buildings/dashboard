@@ -6,13 +6,13 @@ export const BASE_UNIT_COSTS = {
   AngleClip: 5.58, // per clip
   StraightClip: 4.99, // per clip
   TekScrew: 0.25, // per screw
-  StructuralScrew: 0.25, // per screw
-  StitchScrew: 0.22, // per screw
+  StructuralScrew: 0.2, // per screw
+  StitchScrew: 0.2, // per screw
   KneeBrace: 10.49, // per brace
   RoofBrace: 8.79, // per foot
   HatChannel: 2.97, // per foot
-  RebarAnchor: 31.85, // per anchor (example cost)
-  ConcreteAnchor: 4.67, // per anchor (example cost)
+  RebarAnchor: 31.85, // per anchor
+  ConcreteAnchor: 4.67, // per anchor
   TubeCap: 3.18, // per cap
   KingPin: 5.79, // per pin
   R1Peak: 34.74, // per r1
@@ -23,5 +23,3 @@ export const BASE_UNIT_COSTS = {
   EaveTrim: 5.79, // per foot
   RidgeCap: 5.79, // per foot
 };
-
-export const BASE_SIZE = { width: 10, length: 10, height: 8 }; // Base size for proportion calculation

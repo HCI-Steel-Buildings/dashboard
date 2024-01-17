@@ -13,6 +13,8 @@ import {
   IonInput,
   IonItem,
   IonLabel,
+  IonList,
+  IonModal,
   IonPage,
   IonRow,
   IonSelect,
@@ -24,7 +26,7 @@ import {
   BreakdownDetail,
 } from "./types";
 
-import { BASE_UNIT_COSTS, BASE_SIZE } from "./PricingData";
+import { BASE_UNIT_COSTS } from "./PricingData";
 import { downloadOutline } from "ionicons/icons";
 import Excel from "exceljs";
 import desiredOrder from "./desiredOrder";
@@ -930,6 +932,10 @@ const Quotes = () => {
     console.log("Download triggered");
   };
 
+  type ColorHexCodesType = {
+    [key: string]: string; // This means each key is a string and each value is a string
+  };
+
   const colorOptions = [
     "Malibu White",
     "Winter White",
@@ -942,19 +948,85 @@ const Quotes = () => {
     "Dark Gray",
     "Black",
   ];
+  const colorHexCodes: ColorHexCodesType = {
+    Black: "#252323",
+    "Tahoe Blue": "#7da5ba",
+    "Forest Green": "#335629",
+    Galvalume: "#b3b2b2",
+    "Old Town Gray": "#9e9e9e",
+    "Brick Red": "#75110f",
+    "Roman Bronze": "#7f6011",
+    "Dark Gray": "#666666",
+    "Winter White": "#ffffff",
+    "Malibu White": "#eeeeee",
+    Beige: "#bf901f",
+  };
+  interface ColorSelectorProps {
+    colorOptions: string[];
+    colorHexCodes: { [key: string]: string };
+    onSelect: (color: string) => void;
+  }
+  const ColorSelector: React.FC<ColorSelectorProps> = ({
+    colorOptions,
+    colorHexCodes,
+    onSelect,
+  }) => {
+    return (
+      <IonList>
+        {colorOptions.map((color) => {
+          const hexCode = colorHexCodes[color] || "#000000"; // Default to black if hex code not found
+          return (
+            <IonItem key={color} button onClick={() => onSelect(color)}>
+              <div
+                style={{
+                  display: "inline-block",
+                  width: "15px",
+                  height: "15px",
+                  backgroundColor: hexCode,
+                  marginRight: "5px",
+                  verticalAlign: "middle",
+                }}
+              ></div>
+              <IonLabel>{color}</IonLabel>
+            </IonItem>
+          );
+        })}
+      </IonList>
+    );
+  };
+  const [showColorSelector, setShowColorSelector] = useState(false);
+  const [selectedColorType, setSelectedColorType] = useState(null);
 
-  const renderColorOptions = (colorOptions: string[]) => {
-    return colorOptions.map((color) => (
-      <IonSelectOption key={color} value={color}>
-        {color}
-      </IonSelectOption>
-    ));
+  const openColorSelector = (type: any) => {
+    setSelectedColorType(type); // Set which type of color is being selected
+    setShowColorSelector(true); // Open the modal
+  };
+
+  const handleColorSelect = (color: any) => {
+    if (selectedColorType === "trim") {
+      setTrimColor(color);
+    } else if (selectedColorType === "roof") {
+      setRoofSheathingColor(color);
+    } else if (selectedColorType === "wall") {
+      setWallSheathingColor(color);
+    }
+    setShowColorSelector(false);
   };
 
   return (
     <IonPage>
       <IonContent>
         <IonRow>
+          <IonModal
+            isOpen={showColorSelector}
+            onDidDismiss={() => setShowColorSelector(false)}
+          >
+            <ColorSelector
+              colorOptions={colorOptions}
+              colorHexCodes={colorHexCodes}
+              onSelect={handleColorSelect}
+            />
+          </IonModal>
           <IonHeader>
             <IonCardHeader>
               <IonCardTitle>
@@ -1004,37 +1076,63 @@ const Quotes = () => {
             </IonItem>
             <IonRow>
               <IonCol>
-                <IonItem>
-                  <IonLabel position="stacked">Trim Color:</IonLabel>
-                  <IonSelect
-                    value={trimColor}
-                    onIonChange={(e) => setTrimColor(e.detail.value)}
-                  >
-                    {renderColorOptions(colorOptions)}
-                  </IonSelect>
-                </IonItem>
+                <IonLabel position="stacked">Trim Color:</IonLabel>
+                <IonButton
+                  expand="block"
+                  onClick={() => openColorSelector("trim")}
+                  style={{
+                    backgroundColor: trimColor
+                      ? colorHexCodes[trimColor]
+                      : "initial",
+                    color:
+                      trimColor &&
+                      (colorHexCodes[trimColor] !== "#ffffff"
+                        ? "white"
+                        : "black"),
+                  }}
+                >
+                  {trimColor || "Select Trim Color"}
+                </IonButton>
               </IonCol>
+
               <IonCol>
-                <IonItem>
-                  <IonLabel position="stacked">Roof Color:</IonLabel>
-                  <IonSelect
-                    value={roofSheathingColor}
-                    onIonChange={(e) => setRoofSheathingColor(e.detail.value)}
-                  >
-                    {renderColorOptions(colorOptions)}
-                  </IonSelect>
-                </IonItem>
+                <IonLabel position="stacked">Roof Color:</IonLabel>
+                <IonButton
+                  expand="block"
+                  onClick={() => openColorSelector("roof")}
+                  style={{
+                    backgroundColor: roofSheathingColor
+                      ? colorHexCodes[roofSheathingColor]
+                      : "initial",
+                    color:
+                      roofSheathingColor &&
+                      (colorHexCodes[roofSheathingColor] !== "#ffffff"
+                        ? "white"
+                        : "black"),
+                  }}
+                >
+                  {roofSheathingColor || "Select Roof Color"}
+                </IonButton>
               </IonCol>
+
               <IonCol>
-                <IonItem>
-                  <IonLabel position="stacked">Wall Color:</IonLabel>
-                  <IonSelect
-                    value={wallSheathingColor}
-                    onIonChange={(e) => setWallSheathingColor(e.detail.value)}
-                  >
-                    {renderColorOptions(colorOptions)}
-                  </IonSelect>
-                </IonItem>
+                <IonLabel position="stacked">Wall Color:</IonLabel>
+                <IonButton
+                  expand="block"
+                  onClick={() => openColorSelector("wall")}
+                  style={{
+                    backgroundColor: wallSheathingColor
+                      ? colorHexCodes[wallSheathingColor]
+                      : "initial",
+                    color:
+                      wallSheathingColor &&
+                      (colorHexCodes[wallSheathingColor] !== "#ffffff"
+                        ? "white"
+                        : "black"),
+                  }}
+                >
+                  {wallSheathingColor || "Select Wall Color"}
+                </IonButton>
               </IonCol>
             </IonRow>
 
