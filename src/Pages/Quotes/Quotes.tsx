@@ -42,6 +42,9 @@ const Quotes = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [file, setFile] = useState(null);
+  const [trimColor, setTrimColor] = useState("");
+  const [wallSheathingColor, setWallSheathingColor] = useState("");
+  const [roofSheathingColor, setRoofSheathingColor] = useState("");
 
   // Explicitly declare WALL_OPTIONS with its type
   const WALL_OPTIONS = {
@@ -325,6 +328,7 @@ const Quotes = () => {
           unitPrice: BASE_UNIT_COSTS["M29Trim"],
           total: trimCost,
           linearFeet: `${trimLF}'`,
+          color: trimColor,
         });
 
         return trimCost;
@@ -579,6 +583,7 @@ const Quotes = () => {
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: leftWallCost,
         linearFeet: `${leftWallSheets[0].length}'`, // Display LF of each sheet
+        color: wallSheathingColor,
       });
     }
 
@@ -600,6 +605,7 @@ const Quotes = () => {
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: rightWallCost,
         linearFeet: `${rightWallSheets[0].length}'`, // Display LF of each sheet
+        color: wallSheathingColor,
       });
     }
     // Calculate costs for front and rear walls
@@ -611,6 +617,7 @@ const Quotes = () => {
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: frontWallData.cost,
         linearFeet: frontWallData.linearFeet,
+        color: wallSheathingColor,
       });
     }
 
@@ -622,6 +629,7 @@ const Quotes = () => {
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: rearWallData.cost,
         linearFeet: rearWallData.linearFeet,
+        color: wallSheathingColor,
       });
     }
     // Inside calculateTotalCost function, after existing calculations
@@ -671,6 +679,7 @@ const Quotes = () => {
       unitPrice: BASE_UNIT_COSTS["M29GableTrim"],
       total: m29GableTrimCost,
       linearFeet: decimalFeetToFeetInches(m29GableTrimLength),
+      color: trimColor,
     });
     // Eave Trim calculations
     const maxEaveTrimLength = 14.5; // Max length for an individual eave trim piece in feet
@@ -703,6 +712,7 @@ const Quotes = () => {
       unitPrice: eaveTrimCostPerUnit,
       total: eaveTrimCost,
       linearFeet: decimalFeetToFeetInches(eaveTrimLengthPerPiece),
+      color: trimColor,
     });
 
     // Ridge Cap calculations
@@ -736,6 +746,7 @@ const Quotes = () => {
       unitPrice: ridgeCapCostPerUnit,
       total: ridgeCapCost,
       linearFeet: decimalFeetToFeetInches(ridgeCapLengthPerPiece),
+      color: trimColor,
     });
 
     // Add window to breakdown
@@ -794,6 +805,9 @@ const Quotes = () => {
     setFrontWall(0);
     setRearWall(0);
     setBreakdown([]);
+    setRoofSheathingColor("");
+    setWallSheathingColor("");
+    setTrimColor("");
   };
 
   // Helper function to get the index of an item in the desired order
@@ -805,9 +819,7 @@ const Quotes = () => {
     const aggregatedDetails: AggregatedDetails = {};
 
     breakdown.forEach((detail) => {
-      const key = `${detail.item}${
-        detail.linearFeet ? `_${detail.linearFeet}` : ""
-      }`;
+      const key = `${detail.item}_${detail.color || "No Color"}`;
       if (!aggregatedDetails[key]) {
         aggregatedDetails[key] = { ...detail, count: 1 };
       } else {
@@ -832,6 +844,7 @@ const Quotes = () => {
 
       // Reorder columns as per the new requirement
       worksheet.columns = [
+        { header: "Color", key: "color", width: 15 },
         { header: "Item", key: "item", width: 30 },
         { header: "Quantity", key: "quantity", width: 10 },
         { header: "Linear Feet", key: "linearFeet", width: 15 },
@@ -857,6 +870,7 @@ const Quotes = () => {
       const aggregatedBreakdown = getAggregatedBreakdown();
       aggregatedBreakdown.forEach((item, index) => {
         const row = worksheet.addRow({
+          color: item.color,
           item: item.item,
           quantity: item.quantity,
           linearFeet: item.linearFeet || "",
@@ -916,6 +930,27 @@ const Quotes = () => {
     console.log("Download triggered");
   };
 
+  const colorOptions = [
+    "Malibu White",
+    "Winter White",
+    "Beige",
+    "Roman Bronze",
+    "Brick Red",
+    "Tahoe Blue",
+    "Forest Green",
+    "Old Towne Gray",
+    "Dark Gray",
+    "Black",
+  ];
+
+  const renderColorOptions = (colorOptions: string[]) => {
+    return colorOptions.map((color) => (
+      <IonSelectOption key={color} value={color}>
+        {color}
+      </IonSelectOption>
+    ));
+  };
+
   return (
     <IonPage>
       <IonContent>
@@ -967,6 +1002,42 @@ const Quotes = () => {
                 defaultValue={0}
               />
             </IonItem>
+            <IonRow>
+              <IonCol>
+                <IonItem>
+                  <IonLabel position="stacked">Trim Color:</IonLabel>
+                  <IonSelect
+                    value={trimColor}
+                    onIonChange={(e) => setTrimColor(e.detail.value)}
+                  >
+                    {renderColorOptions(colorOptions)}
+                  </IonSelect>
+                </IonItem>
+              </IonCol>
+              <IonCol>
+                <IonItem>
+                  <IonLabel position="stacked">Roof Color:</IonLabel>
+                  <IonSelect
+                    value={roofSheathingColor}
+                    onIonChange={(e) => setRoofSheathingColor(e.detail.value)}
+                  >
+                    {renderColorOptions(colorOptions)}
+                  </IonSelect>
+                </IonItem>
+              </IonCol>
+              <IonCol>
+                <IonItem>
+                  <IonLabel position="stacked">Wall Color:</IonLabel>
+                  <IonSelect
+                    value={wallSheathingColor}
+                    onIonChange={(e) => setWallSheathingColor(e.detail.value)}
+                  >
+                    {renderColorOptions(colorOptions)}
+                  </IonSelect>
+                </IonItem>
+              </IonCol>
+            </IonRow>
+
             <IonRow>
               <IonCol>
                 <IonItem>
@@ -1064,7 +1135,7 @@ const Quotes = () => {
               expand="full"
               onClick={calculateTotalCost}
             >
-              Calculate Total
+              <strong>Calcualte Total</strong>
             </IonButton>
           </IonCol>
           <IonCol>
@@ -1073,13 +1144,7 @@ const Quotes = () => {
               expand="full"
               onClick={resetCalculator}
             >
-              Reset
-            </IonButton>
-          </IonCol>
-          <IonCol>
-            <IonButton expand="full" onClick={exportToExcel}>
-              Export To Excel
-              <IonIcon icon={downloadOutline} />
+              <strong>RESET</strong>
             </IonButton>
           </IonCol>
         </IonRow>
@@ -1091,18 +1156,35 @@ const Quotes = () => {
               </IonCardHeader>
               <IonCardContent>
                 {aggregatedBreakdown.map((detail, index) => (
-                  <div key={index}>
-                    <p>
-                      {detail.item}: Quantity: {detail.quantity},
-                      {detail.linearFeet ? ` LF: ${detail.linearFeet}, ` : ""}
-                      Unit Price: ${detail.unitPrice.toFixed(2)}, Total: $
-                      {detail.total.toFixed(2)}
-                    </p>
-                  </div>
+                  <IonItem key={index}>
+                    <IonLabel>
+                      <p>
+                        <strong>{detail.item} | </strong>
+                        {detail.color && <strong> Color:</strong>}{" "}
+                        {detail.color}
+                        <strong> Quantity:</strong> {detail.quantity},
+                        {detail.linearFeet && (
+                          <>
+                            <strong> LF:</strong> {detail.linearFeet},{" "}
+                          </>
+                        )}
+                        <strong> Unit Price:</strong> $
+                        {detail.unitPrice.toFixed(2)},<strong> Total:</strong> $
+                        {detail.total.toFixed(2)}
+                      </p>
+                    </IonLabel>
+                  </IonItem>
                 ))}
+
                 <p>
                   <strong>Total Cost: ${totalCost.toFixed(2)}</strong>
                 </p>
+                <IonCol>
+                  <IonButton expand="full" onClick={exportToExcel}>
+                    Export To Excel
+                    <IonIcon icon={downloadOutline} />
+                  </IonButton>
+                </IonCol>
               </IonCardContent>
             </IonCard>
           </IonCol>
