@@ -27,6 +27,7 @@ import {
 import { BASE_UNIT_COSTS, BASE_SIZE } from "./PricingData";
 import { downloadOutline } from "ionicons/icons";
 import Excel from "exceljs";
+import desiredOrder from "./desiredOrder";
 
 const Quotes = () => {
   const FOUNDATION = { REGULAR: "Regular", CONCRETE: "Concrete" };
@@ -84,53 +85,114 @@ const Quotes = () => {
     }
 
     // Runner calculations
-    const totalRunnerLF = numLength * 2; // Two runners per building
-    const runnerPieces = Math.ceil(totalRunnerLF / 20); // Each piece up to 20'
-    let runnerCost = 0;
+    let runners: any = [];
 
-    // Adding runner breakdown details
-    for (let i = 0; i < runnerPieces; i++) {
-      const runnerLF = i === runnerPieces - 1 ? totalRunnerLF - 20 * i : 20;
-      const runnerCostPerPiece = runnerLF * BASE_UNIT_COSTS["Runner"];
-      runnerCost += runnerCostPerPiece;
-
-      breakdownDetails.push({
-        item: "Runner",
-        quantity: 1,
+    const addRunners = (length: any, quantity: any) => {
+      runners.push({
+        length: length,
+        quantity: quantity,
         unitPrice: BASE_UNIT_COSTS["Runner"],
-        total: runnerCostPerPiece,
-        linearFeet: runnerLF,
+        total: length * BASE_UNIT_COSTS["Runner"] * quantity,
       });
+    };
+
+    // Determine runner lengths based on building length
+    switch (true) {
+      case numLength <= 10:
+        addRunners(numLength, 2);
+        break;
+      case numLength <= 15:
+        addRunners(15, 2);
+        break;
+      case numLength <= 20:
+        addRunners(20, 2);
+        break;
+      case numLength <= 25:
+        addRunners(10, 2);
+        addRunners(15, 2);
+        break;
+      case numLength <= 30:
+        addRunners(10, 2);
+        addRunners(20, 2);
+        break;
+      // Add similar cases for other lengths if needed
+      default:
+        // Fallback logic for lengths not explicitly handled
+        addRunners(20, Math.floor(numLength / 20) * 2);
+        if (numLength % 20 !== 0) {
+          addRunners(numLength % 20, 2);
+        }
+        break;
     }
+
+    // Calculate total cost for runners and add to breakdown
+    let runnerCost = 0;
+    runners.forEach((runner: any) => {
+      runnerCost += runner.total;
+      breakdownDetails.push({
+        item: "RUNNER",
+        quantity: runner.quantity,
+        unitPrice: runner.unitPrice,
+        total: runner.total,
+        linearFeet: `${runner.length}'`,
+      });
+    });
 
     // Hat channel calculations
     const hatChannelSpacing = 3; // Every 3 feet
     const maxHatChannelLength = 21; // Maximum length of a hat channel piece
-    const numberOfHatChannels = Math.ceil(numWidth / hatChannelSpacing);
     let hatChannelCost = 0;
     let hatChannelQuantity = 0;
+
     if (numWidth < 16) {
       hatChannelQuantity = 6;
-    } else if (numWidth <= 24) {
+    } else if (numWidth >= 16 && numWidth <= 18) {
       hatChannelQuantity = 8;
+    } else if (numWidth > 18 && numWidth <= 20) {
+      hatChannelQuantity = 10;
     } else {
-      hatChannelQuantity = 12;
+      hatChannelQuantity = numWidth > 24 ? 12 : 10;
     }
 
-    for (let i = 0; i < hatChannelQuantity; i++) {
-      const channelLength = Math.min(numLength, maxHatChannelLength);
-      hatChannelCost += channelLength * BASE_UNIT_COSTS["HatChannel"];
+    const distributeHatChannelLength = (
+      numLength: number,
+      hatChannelQuantity: number
+    ) => {
+      let lengths = [];
+      let remainingLength = numLength;
 
+      for (let i = 0; i < hatChannelQuantity; i++) {
+        if (remainingLength <= 0) break; // Exit if no length remains
+
+        let length =
+          remainingLength >= maxHatChannelLength
+            ? maxHatChannelLength
+            : remainingLength;
+        lengths.push(length);
+        remainingLength -= length;
+      }
+
+      return lengths;
+    };
+
+    const hatChannelLengths = distributeHatChannelLength(
+      numLength,
+      hatChannelQuantity
+    );
+
+    hatChannelLengths.forEach((length) => {
+      hatChannelCost += length * BASE_UNIT_COSTS["HatChannel"];
       breakdownDetails.push({
-        item: "Hat Channel",
-        quantity: 1,
+        item: "HAT CHANNEL",
+        quantity: hatChannelQuantity, // Each entry represents one piece of hat channel
         unitPrice: BASE_UNIT_COSTS["HatChannel"],
-        total: channelLength * BASE_UNIT_COSTS["HatChannel"],
-        linearFeet: channelLength,
+        total: length * BASE_UNIT_COSTS["HatChannel"],
+        linearFeet: `${length}'`,
       });
-    }
+    });
 
     // Calculate total number of legs (5' increments)
+    const totalRunnerLF = numLength * 2;
     const totalLegs = Math.ceil(totalRunnerLF / 5) + 2;
 
     // Determine anchor type and cost
@@ -160,27 +222,26 @@ const Quotes = () => {
 
     // Add legs to breakdown details
     breakdownDetails.push({
-      item: "Leg",
+      item: "LEGS",
       quantity: totalLegs,
       unitPrice: legCostPerUnit,
       total: totalLegCost,
-      linearFeet: numHeight, // Individual leg height
+      linearFeet: `${numHeight}'`, // Individual leg height
     });
     // Calculate AngleClips required for each leg
     const angleClipQuantity = totalLegs * 4; // 4 AngleClips per leg
     const angleClipCost = angleClipQuantity * BASE_UNIT_COSTS["AngleClip"];
     breakdownDetails.push({
-      item: "AngleClip",
+      item: "ANGLE CLIPS",
       quantity: angleClipQuantity,
       unitPrice: BASE_UNIT_COSTS["AngleClip"],
       total: angleClipCost,
     });
 
-    // Calculate TubeCaps required for each runner
-    const tubeCapQuantity = runnerPieces * 2; // 2 TubeCaps per runner
+    let tubeCapQuantity = 4;
     const tubeCapCost = tubeCapQuantity * BASE_UNIT_COSTS["TubeCap"];
     breakdownDetails.push({
-      item: "TubeCap",
+      item: "TUBECAPS",
       quantity: tubeCapQuantity,
       unitPrice: BASE_UNIT_COSTS["TubeCap"],
       total: tubeCapCost,
@@ -308,7 +369,7 @@ const Quotes = () => {
 
     // Ensure to add structural screw cost to breakdown details and total cost
     breakdownDetails.push({
-      item: "Structural Screw",
+      item: "STRUCTURAL SCREWS",
       quantity: totalStructuralScrews,
       unitPrice: BASE_UNIT_COSTS["StructuralScrew"],
       total: totalStructuralScrewsCost,
@@ -323,7 +384,7 @@ const Quotes = () => {
 
     if (numWidth > 24) {
       breakdownDetails.push({
-        item: "King Pin",
+        item: "KINGPIN",
         quantity: gridLines,
         unitPrice: BASE_UNIT_COSTS["KingPin"],
         total: kingPinCost,
@@ -337,7 +398,7 @@ const Quotes = () => {
     const r1Cost = totalR1LF * BASE_UNIT_COSTS["R1Peak"];
     const r1Quantity = gridLines;
     breakdownDetails.push({
-      item: "R1 Peak",
+      item: "R1 PEAK",
       quantity: gridLines,
       unitPrice: BASE_UNIT_COSTS["R1Peak"],
       total: r1Cost,
@@ -354,11 +415,11 @@ const Quotes = () => {
     // Add roof braces to breakdown details
     if (roofBraceQuantity > 0) {
       breakdownDetails.push({
-        item: "Roof Brace",
+        item: "ROOF BRACE",
         quantity: roofBraceQuantity,
         unitPrice: BASE_UNIT_COSTS["RoofBrace"],
         total: roofBraceCost,
-        linearFeet: roofBraceLength,
+        linearFeet: `${roofBraceLength}'`,
       });
     }
 
@@ -378,11 +439,17 @@ const Quotes = () => {
       return { height, hypotenuse };
     };
     const decimalFeetToFeetInches = (decimalFeet: any) => {
-      const totalInches = decimalFeet * 12;
+      const totalInches = Math.round(decimalFeet * 12); // Round to nearest inch
       const feet = Math.floor(totalInches / 12);
-      const inches = Math.round(totalInches % 12);
-      return `${feet}' ${inches}"`;
+      const inches = totalInches % 12;
+
+      if (inches === 0) {
+        return `${feet}'`; // Return only feet if inches are 0
+      } else {
+        return `${feet}' ${inches}"`; // Return feet and inches otherwise
+      }
     };
+
     // Inside calculateTotalCost function, after calculating other costs
     const r2HypotenuseLength = calculateTriangleDimensions(
       numWidth / 2,
@@ -418,7 +485,7 @@ const Quotes = () => {
 
     // Add Roof Sheathing to breakdown details
     breakdownDetails.push({
-      item: "Roof Sheathing",
+      item: "26ga HHR ROOF SHEETS",
       quantity: totalRoofSheets,
       unitPrice: roofSheetCostPerSheet,
       total: totalRoofSheetCost,
@@ -438,7 +505,7 @@ const Quotes = () => {
 
     // Add stitch screws to breakdown details
     breakdownDetails.push({
-      item: "Stitch Screw",
+      item: "STITCH SCREWS",
       quantity: totalStitchScrews,
       unitPrice: stitchScrewCostPerUnit,
       total: totalStitchScrewCost,
@@ -452,7 +519,7 @@ const Quotes = () => {
 
     // Add KneeBrace to breakdown details
     breakdownDetails.push({
-      item: "KneeBrace",
+      item: "KNEE BRACE",
       quantity: kneeBraceQuantity,
       unitPrice: BASE_UNIT_COSTS["KneeBrace"],
       total: kneeBraceCost,
@@ -463,7 +530,7 @@ const Quotes = () => {
     const straightClipCost =
       straightClipQuantity * BASE_UNIT_COSTS["StraightClip"];
     breakdownDetails.push({
-      item: "Straight Clip",
+      item: "STRAIGHT CLIPS",
       quantity: straightClipQuantity,
       unitPrice: BASE_UNIT_COSTS["StraightClip"],
       total: straightClipCost,
@@ -506,11 +573,11 @@ const Quotes = () => {
 
     if (leftWallSheets.length > 0) {
       breakdownDetails.push({
-        item: `Left Wall Sidewall Sheets`,
+        item: `26ga Left Wall Sidewall Sheets`,
         quantity: leftWallSheets.length,
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: leftWallCost,
-        linearFeet: `${leftWallSheets[0].length}`, // Display LF of each sheet
+        linearFeet: `${leftWallSheets[0].length}'`, // Display LF of each sheet
       });
     }
 
@@ -527,18 +594,18 @@ const Quotes = () => {
 
     if (rightWallSheets.length > 0) {
       breakdownDetails.push({
-        item: `Right Wall Sidewall Sheets`,
+        item: `26ga Right Wall Sidewall Sheets`,
         quantity: rightWallSheets.length,
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: rightWallCost,
-        linearFeet: `${rightWallSheets[0].length}`, // Display LF of each sheet
+        linearFeet: `${rightWallSheets[0].length}'`, // Display LF of each sheet
       });
     }
     // Calculate costs for front and rear walls
     const frontWallData = calculateFrontRearWallCost(frontWall, numWidth);
     if (frontWallData.quantity > 0) {
       breakdownDetails.push({
-        item: `Front Wall Sheets`,
+        item: `26ga HHR FRONT GABLE END`,
         quantity: frontWallData.quantity,
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: frontWallData.cost,
@@ -549,7 +616,7 @@ const Quotes = () => {
     const rearWallData = calculateFrontRearWallCost(rearWall, numWidth);
     if (rearWallData.quantity > 0) {
       breakdownDetails.push({
-        item: `Rear Wall Sheets`,
+        item: `26ga HHR REAR GABLE END`,
         quantity: rearWallData.quantity,
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: rearWallData.cost,
@@ -582,7 +649,7 @@ const Quotes = () => {
 
     // Add Tek Screws to breakdown details
     breakdownDetails.push({
-      item: "Tek Screw",
+      item: "TEK-3 SCREWS",
       quantity: totalTekScrews,
       unitPrice: tekScrewCostPerUnit,
       total: tekScrewCost,
@@ -598,11 +665,11 @@ const Quotes = () => {
 
     // Add updated M29GableTrim details to the breakdown
     breakdownDetails.push({
-      item: "M29GableTrim",
+      item: "M-29 OUTSIDE GABLE TRIM 5X5",
       quantity: 4,
       unitPrice: BASE_UNIT_COSTS["M29GableTrim"],
       total: m29GableTrimCost,
-      linearFeet: `${m29GableTrimLength.toFixed(2)}'`,
+      linearFeet: decimalFeetToFeetInches(m29GableTrimLength),
     });
     // Eave Trim calculations
     const maxEaveTrimLength = 14.5; // Max length for an individual eave trim piece in feet
@@ -630,11 +697,11 @@ const Quotes = () => {
 
     // Add updated Eave Trim details to the breakdown
     breakdownDetails.push({
-      item: "Eave Trim",
+      item: "M-31 EAVE CLOSURE TRIM",
       quantity: eaveTrimPieces,
       unitPrice: eaveTrimCostPerUnit,
       total: eaveTrimCost,
-      linearFeet: `${eaveTrimLengthPerPiece.toFixed(1)}' per piece`,
+      linearFeet: decimalFeetToFeetInches(eaveTrimLengthPerPiece),
     });
 
     // Ridge Cap calculations
@@ -663,13 +730,24 @@ const Quotes = () => {
 
     // Add updated Ridge Cap details to the breakdown
     breakdownDetails.push({
-      item: "Ridge Cap",
+      item: "M-33 RIDGE CAP",
       quantity: ridgeCapPieces,
       unitPrice: ridgeCapCostPerUnit,
       total: ridgeCapCost,
-      linearFeet: `${ridgeCapLengthPerPiece.toFixed(1)}' per piece`,
+      linearFeet: decimalFeetToFeetInches(ridgeCapLengthPerPiece),
     });
 
+    // Add window to breakdown
+    if (windowQuantity > 0) {
+      const windowTotalCost = windowQuantity * BASE_UNIT_COSTS["Window"];
+      breakdownDetails.push({
+        item: "Window",
+        quantity: windowQuantity,
+        unitPrice: BASE_UNIT_COSTS["Window"],
+        total: windowTotalCost,
+      });
+      calculatedTotalCost += windowTotalCost;
+    }
     //! Update total cost
     calculatedTotalCost +=
       runnerCost +
@@ -697,17 +775,6 @@ const Quotes = () => {
       eaveTrimCost +
       ridgeCapCost;
 
-    // Add window to breakdown
-    if (windowQuantity > 0) {
-      const windowTotalCost = windowQuantity * BASE_UNIT_COSTS["Window"];
-      breakdownDetails.push({
-        item: "Window",
-        quantity: windowQuantity,
-        unitPrice: BASE_UNIT_COSTS["Window"],
-        total: windowTotalCost,
-      });
-      calculatedTotalCost += windowTotalCost;
-    }
     setTotalCost(calculatedTotalCost);
     setBreakdown(breakdownDetails);
   };
@@ -727,6 +794,12 @@ const Quotes = () => {
     setRearWall(0);
     setBreakdown([]);
   };
+
+  // Helper function to get the index of an item in the desired order
+  function getDesiredOrderIndex(item: any) {
+    const index = desiredOrder.indexOf(item);
+    return index === -1 ? Infinity : index; // Items not in the list will be placed at the end
+  }
   const getAggregatedBreakdown = (): AggregatedBreakdownDetail[] => {
     const aggregatedDetails: AggregatedDetails = {};
 
@@ -743,10 +816,13 @@ const Quotes = () => {
       }
     });
 
-    return Object.values(aggregatedDetails);
+    return Object.values(aggregatedDetails).sort(
+      (a, b) => getDesiredOrderIndex(a.item) - getDesiredOrderIndex(b.item)
+    );
   };
 
   const aggregatedBreakdown = getAggregatedBreakdown();
+  // Define the desired order of items
 
   const exportToExcel = async () => {
     try {
@@ -1017,7 +1093,7 @@ const Quotes = () => {
                   <div key={index}>
                     <p>
                       {detail.item}: Quantity: {detail.quantity},
-                      {detail.linearFeet ? ` LF: ${detail.linearFeet}', ` : ""}
+                      {detail.linearFeet ? ` LF: ${detail.linearFeet}, ` : ""}
                       Unit Price: ${detail.unitPrice.toFixed(2)}, Total: $
                       {detail.total.toFixed(2)}
                     </p>
