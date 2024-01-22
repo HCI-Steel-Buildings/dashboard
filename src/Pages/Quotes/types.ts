@@ -14,5 +14,18 @@ interface AggregatedBreakdownDetail extends BreakdownDetail {
 interface AggregatedDetails {
   [key: string]: AggregatedBreakdownDetail;
 }
+type BaseUnitCosts = {
+  [key: string]: number;
+};
 
-export type { BreakdownDetail, AggregatedBreakdownDetail, AggregatedDetails };
+type GutterItems = {
+  [key: string]: number;
+};
+
+export type {
+  BreakdownDetail,
+  AggregatedBreakdownDetail,
+  AggregatedDetails,
+  BaseUnitCosts,
+  GutterItems,
+};

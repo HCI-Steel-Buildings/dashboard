@@ -74,8 +74,73 @@ http://ionicframework.com/docs/theming/ */
   --ion-color-light-contrast-rgb: 0, 0, 0;
   --ion-color-light-shade: #d7d8da;
   --ion-color-light-tint: #f5f6f9;
+  /** Custom Colors **/
+  --ion-color-black: #252323;
+  --ion-color-tahoe-blue: #7da5ba;
+  --ion-color-forest-green: #335629;
+  --ion-color-galvalume: #b3b2b2;
+  --ion-color-old-town-gray: #9e9e9e;
+  --ion-color-brick-red: #75110f;
+  --ion-color-roman-bronze: #7f6011;
+  --ion-color-dark-gray: #666666;
+  --ion-color-winter-white: #ffffff;
+  --ion-color-malibu-white: #eeeeee;
+  --ion-color-beige: #bf901f;
+}
+.ion-color-black {
+  --ion-color-base: var(--ion-color-black);
+  /* Define other properties like base-rgb, contrast, etc. as needed */
 }
 
+.ion-color-tahoe-blue {
+  --ion-color-base: var(--ion-color-tahoe-blue);
+  /* Define other properties */
+}
+
+.ion-color-forest-green {
+  --ion-color-base: var(--ion-color-forest-green);
+  /* Define other properties */
+}
+
+.ion-color-galvalume {
+  --ion-color-base: var(--ion-color-galvalume);
+  /* Define other properties */
+}
+
+.ion-color-old-town-gray {
+  --ion-color-base: var(--ion-color-old-town-gray);
+  /* Define other properties */
+}
+
+.ion-color-brick-red {
+  --ion-color-base: var(--ion-color-brick-red);
+  /* Define other properties */
+}
+
+.ion-color-roman-bronze {
+  --ion-color-base: var(--ion-color-roman-bronze);
+  /* Define other properties */
+}
+
+.ion-color-dark-gray {
+  --ion-color-base: var(--ion-color-dark-gray);
+  /* Define other properties */
+}
+
+.ion-color-winter-white {
+  --ion-color-base: var(--ion-color-winter-white);
+  /* Define other properties */
+}
+
+.ion-color-malibu-white {
+  --ion-color-base: var(--ion-color-malibu-white);
+  /* Define other properties */
+}
+
+.ion-color-beige {
+  --ion-color-base: var(--ion-color-beige);
+  /* Define other properties */
+}
 @media (prefers-color-scheme: dark) {
   /*
    * Dark Colors

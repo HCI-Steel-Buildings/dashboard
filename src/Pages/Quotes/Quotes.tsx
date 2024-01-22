@@ -6,6 +6,7 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
+  IonCheckbox,
   IonCol,
   IonContent,
   IonHeader,
@@ -23,7 +24,9 @@ import {
 import {
   AggregatedBreakdownDetail,
   AggregatedDetails,
+  BaseUnitCosts,
   BreakdownDetail,
+  GutterItems,
 } from "./types";
 
 import { BASE_UNIT_COSTS } from "./PricingData";
@@ -32,12 +35,17 @@ import Excel from "exceljs";
 import desiredOrder from "./desiredOrder";
 
 const Quotes = () => {
-  const FOUNDATION = { REGULAR: "Regular", CONCRETE: "Concrete" };
+  const FOUNDATION = {
+    ASPHALT: "Asphalt",
+    GRAVEL: "Gravel",
+    CONCRETE: "Concrete",
+    DIRT: "Dirt",
+  };
 
   const [width, setWidth] = useState("0");
   const [buildingLength, setBuildingLength] = useState("0");
   const [height, setHeight] = useState("0");
-  const [foundation, setFoundation] = useState(FOUNDATION.REGULAR);
+  const [foundation, setFoundation] = useState(FOUNDATION.ASPHALT);
   const [windowQuantity, setWindowQuantity] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
   const [breakdown, setBreakdown] = useState<BreakdownDetail[]>([]);
@@ -47,6 +55,8 @@ const Quotes = () => {
   const [trimColor, setTrimColor] = useState("");
   const [wallSheathingColor, setWallSheathingColor] = useState("");
   const [roofSheathingColor, setRoofSheathingColor] = useState("");
+  const [guttersLeft, setGuttersLeft] = useState(false);
+  const [guttersRight, setGuttersRight] = useState(false);
 
   // Explicitly declare WALL_OPTIONS with its type
   const WALL_OPTIONS = {
@@ -203,12 +213,29 @@ const Quotes = () => {
     // Determine anchor type and cost
     let anchorType = "";
     let anchorCostPerUnit = 0;
-    if (foundation === FOUNDATION.REGULAR) {
-      anchorType = '30" Rebar Anchor';
-      anchorCostPerUnit = BASE_UNIT_COSTS["RebarAnchor"];
-    } else if (foundation === FOUNDATION.CONCRETE) {
-      anchorType = "Concrete Anchor";
-      anchorCostPerUnit = BASE_UNIT_COSTS["ConcreteAnchor"];
+    switch (foundation) {
+      case FOUNDATION.ASPHALT:
+        anchorType = '30" Rebar Anchor ';
+        anchorCostPerUnit = BASE_UNIT_COSTS["RebarAnchor"];
+        break;
+      case FOUNDATION.GRAVEL:
+        // Define anchor type and cost for Gravel
+        anchorType = '30" Rebar Anchor ';
+        anchorCostPerUnit = BASE_UNIT_COSTS["RebarAnchor"];
+        break;
+      case FOUNDATION.CONCRETE:
+        anchorType = "Concrete Anchor";
+        anchorCostPerUnit = BASE_UNIT_COSTS["ConcreteAnchor"];
+        break;
+      case FOUNDATION.DIRT:
+        // Define anchor type and cost for Dirt
+        anchorType = '30" Rebar Anchor ';
+
+        anchorCostPerUnit = BASE_UNIT_COSTS["RebarAnchor"];
+        break;
+      default:
+        // Fallback logic or default case
+        break;
     }
     const totalAnchorCost = totalLegs * anchorCostPerUnit;
 
@@ -496,6 +523,7 @@ const Quotes = () => {
       unitPrice: roofSheetCostPerSheet,
       total: totalRoofSheetCost,
       linearFeet: roofSheetLengthInFeetInches, // Length of each roof sheet in feet and inches
+      color: roofSheathingColor,
     });
 
     // Calcualte stich screws
@@ -762,6 +790,94 @@ const Quotes = () => {
       });
       calculatedTotalCost += windowTotalCost;
     }
+
+    // Function to calculate gutter cost and add breakdown details
+    const calculateGutterCost = (buildingLength: any, sideSelected: any) => {
+      if (!sideSelected) return {};
+
+      const MAX_GUTTER_LENGTH = 14.5; // 14'6" in decimal feet
+      const gutterItems: any = {};
+
+      if (buildingLength > 0) {
+        let numberOfPieces = Math.ceil(buildingLength / MAX_GUTTER_LENGTH);
+        let gutterPieceLength = buildingLength / numberOfPieces;
+        gutterPieceLength = Math.floor(gutterPieceLength * 10) / 10; // Round down to the nearest tenth
+        gutterPieceLength += 0.5;
+
+        // Ensure that gutterPieceLength does not exceed MAX_GUTTER_LENGTH
+        if (gutterPieceLength > MAX_GUTTER_LENGTH) {
+          gutterPieceLength = MAX_GUTTER_LENGTH;
+          numberOfPieces = Math.ceil(buildingLength / gutterPieceLength);
+        }
+
+        // Assigning gutter components based on the calculated number of pieces
+        gutterItems["K5 Gutter"] = numberOfPieces;
+        gutterItems["K5 Downspout"] = numberOfPieces;
+        gutterItems["K5 EndCap"] = numberOfPieces * 2;
+        gutterItems["K5 DownspoutStrap"] = numberOfPieces;
+        gutterItems["K5 Clip"] =
+          numberOfPieces * Math.ceil(gutterPieceLength / 1.5);
+        gutterItems["K5 ElbowA"] = numberOfPieces;
+        gutterItems["K5 ElbowB"] = numberOfPieces;
+        gutterItems["K5 Gutter Screw"] = buildingLength;
+        gutterItems["NovaFlex"] = numberOfPieces;
+      }
+
+      return gutterItems;
+    };
+
+    // Calculate Gutter Costs
+    const gutterCosts = (gutterItems: any) => {
+      let totalCost = 0;
+      let linearFeetString = "";
+      let downspoutLengthString = "10'"; // Length for each downspout
+
+      for (const item in gutterItems) {
+        const quantity = gutterItems[item];
+        const unitCost = BASE_UNIT_COSTS[item.replace(/\s/g, "")];
+        const total = quantity * unitCost;
+        totalCost += total;
+
+        if (item === "K5 Gutter") {
+          // Convert the linear feet for gutters to feet and inches format
+          linearFeetString = decimalFeetToFeetInches(
+            gutterItems["GutterPieceLength"]
+          );
+        }
+
+        breakdownDetails.push({
+          item: item,
+          quantity: quantity,
+          unitPrice: unitCost,
+          total: total,
+          linearFeet:
+            item === "K5 Gutter"
+              ? linearFeetString
+              : item === "K5 Downspout"
+              ? downspoutLengthString
+              : undefined, // Add LF for K5 Gutter and K5 Downspout
+        });
+      }
+      return totalCost;
+    };
+
+    // Calculate costs for left and right gutters
+    const gutterCostLeft = gutterCosts(
+      calculateGutterCost(buildingLength, guttersLeft)
+    );
+    const gutterCostRight = gutterCosts(
+      calculateGutterCost(buildingLength, guttersRight)
+    );
+
+    // Add Butyl Tape to the breakdown
+    const butylTapeCost = BASE_UNIT_COSTS["ButylTape"];
+    breakdownDetails.push({
+      item: "Butyl Tape",
+      quantity: 1,
+      unitPrice: butylTapeCost,
+      total: butylTapeCost,
+    });
+
     //! Update total cost
     calculatedTotalCost +=
       runnerCost +
@@ -787,19 +903,20 @@ const Quotes = () => {
       totalM29TrimCost +
       m29GableTrimCost +
       eaveTrimCost +
-      ridgeCapCost;
+      ridgeCapCost +
+      gutterCostLeft +
+      gutterCostRight +
+      butylTapeCost;
 
     setTotalCost(calculatedTotalCost);
     setBreakdown(breakdownDetails);
   };
 
-  // Repeat for rightWall, frontWall, and rearWall
-
   const resetCalculator = () => {
     setWidth("");
     setBuildingLength("");
     setHeight("");
-    setFoundation(FOUNDATION.REGULAR);
+    setFoundation(FOUNDATION.ASPHALT);
     setWindowQuantity(0);
     setTotalCost(0);
     setLeftWall(0);
@@ -810,6 +927,8 @@ const Quotes = () => {
     setRoofSheathingColor("");
     setWallSheathingColor("");
     setTrimColor("");
+    setGuttersLeft(false);
+    setGuttersRight(false);
   };
 
   // Helper function to get the index of an item in the desired order
@@ -1012,6 +1131,10 @@ const Quotes = () => {
     }
     setShowColorSelector(false);
   };
+  // Function to convert color names to CSS class compatible names
+  const toCssClassName = (colorName: string) => {
+    return colorName.toLowerCase().replace(/\s+/g, "-");
+  };
 
   return (
     <IonPage>
@@ -1078,58 +1201,37 @@ const Quotes = () => {
               <IonCol>
                 <IonLabel position="stacked">Trim Color:</IonLabel>
                 <IonButton
+                  color={trimColor ? toCssClassName(trimColor) : "primary"}
                   expand="block"
                   onClick={() => openColorSelector("trim")}
-                  style={{
-                    backgroundColor: trimColor
-                      ? colorHexCodes[trimColor]
-                      : "initial",
-                    color:
-                      trimColor &&
-                      (colorHexCodes[trimColor] !== "#ffffff"
-                        ? "white"
-                        : "black"),
-                  }}
                 >
                   {trimColor || "Select Trim Color"}
                 </IonButton>
               </IonCol>
-
               <IonCol>
-                <IonLabel position="stacked">Roof Color:</IonLabel>
+                <IonLabel>Roof Color:</IonLabel>
                 <IonButton
+                  color={
+                    roofSheathingColor
+                      ? toCssClassName(roofSheathingColor)
+                      : "primary"
+                  }
                   expand="block"
                   onClick={() => openColorSelector("roof")}
-                  style={{
-                    backgroundColor: roofSheathingColor
-                      ? colorHexCodes[roofSheathingColor]
-                      : "initial",
-                    color:
-                      roofSheathingColor &&
-                      (colorHexCodes[roofSheathingColor] !== "#ffffff"
-                        ? "white"
-                        : "black"),
-                  }}
                 >
                   {roofSheathingColor || "Select Roof Color"}
                 </IonButton>
               </IonCol>
-
               <IonCol>
-                <IonLabel position="stacked">Wall Color:</IonLabel>
+                <IonLabel>Wall Color:</IonLabel>
                 <IonButton
+                  color={
+                    wallSheathingColor
+                      ? toCssClassName(wallSheathingColor)
+                      : "primary"
+                  }
                   expand="block"
                   onClick={() => openColorSelector("wall")}
-                  style={{
-                    backgroundColor: wallSheathingColor
-                      ? colorHexCodes[wallSheathingColor]
-                      : "initial",
-                    color:
-                      wallSheathingColor &&
-                      (colorHexCodes[wallSheathingColor] !== "#ffffff"
-                        ? "white"
-                        : "black"),
-                  }}
                 >
                   {wallSheathingColor || "Select Wall Color"}
                 </IonButton>
@@ -1198,6 +1300,26 @@ const Quotes = () => {
                 </IonItem>
               </IonCol>
             </IonRow>
+            <IonRow>
+              <IonCol>
+                <IonItem>
+                  <IonLabel>Gutters Left Side:</IonLabel>
+                  <IonCheckbox
+                    checked={guttersLeft}
+                    onIonChange={(e) => setGuttersLeft(e.detail.checked)}
+                  />
+                </IonItem>
+              </IonCol>
+              <IonCol>
+                <IonItem>
+                  <IonLabel>Gutters Right Side:</IonLabel>
+                  <IonCheckbox
+                    checked={guttersRight}
+                    onIonChange={(e) => setGuttersRight(e.detail.checked)}
+                  />
+                </IonItem>
+              </IonCol>
+            </IonRow>
 
             <IonItem>
               <IonLabel position="stacked">Ground Type:</IonLabel>
@@ -1205,12 +1327,11 @@ const Quotes = () => {
                 value={foundation}
                 onIonChange={(e) => setFoundation(e.detail.value as string)}
               >
-                <IonSelectOption value={FOUNDATION.REGULAR}>
-                  {FOUNDATION.REGULAR}
-                </IonSelectOption>
-                <IonSelectOption value={FOUNDATION.CONCRETE}>
-                  {FOUNDATION.CONCRETE}
-                </IonSelectOption>
+                {Object.values(FOUNDATION).map((foundationType) => (
+                  <IonSelectOption key={foundationType} value={foundationType}>
+                    {foundationType}
+                  </IonSelectOption>
+                ))}
               </IonSelect>
             </IonItem>
             <IonItem>
@@ -1267,8 +1388,11 @@ const Quotes = () => {
                           </>
                         )}
                         <strong> Unit Price:</strong> $
-                        {detail.unitPrice.toFixed(2)},<strong> Total:</strong> $
-                        {detail.total.toFixed(2)}
+                        {detail.unitPrice
+                          ? detail.unitPrice.toFixed(2)
+                          : "0.00"}
+                        ,<strong> Total:</strong> $
+                        {detail.total ? detail.total.toFixed(2) : "0.00"}
                       </p>
                     </IonLabel>
                   </IonItem>
