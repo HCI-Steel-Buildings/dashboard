@@ -506,12 +506,22 @@ const Quotes = () => {
 
     // Calculate Roof Sheathing
     const roofSheetWidth = 2.5; // Width of each roof sheet
-    const totalRoofSheets = Math.ceil(numLength / roofSheetWidth) * 2; // Total number of roof sheets for both sides
-    const roofSheetLengthInDecimalFeet = Math.min(r2LengthPerPiece + 2, 21); // Max length of roof sheet is 21 feet
+    let extraLengthForGutters = 0;
+
+    // Add 3 inches to the roof panel length if either left or right gutters are selected
+    if (guttersLeft || guttersRight) {
+      extraLengthForGutters = 0.25; // 3 inches in feet
+    }
+
+    const roofSheetLengthInDecimalFeet = Math.min(
+      r2LengthPerPiece + 2 + extraLengthForGutters,
+      21
+    ); // Max length of roof sheet is 21 feet
     const roofSheetLengthInFeetInches = decimalFeetToFeetInches(
       roofSheetLengthInDecimalFeet
     );
 
+    const totalRoofSheets = Math.ceil(numLength / roofSheetWidth) * 2; // Total number of roof sheets for both sides
     const roofSheetCostPerSheet =
       roofSheetLengthInDecimalFeet * BASE_UNIT_COSTS["RoofSheet"];
     const totalRoofSheetCost = totalRoofSheets * roofSheetCostPerSheet; // Total cost for all roof sheets
@@ -738,7 +748,7 @@ const Quotes = () => {
     // Add updated Eave Trim details to the breakdown
     breakdownDetails.push({
       item: "M-31 EAVE CLOSURE TRIM",
-      quantity: eaveTrimPieces,
+      quantity: eaveTrimPieces * 2,
       unitPrice: eaveTrimCostPerUnit,
       total: eaveTrimCost,
       linearFeet: decimalFeetToFeetInches(eaveTrimLengthPerPiece),
@@ -874,6 +884,7 @@ const Quotes = () => {
     breakdownDetails.push({
       item: "Butyl Tape",
       quantity: 1,
+      // linearFeet: length * 2,
       unitPrice: butylTapeCost,
       total: butylTapeCost,
     });
@@ -910,6 +921,7 @@ const Quotes = () => {
 
     setTotalCost(calculatedTotalCost);
     setBreakdown(breakdownDetails);
+    console.log(breakdownDetails);
   };
 
   const resetCalculator = () => {
@@ -940,7 +952,10 @@ const Quotes = () => {
     const aggregatedDetails: AggregatedDetails = {};
 
     breakdown.forEach((detail) => {
-      const key = `${detail.item}_${detail.color || "No Color"}`;
+      // Include linearFeet in the key
+      const key = `${detail.item}_${detail.linearFeet}_${
+        detail.color || "No Color"
+      }`;
       if (!aggregatedDetails[key]) {
         aggregatedDetails[key] = { ...detail, count: 1 };
       } else {

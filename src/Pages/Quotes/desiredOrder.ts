@@ -1,4 +1,5 @@
 const desiredOrder = [
+  // SHEETS
   "26ga HHR ROOF SHEETS",
   "26ga Left Wall Sidewall Sheets",
   "26ga Right Wall Sidewall Sheets",
@@ -13,6 +14,7 @@ const desiredOrder = [
   "M-3-BT BASE TRIM - END WALL",
   "M-3-BT BASE TRIM - SIDEWALL",
   "M-33 RIDGE CAP",
+  "Rear Wall M-29 Trim",
   //   "FRAMING",
   "RUNNER",
   "LEGS",
@@ -38,7 +40,7 @@ const desiredOrder = [
   "K5 Gutter Screw",
   "K5 SCUPPER",
   "NovaFlex",
-  "HARDWARE",
+  // "HARDWARE",
   "STRUCTURAL SCREWS",
   "STITCH SCREWS",
   "TEK-3 SCREWS",
