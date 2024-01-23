@@ -395,8 +395,10 @@ const Quotes = () => {
     const structuralScrewQuantityForHatChannel = totalHatChannelLF;
 
     // Combine structural screws from hat channel and legs
-    const totalStructuralScrews =
-      structuralScrewQuantityForHatChannel + structuralScrewQuantityForLegs;
+    const totalStructuralScrews = Math.ceil(
+      (structuralScrewQuantityForHatChannel + structuralScrewQuantityForLegs) *
+        1.15
+    ); // Add 15% for waste
     const totalStructuralScrewsCost =
       totalStructuralScrews * BASE_UNIT_COSTS["StructuralScrew"];
 
@@ -541,7 +543,7 @@ const Quotes = () => {
 
     // Calculate the number of stitch screws needed
     const totalStitchScrews = Math.ceil(
-      ((totalRoofSheets * roofSheetLengthInDecimalFeet) / 2) * 1.1
+      ((totalRoofSheets * roofSheetLengthInDecimalFeet) / 2) * 1.15 // Add 10% for waste
     );
 
     // Calculate the total cost for stitch screws
@@ -996,6 +998,8 @@ const Quotes = () => {
         },
         { header: "Unit Price", key: "unitPrice", width: 10 },
         { header: "Total", key: "total", width: 10 },
+        { header: "Received", key: "received", width: 10 },
+        { header: "Notes", key: "notes", width: 30 },
       ];
 
       // Style the headers
@@ -1018,9 +1022,7 @@ const Quotes = () => {
       worksheet.getRow(1).eachCell((cell: any) => {
         cell.border = borderStyle;
       });
-
       // Import the itemToGroupMap from a separate file if needed
-
       const groupHeaders: any = {
         SHEETS: "SHEETS",
         TRIM: "TRIM",
@@ -1028,6 +1030,7 @@ const Quotes = () => {
         "K5 GUTTER SYSTEM": "K5 GUTTER SYSTEM",
         HARDWARE: "HARDWARE/MISC",
       };
+      groupHeaders.font = { bold: true, size: 14 };
       // Define two different fill styles for alternating rows
       const fillStyle1 = {
         type: "pattern",
@@ -1055,7 +1058,11 @@ const Quotes = () => {
           const headerRow = worksheet.addRow({
             item: groupHeaders[itemGroup] || itemGroup,
           });
-          headerRow.font = { bold: true, color: { argb: "FF000000" } };
+          headerRow.font = {
+            bold: true,
+            color: { argb: "FF000000" },
+            size: 14,
+          };
 
           // Apply the fill style only up to the last defined column
           for (let i = 1; i <= worksheet.columns.length; i++) {
@@ -1076,10 +1083,11 @@ const Quotes = () => {
           quantity: item.quantity,
           linearFeet: item.linearFeet || "",
           unitPrice: item.unitPrice,
-          total: item.total,
+          total: item.total.toFixed(2),
+          received: "",
+          notes: "",
         });
 
-        // Style the item row
         // Style the item row with alternating colors
         const fillStyle = rowNum % 2 === 0 ? fillStyle1 : fillStyle2;
         row.eachCell((cell: any) => {
@@ -1089,6 +1097,23 @@ const Quotes = () => {
 
         rowNum++; // Increment the row number
       });
+
+      // After adding all item rows, add a final row for total cost
+      const totalCostRow = worksheet.addRow({
+        color: "",
+        item: "TOTAL COST",
+        quantity: "",
+        linearFeet: "",
+        unitPrice: "",
+        total: totalCost.toFixed(2), // Assuming totalCost holds the calculated total cost and is a number
+      });
+      // For example, to merge from column 'D' to 'E' for the label
+      worksheet.mergeCells(`D${totalCostRow.number}:E${totalCostRow.number}`);
+      totalCostRow.font = { bold: true, color: { argb: "FF000000" }, size: 14 };
+      totalCostRow.eachCell((cell: any) => {
+        cell.border = borderStyle;
+      });
+      totalCostRow.getCell(6).numFmt = '"$"#,##0.00'; // Assuming that the 'total' is the 6th column
 
       // Write the workbook to a buffer
       const buffer = await workbook.xlsx.writeBuffer();
