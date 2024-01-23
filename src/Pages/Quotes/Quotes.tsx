@@ -24,15 +24,15 @@ import {
 import {
   AggregatedBreakdownDetail,
   AggregatedDetails,
-  BaseUnitCosts,
   BreakdownDetail,
-  GutterItems,
+  ColorHexCodesType,
 } from "./types";
 
 import { BASE_UNIT_COSTS } from "./PricingData";
 import { downloadOutline } from "ionicons/icons";
 import Excel from "exceljs";
 import desiredOrder from "./desiredOrder";
+import itemToGroupMap from "./itemToGroupMap";
 
 const Quotes = () => {
   const FOUNDATION = {
@@ -571,7 +571,8 @@ const Quotes = () => {
     });
 
     // Calculate Straight Clips for each King Pin
-    const straightClipQuantity = gridLines * 4; // 4 Straight Clips per King Pin
+    let straightClipQuantity = gridLines * 4; // 4 Straight Clips per King Pin
+    straightClipQuantity += totalLegs * 2; // 2 Straight Clips per leg
     const straightClipCost =
       straightClipQuantity * BASE_UNIT_COSTS["StraightClip"];
     breakdownDetails.push({
@@ -971,24 +972,33 @@ const Quotes = () => {
   };
 
   const aggregatedBreakdown = getAggregatedBreakdown();
-  // Define the desired order of items
 
   const exportToExcel = async () => {
     try {
       const workbook = new Excel.Workbook();
       const worksheet = workbook.addWorksheet("Breakdown");
 
-      // Reorder columns as per the new requirement
+      // Define columns
       worksheet.columns = [
         { header: "Color", key: "color", width: 15 },
         { header: "Item", key: "item", width: 30 },
-        { header: "Quantity", key: "quantity", width: 10 },
-        { header: "Linear Feet", key: "linearFeet", width: 15 },
+        {
+          header: "Quantity",
+          key: "quantity",
+          width: 10,
+          style: { alignment: { horizontal: "center" } },
+        },
+        {
+          header: "Linear Feet",
+          key: "linearFeet",
+          width: 15,
+          style: { alignment: { horizontal: "center" } },
+        },
         { header: "Unit Price", key: "unitPrice", width: 10 },
         { header: "Total", key: "total", width: 10 },
       ];
 
-      // Apply bold style to headers and set header background
+      // Style the headers
       worksheet.getRow(1).font = { bold: true };
       worksheet.getRow(1).fill = {
         type: "pattern",
@@ -996,17 +1006,72 @@ const Quotes = () => {
         fgColor: { argb: "FFFFFFFF" },
         bgColor: { argb: "FF0000FF" },
       };
+
       const borderStyle = {
         top: { style: "thin", color: { argb: "FF000000" } },
         left: { style: "thin", color: { argb: "FF000000" } },
         bottom: { style: "thin", color: { argb: "FF000000" } },
         right: { style: "thin", color: { argb: "FF000000" } },
       };
-      // Add data rows
+
+      // Apply borders to header
+      worksheet.getRow(1).eachCell((cell: any) => {
+        cell.border = borderStyle;
+      });
+
+      // Import the itemToGroupMap from a separate file if needed
+
+      const groupHeaders: any = {
+        SHEETS: "SHEETS",
+        TRIM: "TRIM",
+        FRAMING: "FRAMING",
+        "K5 GUTTER SYSTEM": "K5 GUTTER SYSTEM",
+        HARDWARE: "HARDWARE/MISC",
+      };
+      // Define two different fill styles for alternating rows
+      const fillStyle1 = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFF0F0F0" }, // Light gray for even rows
+      };
+
+      const fillStyle2 = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFD9E1F2" }, // A different color (e.g., light blue) for odd rows
+      };
+
+      let rowNum = 2; // Start with the second row, since the first row is for headers
+
+      let currentGroup = "";
       const aggregatedBreakdown = getAggregatedBreakdown();
-      aggregatedBreakdown.forEach((item, index) => {
+      aggregatedBreakdown.forEach((item) => {
+        // Determine the group of the current item
+        const itemGroup = itemToGroupMap[item.item];
+
+        // Check if we've encountered a new group
+        if (itemGroup && itemGroup !== currentGroup) {
+          // Insert a group header row
+          const headerRow = worksheet.addRow({
+            item: groupHeaders[itemGroup] || itemGroup,
+          });
+          headerRow.font = { bold: true, color: { argb: "FF000000" } };
+
+          // Apply the fill style only up to the last defined column
+          for (let i = 1; i <= worksheet.columns.length; i++) {
+            headerRow.getCell(i).fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFCCCCCC" },
+            };
+          }
+
+          currentGroup = itemGroup; // Update the current group
+        }
+
+        // Add a normal item row
         const row = worksheet.addRow({
-          color: item.color,
+          color: item.color || "",
           item: item.item,
           quantity: item.quantity,
           linearFeet: item.linearFeet || "",
@@ -1014,26 +1079,15 @@ const Quotes = () => {
           total: item.total,
         });
 
-        // Apply alternating fills to rows and border style to each cell
-        row.eachCell({ includeEmpty: true }, (cell: any, colNumber) => {
+        // Style the item row
+        // Style the item row with alternating colors
+        const fillStyle = rowNum % 2 === 0 ? fillStyle1 : fillStyle2;
+        row.eachCell((cell: any) => {
           cell.border = borderStyle;
-          cell.fill =
-            index % 2 === 0
-              ? {
-                  type: "pattern",
-                  pattern: "solid",
-                  fgColor: { argb: "FFF0F0F0" },
-                }
-              : {
-                  type: "pattern",
-                  pattern: "solid",
-                  fgColor: { argb: "FFFFFFFF" },
-                };
+          cell.fill = fillStyle;
         });
-      });
-      // Apply borders to header after defining all cells to avoid overwriting
-      worksheet.getRow(1).eachCell({ includeEmpty: true }, (cell: any) => {
-        cell.border = borderStyle;
+
+        rowNum++; // Increment the row number
       });
 
       // Write the workbook to a buffer
@@ -1044,7 +1098,7 @@ const Quotes = () => {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
-      // Use the triggerDownload function to initiate the download
+      // Trigger the file download
       triggerDownload(blob);
     } catch (error) {
       console.error("Error exporting to Excel:", error);
@@ -1052,22 +1106,15 @@ const Quotes = () => {
     }
   };
 
-  const triggerDownload = (blob: any) => {
+  const triggerDownload = (blob: Blob) => {
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = "updatedQuoteOrder.xlsx";
+    anchor.download = "Breakdown.xlsx";
     document.body.appendChild(anchor);
     anchor.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(anchor);
-
-    // Debugging: Log to confirm download was triggered
-    console.log("Download triggered");
-  };
-
-  type ColorHexCodesType = {
-    [key: string]: string; // This means each key is a string and each value is a string
   };
 
   const colorOptions = [

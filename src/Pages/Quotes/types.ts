@@ -21,6 +21,9 @@ type BaseUnitCosts = {
 type GutterItems = {
   [key: string]: number;
 };
+type ColorHexCodesType = {
+  [key: string]: string; // This means each key is a string and each value is a string
+};
 
 export type {
   BreakdownDetail,
@@ -28,4 +31,5 @@ export type {
   AggregatedDetails,
   BaseUnitCosts,
   GutterItems,
+  ColorHexCodesType,
 };
