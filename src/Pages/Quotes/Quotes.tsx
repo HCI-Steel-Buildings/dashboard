@@ -29,10 +29,12 @@ import {
 } from "./types";
 
 import { BASE_UNIT_COSTS } from "./PricingData";
-import { downloadOutline } from "ionicons/icons";
+import { documentsOutline, downloadOutline } from "ionicons/icons";
 import Excel from "exceljs";
 import desiredOrder from "./desiredOrder";
 import itemToGroupMap from "./itemToGroupMap";
+import { PDFDocument } from "pdf-lib";
+import fs from "fs/promises";
 
 const Quotes = () => {
   const FOUNDATION = {
@@ -1223,6 +1225,58 @@ const Quotes = () => {
     return colorName.toLowerCase().replace(/\s+/g, "-");
   };
 
+  async function modifyAndDownloadPdf(totalPrice: any) {
+    try {
+      // Fetch the PDF file over HTTP
+      const response = await fetch("/form.pdf");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const pdfBuffer = await response.arrayBuffer();
+
+      // Load the PDF document
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
+
+      // Get the form within the document
+      const form = pdfDoc.getForm();
+
+      // Get the field where you want to insert the total price
+      const totalPriceField = form.getTextField("Total");
+
+      // Fill the field with the total price
+      totalPriceField.setText(totalPrice.toString());
+
+      // Flatten the form to prevent further editing of filled fields
+      form.flatten();
+
+      // Save the modified PDF as a new document
+      const pdfBytes = await pdfDoc.save();
+
+      // Trigger download
+      downloadPdf(pdfBytes, "ModifiedForm.pdf");
+    } catch (error) {
+      console.error("Error modifying PDF:", error);
+    }
+  }
+
+  // Function to trigger the download of a PDF file (this needs to be adapted for Node.js environment)
+  function downloadPdf(pdfBytes: any, filename: any) {
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
+  // Call this function on your button click event
+  const handleExportToPdfClick = () => {
+    modifyAndDownloadPdf(totalCost.toFixed(2)); // Assuming 'totalCost' is your total price state
+  };
+
   return (
     <IonPage>
       <IonContent>
@@ -1492,6 +1546,12 @@ const Quotes = () => {
                   <IonButton expand="full" onClick={exportToExcel}>
                     Export To Excel
                     <IonIcon icon={downloadOutline} />
+                  </IonButton>
+                </IonCol>
+                <IonCol>
+                  <IonButton expand="full" onClick={handleExportToPdfClick}>
+                    Export to PDF
+                    <IonIcon icon={documentsOutline} />
                   </IonButton>
                 </IonCol>
               </IonCardContent>
