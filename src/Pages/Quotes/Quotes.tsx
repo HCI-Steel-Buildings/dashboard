@@ -59,7 +59,8 @@ const Quotes = () => {
   const [roofSheathingColor, setRoofSheathingColor] = useState("");
   const [guttersLeft, setGuttersLeft] = useState(false);
   const [guttersRight, setGuttersRight] = useState(false);
-
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   // Explicitly declare WALL_OPTIONS with its type
   const WALL_OPTIONS = {
     ZERO: 0,
@@ -1228,7 +1229,7 @@ const Quotes = () => {
   async function modifyAndDownloadPdf(totalPrice: any) {
     try {
       // Fetch the PDF file over HTTP
-      const response = await fetch("/form.pdf");
+      const response = await fetch("./form.pdf");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -1242,9 +1243,36 @@ const Quotes = () => {
 
       // Get the field where you want to insert the total price
       const totalPriceField = form.getTextField("Total");
+      const laborField = form.getTextField("Labor");
+      const taxField = form.getTextField("Tax");
+      const grandTotalField = form.getTextField("GrandTotal");
+      const subTotalField = form.getTextField("Subtotal");
+      const deliveryField = form.getTextField("Delivery");
+      const buildingSizeField = form.getTextField("Building Size");
+      const firstNameField = form.getTextField("firstName");
+      const lastNameField = form.getTextField("lastName");
+      const emailField = form.getTextField("email");
+      const phoneField = form.getTextField("phone");
+      // const addressField = form.getTextField("address");
+      const quoteNumberField = form.getTextField("quoteNumber");
 
       // Fill the field with the total price
       totalPriceField.setText(totalPrice.toString());
+      // Calculate delivery cost
+      const delivery = 500;
+      deliveryField.setText(delivery.toString());
+      // Calculate labor cost
+      const laborCost = (totalPrice * 0.45).toFixed(2);
+      laborField.setText(laborCost.toString());
+      // Calculate tax
+      const tax = (totalPrice * 0.07).toFixed(2);
+      taxField.setText(tax.toString());
+      // Calculate grand total
+      const grandTotal = laborCost + tax + totalPrice;
+      grandTotalField.setText(grandTotal.toString());
+      // Calculate subtotal
+      const subTotal = totalPrice + laborCost + delivery;
+      subTotalField.setText(subTotal.toString());
 
       // Flatten the form to prevent further editing of filled fields
       form.flatten();
@@ -1280,6 +1308,29 @@ const Quotes = () => {
   return (
     <IonPage>
       <IonContent>
+        {/* Client Information Fields */}
+        <IonRow>
+          <IonCol>
+            <IonItem>
+              <IonLabel position="stacked">First Name:</IonLabel>
+              <IonInput
+                type="text"
+                value={firstName}
+                onIonChange={(e) => setFirstName(e.detail.value ?? "")}
+              />
+            </IonItem>
+          </IonCol>
+          <IonCol>
+            <IonItem>
+              <IonLabel position="stacked">Last Name:</IonLabel>
+              <IonInput
+                type="text"
+                value={lastName}
+                onIonChange={(e) => setLastName(e.detail.value ?? "")}
+              />
+            </IonItem>
+          </IonCol>
+        </IonRow>
         <IonRow>
           <IonModal
             isOpen={showColorSelector}
