@@ -1302,12 +1302,28 @@ const Quotes = () => {
       // Calculate tax
       const tax = (totalPrice * 0.07).toFixed(2);
       taxField.setText(tax.toString());
-      // Calculate grand total
-      const grandTotal = laborCost + tax + totalPrice;
-      grandTotalField.setText(grandTotal.toString());
+
       // Calculate subtotal
       const subTotal = totalPrice + laborCost + delivery;
       subTotalField.setText(subTotal.toString());
+
+      // Calculate grand total
+      const grandTotal = subTotal + tax;
+      grandTotalField.setText(grandTotal.toString());
+
+      // Calculate building size
+      const buildingSize = `${width}' x ${buildingLength}' x ${height}'`;
+      buildingSizeField.setText(buildingSize.toString());
+
+      // Calculate quote number
+      const quoteNumber = Math.floor(Math.random() * 1000000);
+      quoteNumberField.setText(quoteNumber.toString());
+
+      // Fill out client information
+      firstNameField.setText(firstName.toString());
+      lastNameField.setText(lastName.toString());
+      emailField.setText(email.toString());
+      phoneField.setText(phone.toString());
 
       // Flatten the form to prevent further editing of filled fields
       form.flatten();
