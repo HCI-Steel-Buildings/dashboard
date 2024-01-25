@@ -34,7 +34,6 @@ import Excel from "exceljs";
 import desiredOrder from "./desiredOrder";
 import itemToGroupMap from "./itemToGroupMap";
 import { PDFDocument } from "pdf-lib";
-import fs from "fs/promises";
 
 const Quotes = () => {
   const FOUNDATION = {
@@ -43,7 +42,8 @@ const Quotes = () => {
     CONCRETE: "Concrete",
     DIRT: "Dirt",
   };
-
+  const [showColorSelector, setShowColorSelector] = useState(false);
+  const [selectedColorType, setSelectedColorType] = useState(null);
   const [width, setWidth] = useState("0");
   const [buildingLength, setBuildingLength] = useState("0");
   const [height, setHeight] = useState("0");
@@ -53,7 +53,6 @@ const Quotes = () => {
   const [breakdown, setBreakdown] = useState<BreakdownDetail[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [file, setFile] = useState(null);
   const [trimColor, setTrimColor] = useState("");
   const [wallSheathingColor, setWallSheathingColor] = useState("");
   const [roofSheathingColor, setRoofSheathingColor] = useState("");
@@ -61,6 +60,16 @@ const Quotes = () => {
   const [guttersRight, setGuttersRight] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [quoteNumber, setQuoteNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [dripStop, setDripStop] = useState(false);
+  const [eaveExtension, setEaveExtension] = useState(0);
+  const [hasPermit, setHasPermit] = useState(false);
   // Explicitly declare WALL_OPTIONS with its type
   const WALL_OPTIONS = {
     ZERO: 0,
@@ -68,6 +77,15 @@ const Quotes = () => {
     SIX_FEET: "6'",
     NINE_FEET: "9'",
     FULLY_ENCLOSED: "Fully Enclosed",
+  };
+
+  const EAVE_EXTENSION = {
+    ZERO: 0,
+    SIX: '6"',
+    NINE: '9"',
+    TEWELVE: '12"',
+    EIGHTEEN: '18"',
+    TWENTY_FOUR: '24"',
   };
 
   // Define the initial state using the keys of WALL_OPTIONS
@@ -510,13 +528,10 @@ const Quotes = () => {
     });
 
     // Calculate Roof Sheathing
-    const roofSheetWidth = 2.5; // Width of each roof sheet
-    let extraLengthForGutters = 0;
+    const roofSheetWidth = 3; // Width of each roof sheet
 
     // Add 3 inches to the roof panel length if either left or right gutters are selected
-    if (guttersLeft || guttersRight) {
-      extraLengthForGutters = 0.25; // 3 inches in feet
-    }
+    const extraLengthForGutters = 0.25; // 3 inches in feet
 
     const roofSheetLengthInDecimalFeet = Math.min(
       r2LengthPerPiece + 2 + extraLengthForGutters,
@@ -530,6 +545,8 @@ const Quotes = () => {
     const roofSheetCostPerSheet =
       roofSheetLengthInDecimalFeet * BASE_UNIT_COSTS["RoofSheet"];
     const totalRoofSheetCost = totalRoofSheets * roofSheetCostPerSheet; // Total cost for all roof sheets
+    // Dripstop logic
+    const dripStopNote = dripStop ? "W/ DRIPSTOP" : "";
 
     // Add Roof Sheathing to breakdown details
     breakdownDetails.push({
@@ -539,6 +556,7 @@ const Quotes = () => {
       total: totalRoofSheetCost,
       linearFeet: roofSheetLengthInFeetInches, // Length of each roof sheet in feet and inches
       color: roofSheathingColor,
+      notes: dripStopNote,
     });
 
     // Calcualte stich screws
@@ -1088,7 +1106,7 @@ const Quotes = () => {
           unitPrice: item.unitPrice,
           total: item.total.toFixed(2),
           received: "",
-          notes: "",
+          notes: item.notes || "",
         });
 
         // Style the item row with alternating colors
@@ -1203,8 +1221,6 @@ const Quotes = () => {
       </IonList>
     );
   };
-  const [showColorSelector, setShowColorSelector] = useState(false);
-  const [selectedColorType, setSelectedColorType] = useState(null);
 
   const openColorSelector = (type: any) => {
     setSelectedColorType(type); // Set which type of color is being selected
@@ -1308,30 +1324,9 @@ const Quotes = () => {
   return (
     <IonPage>
       <IonContent>
-        {/* Client Information Fields */}
+        {/* HEADER ROW */}
         <IonRow>
-          <IonCol>
-            <IonItem>
-              <IonLabel position="stacked">First Name:</IonLabel>
-              <IonInput
-                type="text"
-                value={firstName}
-                onIonChange={(e) => setFirstName(e.detail.value ?? "")}
-              />
-            </IonItem>
-          </IonCol>
-          <IonCol>
-            <IonItem>
-              <IonLabel position="stacked">Last Name:</IonLabel>
-              <IonInput
-                type="text"
-                value={lastName}
-                onIonChange={(e) => setLastName(e.detail.value ?? "")}
-              />
-            </IonItem>
-          </IonCol>
-        </IonRow>
-        <IonRow>
+          {/* Color Modal */}
           <IonModal
             isOpen={showColorSelector}
             onDidDismiss={() => setShowColorSelector(false)}
@@ -1342,6 +1337,7 @@ const Quotes = () => {
               onSelect={handleColorSelect}
             />
           </IonModal>
+          {/* APP HEADER */}
           <IonHeader>
             <IonCardHeader>
               <IonCardTitle>
@@ -1349,196 +1345,405 @@ const Quotes = () => {
               </IonCardTitle>
             </IonCardHeader>
           </IonHeader>
-          <IonCol>
-            <IonItem>
-              <IonLabel position="stacked">
-                Width (Min: 10', Max: 30'):
-              </IonLabel>
-              <IonInput
-                type="number"
-                value={width}
-                onIonChange={(e) => setWidth(e.detail.value ?? "")}
-                min={10}
-                max={30}
-                defaultValue={0}
-              />
-            </IonItem>
-            <IonItem>
-              <IonLabel position="stacked">
-                Length (Min: 10', Max: 100'):
-              </IonLabel>
-              <IonInput
-                type="number"
-                value={buildingLength}
-                onIonChange={(e) => setBuildingLength(e.detail.value ?? "")}
-                min={10}
-                max={100}
-                defaultValue={0}
-              />
-            </IonItem>
-            <IonItem>
-              <IonLabel position="stacked">
-                Height (Min: 6', Max: 12'):
-              </IonLabel>
-              <IonInput
-                type="number"
-                value={height}
-                onIonChange={(e) => setHeight(e.detail.value ?? "")}
-                min={6}
-                max={12}
-                defaultValue={0}
-              />
-            </IonItem>
-            <IonRow>
+        </IonRow>
+        {/* First Row */}
+        <IonRow>
+          {/* Client info */}
+          <IonCol size="6">
+            <IonCard>
               <IonCol>
-                <IonLabel position="stacked">Trim Color:</IonLabel>
-                <IonButton
-                  color={trimColor ? toCssClassName(trimColor) : "primary"}
-                  expand="block"
-                  onClick={() => openColorSelector("trim")}
-                >
-                  {trimColor || "Select Trim Color"}
-                </IonButton>
-              </IonCol>
-              <IonCol>
-                <IonLabel>Roof Color:</IonLabel>
-                <IonButton
-                  color={
-                    roofSheathingColor
-                      ? toCssClassName(roofSheathingColor)
-                      : "primary"
-                  }
-                  expand="block"
-                  onClick={() => openColorSelector("roof")}
-                >
-                  {roofSheathingColor || "Select Roof Color"}
-                </IonButton>
-              </IonCol>
-              <IonCol>
-                <IonLabel>Wall Color:</IonLabel>
-                <IonButton
-                  color={
-                    wallSheathingColor
-                      ? toCssClassName(wallSheathingColor)
-                      : "primary"
-                  }
-                  expand="block"
-                  onClick={() => openColorSelector("wall")}
-                >
-                  {wallSheathingColor || "Select Wall Color"}
-                </IonButton>
-              </IonCol>
-            </IonRow>
-
-            <IonRow>
-              <IonCol>
+                <IonCardHeader>
+                  <IonCardTitle>
+                    <strong>Client Information</strong>
+                  </IonCardTitle>
+                </IonCardHeader>
                 <IonItem>
-                  <IonLabel position="stacked">Left Wall:</IonLabel>
-                  <IonSelect
-                    value={leftWall}
-                    onIonChange={(e) => setLeftWall(e.detail.value)}
-                  >
-                    {Object.values(WALL_OPTIONS).map((option) => (
-                      <IonSelectOption key={`left-${option}`} value={option}>
-                        {option}
-                      </IonSelectOption>
-                    ))}
-                  </IonSelect>
+                  <IonLabel position="stacked">First Name:</IonLabel>
+                  <IonInput
+                    type="text"
+                    value={firstName}
+                    onIonChange={(e) => setFirstName(e.detail.value ?? "")}
+                  />
                 </IonItem>
-              </IonCol>
-              <IonCol>
                 <IonItem>
-                  <IonLabel position="stacked">Right Wall:</IonLabel>
-                  <IonSelect
-                    value={rightWall}
-                    onIonChange={(e) => setRightWall(e.detail.value)}
-                  >
-                    {Object.values(WALL_OPTIONS).map((option) => (
-                      <IonSelectOption key={`right-${option}`} value={option}>
-                        {option}
-                      </IonSelectOption>
-                    ))}
-                  </IonSelect>
+                  <IonLabel position="stacked">Last Name:</IonLabel>
+                  <IonInput
+                    type="text"
+                    value={lastName}
+                    onIonChange={(e) => setLastName(e.detail.value ?? "")}
+                  />
                 </IonItem>
-              </IonCol>
-              <IonCol>
                 <IonItem>
-                  <IonLabel position="stacked">Front Wall:</IonLabel>
-                  <IonSelect
-                    value={frontWall}
-                    onIonChange={(e) => setFrontWall(e.detail.value)}
-                  >
-                    {Object.values(WALL_OPTIONS).map((option) => (
-                      <IonSelectOption key={`front-${option}`} value={option}>
-                        {option}
-                      </IonSelectOption>
-                    ))}
-                  </IonSelect>
+                  <IonLabel position="stacked">Email:</IonLabel>
+                  <IonInput
+                    type="email"
+                    value={email}
+                    onIonChange={(e) => setEmail(e.detail.value ?? "")}
+                  />
                 </IonItem>
-              </IonCol>
-              <IonCol>
                 <IonItem>
-                  <IonLabel position="stacked">Rear Wall:</IonLabel>
-                  <IonSelect
-                    value={rearWall}
-                    onIonChange={(e) => setRearWall(e.detail.value)}
-                  >
-                    {Object.values(WALL_OPTIONS).map((option) => (
-                      <IonSelectOption key={`rear-${option}`} value={option}>
-                        {option}
-                      </IonSelectOption>
-                    ))}
-                  </IonSelect>
-                </IonItem>
-              </IonCol>
-            </IonRow>
-            <IonRow>
-              <IonCol>
-                <IonItem>
-                  <IonLabel>Gutters Left Side:</IonLabel>
-                  <IonCheckbox
-                    checked={guttersLeft}
-                    onIonChange={(e) => setGuttersLeft(e.detail.checked)}
+                  <IonLabel position="stacked">Phone:</IonLabel>
+                  <IonInput
+                    type="tel"
+                    value={phone}
+                    onIonChange={(e) => setPhone(e.detail.value ?? "")}
                   />
                 </IonItem>
               </IonCol>
-              <IonCol>
-                <IonItem>
-                  <IonLabel>Gutters Right Side:</IonLabel>
-                  <IonCheckbox
-                    checked={guttersRight}
-                    onIonChange={(e) => setGuttersRight(e.detail.checked)}
-                  />
-                </IonItem>
-              </IonCol>
-            </IonRow>
-
-            <IonItem>
-              <IonLabel position="stacked">Ground Type:</IonLabel>
-              <IonSelect
-                value={foundation}
-                onIonChange={(e) => setFoundation(e.detail.value as string)}
-              >
-                {Object.values(FOUNDATION).map((foundationType) => (
-                  <IonSelectOption key={foundationType} value={foundationType}>
-                    {foundationType}
-                  </IonSelectOption>
-                ))}
-              </IonSelect>
-            </IonItem>
-            <IonItem>
-              <IonLabel position="stacked">Window Quantity:</IonLabel>
-              <IonInput
-                type="number"
-                value={windowQuantity}
-                onIonChange={(e) =>
-                  setWindowQuantity(parseInt(e.detail.value ?? "0"))
-                }
-                min="0"
-              />
-            </IonItem>
+            </IonCard>
+          </IonCol>
+          {/* Site info */}
+          <IonCol size="6">
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Site Information</strong>
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonItem>
+                <IonLabel position="stacked">Address:</IonLabel>
+                <IonInput
+                  type="text"
+                  value={address}
+                  onIonChange={(e) => setAddress(e.detail.value ?? "")}
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel position="stacked">City:</IonLabel>
+                <IonInput
+                  type="text"
+                  value={city}
+                  onIonChange={(e) => setCity(e.detail.value ?? "")}
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel position="stacked">State:</IonLabel>
+                <IonInput
+                  type="text"
+                  value={state}
+                  onIonChange={(e) => setState(e.detail.value ?? "")}
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel position="stacked">Zip:</IonLabel>
+                <IonInput
+                  type="text"
+                  value={zipCode}
+                  onIonChange={(e) => setZipCode(e.detail.value ?? "")}
+                />
+              </IonItem>
+            </IonCard>
           </IonCol>
         </IonRow>
+        {/* Second Row (Building size, Wall Options */}
+        <IonRow>
+          {/* Building Size */}
+          <IonCol size="6">
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Building Size</strong>{" "}
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonItem>
+                <IonLabel position="stacked">
+                  Width (Min: 10', Max: 30'):
+                </IonLabel>
+                <IonInput
+                  type="number"
+                  value={width}
+                  onIonChange={(e) => setWidth(e.detail.value ?? "")}
+                  min={10}
+                  max={30}
+                  defaultValue={0}
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel position="stacked">
+                  Length (Min: 10', Max: 100'):
+                </IonLabel>
+                <IonInput
+                  type="number"
+                  value={buildingLength}
+                  onIonChange={(e) => setBuildingLength(e.detail.value ?? "")}
+                  min={10}
+                  max={100}
+                  defaultValue={0}
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel position="stacked">
+                  Height (Min: 6', Max: 12'):
+                </IonLabel>
+                <IonInput
+                  type="number"
+                  value={height}
+                  onIonChange={(e) => setHeight(e.detail.value ?? "")}
+                  min={6}
+                  max={12}
+                  defaultValue={0}
+                />
+              </IonItem>
+            </IonCard>
+          </IonCol>
+          {/* Wall Options */}
+          <IonCol size="6">
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Wall Options</strong>
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonRow>
+                <IonCol>
+                  <IonItem>
+                    <IonLabel position="stacked">Left Wall:</IonLabel>
+                    <IonSelect
+                      value={leftWall}
+                      onIonChange={(e) => setLeftWall(e.detail.value)}
+                    >
+                      {Object.values(WALL_OPTIONS).map((option) => (
+                        <IonSelectOption key={`left-${option}`} value={option}>
+                          {option}
+                        </IonSelectOption>
+                      ))}
+                    </IonSelect>
+                  </IonItem>
+                </IonCol>
+                <IonCol>
+                  <IonItem>
+                    <IonLabel position="stacked">Right Wall:</IonLabel>
+                    <IonSelect
+                      value={rightWall}
+                      onIonChange={(e) => setRightWall(e.detail.value)}
+                    >
+                      {Object.values(WALL_OPTIONS).map((option) => (
+                        <IonSelectOption key={`right-${option}`} value={option}>
+                          {option}
+                        </IonSelectOption>
+                      ))}
+                    </IonSelect>
+                  </IonItem>
+                </IonCol>
+                <IonCol>
+                  <IonItem>
+                    <IonLabel position="stacked">Front Wall:</IonLabel>
+                    <IonSelect
+                      value={frontWall}
+                      onIonChange={(e) => setFrontWall(e.detail.value)}
+                    >
+                      {Object.values(WALL_OPTIONS).map((option) => (
+                        <IonSelectOption key={`front-${option}`} value={option}>
+                          {option}
+                        </IonSelectOption>
+                      ))}
+                    </IonSelect>
+                  </IonItem>
+                </IonCol>
+                <IonCol>
+                  <IonItem>
+                    <IonLabel position="stacked">Rear Wall:</IonLabel>
+                    <IonSelect
+                      value={rearWall}
+                      onIonChange={(e) => setRearWall(e.detail.value)}
+                    >
+                      {Object.values(WALL_OPTIONS).map((option) => (
+                        <IonSelectOption key={`rear-${option}`} value={option}>
+                          {option}
+                        </IonSelectOption>
+                      ))}
+                    </IonSelect>
+                  </IonItem>
+                </IonCol>
+              </IonRow>
+            </IonCard>
+          </IonCol>
+        </IonRow>
+        {/* Third Row ( Gutter Options, Ground Type, Colors, Door and Windows) */}
+        <IonRow>
+          {/* Gutter Options */}
+          <IonCol size="3">
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Gutter Options</strong>
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonRow>
+                <IonCol>
+                  <IonItem>
+                    <IonLabel>Gutters Left Side:</IonLabel>
+                    <IonCheckbox
+                      checked={guttersLeft}
+                      onIonChange={(e) => setGuttersLeft(e.detail.checked)}
+                    />
+                  </IonItem>
+                </IonCol>
+                <IonCol>
+                  <IonItem>
+                    <IonLabel>Gutters Right Side:</IonLabel>
+                    <IonCheckbox
+                      checked={guttersRight}
+                      onIonChange={(e) => setGuttersRight(e.detail.checked)}
+                    />
+                  </IonItem>
+                </IonCol>
+              </IonRow>
+            </IonCard>
+          </IonCol>
+          {/* Ground Type*/}
+          <IonCol size="3">
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Ground Type</strong>
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonItem>
+                <IonLabel position="stacked">Ground Type:</IonLabel>
+                <IonSelect
+                  value={foundation}
+                  onIonChange={(e) => setFoundation(e.detail.value as string)}
+                >
+                  {Object.values(FOUNDATION).map((foundationType) => (
+                    <IonSelectOption
+                      key={foundationType}
+                      value={foundationType}
+                    >
+                      {foundationType}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </IonItem>
+            </IonCard>
+          </IonCol>
+          {/* Colors */}
+          <IonCol size="3">
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Colors</strong>
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonRow>
+                <IonCol>
+                  <IonLabel position="stacked">Trim Color:</IonLabel>
+                  <IonButton
+                    color={trimColor ? toCssClassName(trimColor) : "primary"}
+                    expand="block"
+                    onClick={() => openColorSelector("trim")}
+                  >
+                    {trimColor || "Select Trim Color"}
+                  </IonButton>
+                </IonCol>
+                <IonCol>
+                  <IonLabel>Roof Color:</IonLabel>
+                  <IonButton
+                    color={
+                      roofSheathingColor
+                        ? toCssClassName(roofSheathingColor)
+                        : "primary"
+                    }
+                    expand="block"
+                    onClick={() => openColorSelector("roof")}
+                  >
+                    {roofSheathingColor || "Select Roof Color"}
+                  </IonButton>
+                </IonCol>
+                <IonCol>
+                  <IonLabel>Wall Color:</IonLabel>
+                  <IonButton
+                    color={
+                      wallSheathingColor
+                        ? toCssClassName(wallSheathingColor)
+                        : "primary"
+                    }
+                    expand="block"
+                    onClick={() => openColorSelector("wall")}
+                  >
+                    {wallSheathingColor || "Select Wall Color"}
+                  </IonButton>
+                </IonCol>
+              </IonRow>
+            </IonCard>
+          </IonCol>
+          {/* Window Options */}
+          <IonCol size="3">
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Door and Window Options</strong>
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonItem>
+                <IonLabel position="stacked">Window Quantity:</IonLabel>
+                <IonInput
+                  type="number"
+                  value={windowQuantity}
+                  onIonChange={(e) =>
+                    setWindowQuantity(parseInt(e.detail.value ?? "0"))
+                  }
+                  min="0"
+                />
+              </IonItem>
+            </IonCard>
+          </IonCol>
+        </IonRow>
+        {/* Fourth Row */}
+        <IonRow>
+          <IonCol>
+            <IonCard>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Misc Options</strong>
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonRow>
+                <IonCol size="4">
+                  <IonCard>
+                    <IonItem>
+                      <IonLabel>Dripstop?:</IonLabel>
+                      <IonCheckbox
+                        checked={dripStop}
+                        onIonChange={(e) => setDripStop(e.detail.checked)}
+                      />
+                    </IonItem>
+                  </IonCard>
+                </IonCol>
+                <IonCol size="4">
+                  <IonCard>
+                    <IonItem>
+                      <IonLabel position="stacked">Eave Extension:</IonLabel>
+                      <IonSelect
+                        value={eaveExtension}
+                        onIonChange={(e) => setEaveExtension(e.detail.value)}
+                        defaultValue={EAVE_EXTENSION.ZERO}
+                      >
+                        {Object.values(EAVE_EXTENSION).map((extension) => (
+                          <IonSelectOption key={extension} value={extension}>
+                            {extension}
+                          </IonSelectOption>
+                        ))}
+                      </IonSelect>
+                    </IonItem>
+                  </IonCard>
+                </IonCol>
+                <IonCol size="4">
+                  <IonCard>
+                    <IonItem>
+                      <IonLabel>Has Permit</IonLabel>
+                      <IonCheckbox
+                        checked={hasPermit}
+                        onIonChange={(e) => setHasPermit(e.detail.checked)}
+                      />
+                    </IonItem>
+                  </IonCard>
+                </IonCol>
+              </IonRow>
+            </IonCard>
+          </IonCol>
+        </IonRow>
+        {/* Fifth Row (Calculate Buttons) */}
         <IonRow>
           <IonCol>
             <IonButton
@@ -1559,6 +1764,7 @@ const Quotes = () => {
             </IonButton>
           </IonCol>
         </IonRow>
+        {/* COST BREAKDOWN */}
         <IonRow>
           <IonCol>
             <IonCard>
@@ -1609,6 +1815,7 @@ const Quotes = () => {
             </IonCard>
           </IonCol>
         </IonRow>
+        {/* ALERT */}
         <IonAlert
           isOpen={showAlert}
           onDidDismiss={() => setShowAlert(false)}

@@ -5,6 +5,7 @@ interface BreakdownDetail {
   total: number;
   linearFeet?: number | string; // Changed from number to string
   color?: string;
+  notes?: string;
 }
 
 interface AggregatedBreakdownDetail extends BreakdownDetail {
