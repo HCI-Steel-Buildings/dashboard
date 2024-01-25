@@ -1,0 +1,46 @@
+/* quotes.css */
+
+/* Background */
+.background {
+  background-color: #00072d;
+}
+
+/* Ion Buttons */
+.button-primary {
+  background-color: #4a5fe8;
+  color: #dce0d9;
+}
+
+.button-secondary {
+  background-color: #596869;
+  color: #dce0d9;
+}
+
+.button-alert {
+  background-color: #6b0f1a;
+  color: #dce0d9;
+}
+
+/* Ion Cards */
+.card {
+  background-color: #dce0d9;
+  color: #00072d;
+}
+
+.card-header {
+  background-color: #596869;
+  color: #dce0d9;
+}
+
+/* Ion Headers */
+.header {
+  background-color: #4a5fe8;
+  color: #dce0d9;
+}
+
+/* Additional Styling */
+/* This is for any specific components you might want to style differently */
+.custom-style {
+  background-color: #6b0f1a; /* Example color */
+  /* Add other properties as needed */
+}

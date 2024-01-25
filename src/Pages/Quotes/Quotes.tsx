@@ -20,6 +20,7 @@ import {
   IonRow,
   IonSelect,
   IonSelectOption,
+  IonText,
 } from "@ionic/react";
 import {
   AggregatedBreakdownDetail,
@@ -49,6 +50,7 @@ const Quotes = () => {
   const [height, setHeight] = useState("0");
   const [foundation, setFoundation] = useState(FOUNDATION.ASPHALT);
   const [windowQuantity, setWindowQuantity] = useState(0);
+  const [doorQuantity, setDoorQuantity] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
   const [breakdown, setBreakdown] = useState<BreakdownDetail[]>([]);
   const [showAlert, setShowAlert] = useState(false);
@@ -87,6 +89,11 @@ const Quotes = () => {
     EIGHTEEN: '18"',
     TWENTY_FOUR: '24"',
   };
+  // Convert eave extension from inches (string) to decimal feet
+  const eaveExtensionInInches = parseInt(
+    eaveExtension.toString().replace('"', "")
+  );
+  const eaveExtensionInFeet = eaveExtensionInInches / 12;
 
   // Define the initial state using the keys of WALL_OPTIONS
   const [leftWall, setLeftWall] = useState(0);
@@ -507,12 +514,13 @@ const Quotes = () => {
     };
 
     // Inside calculateTotalCost function, after calculating other costs
+    const adjustedWidthForR2 = numWidth / 2 + eaveExtensionInFeet; // Add eave extension to half of the width
     const r2HypotenuseLength = calculateTriangleDimensions(
-      numWidth / 2,
+      adjustedWidthForR2,
       PITCH_RISE,
       PITCH_RUN
     ).hypotenuse;
-    const r2LengthPerPiece = Math.max(r2HypotenuseLength - 24 / 12, 0); // Subtract 24inches, converted to feet
+    const r2LengthPerPiece = Math.max(r2HypotenuseLength - 24 / 12, 0); // Subtract 24 inches, converted to feet for the R1
     const r2Quantity = gridLines * 2; // Twice the quantity of R1
     const totalR2LF = r2Quantity * r2LengthPerPiece;
     const r2Cost = totalR2LF * BASE_UNIT_COSTS["R2"]; // Calculate cost based on per foot price
@@ -534,7 +542,7 @@ const Quotes = () => {
     const extraLengthForGutters = 0.25; // 3 inches in feet
 
     const roofSheetLengthInDecimalFeet = Math.min(
-      r2LengthPerPiece + 2 + extraLengthForGutters,
+      r2LengthPerPiece + 2 + extraLengthForGutters + eaveExtensionInFeet,
       21
     ); // Max length of roof sheet is 21 feet
     const roofSheetLengthInFeetInches = decimalFeetToFeetInches(
@@ -547,7 +555,6 @@ const Quotes = () => {
     const totalRoofSheetCost = totalRoofSheets * roofSheetCostPerSheet; // Total cost for all roof sheets
     // Dripstop logic
     const dripStopNote = dripStop ? "W/ DRIPSTOP" : "";
-
     // Add Roof Sheathing to breakdown details
     breakdownDetails.push({
       item: "26ga HHR ROOF SHEETS",
@@ -954,6 +961,7 @@ const Quotes = () => {
     setHeight("");
     setFoundation(FOUNDATION.ASPHALT);
     setWindowQuantity(0);
+    setDoorQuantity(0);
     setTotalCost(0);
     setLeftWall(0);
     setRightWall(0);
@@ -965,6 +973,17 @@ const Quotes = () => {
     setTrimColor("");
     setGuttersLeft(false);
     setGuttersRight(false);
+    setDripStop(false);
+    setEaveExtension(EAVE_EXTENSION.ZERO);
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setPhone("");
+    setAddress("");
+    setCity("");
+    setState("");
+    setZipCode("");
+    setHasPermit(false);
   };
 
   // Helper function to get the index of an item in the desired order
@@ -1351,45 +1370,43 @@ const Quotes = () => {
           {/* Client info */}
           <IonCol size="6">
             <IonCard>
-              <IonCol>
-                <IonCardHeader>
-                  <IonCardTitle>
-                    <strong>Client Information</strong>
-                  </IonCardTitle>
-                </IonCardHeader>
-                <IonItem>
-                  <IonLabel position="stacked">First Name:</IonLabel>
-                  <IonInput
-                    type="text"
-                    value={firstName}
-                    onIonChange={(e) => setFirstName(e.detail.value ?? "")}
-                  />
-                </IonItem>
-                <IonItem>
-                  <IonLabel position="stacked">Last Name:</IonLabel>
-                  <IonInput
-                    type="text"
-                    value={lastName}
-                    onIonChange={(e) => setLastName(e.detail.value ?? "")}
-                  />
-                </IonItem>
-                <IonItem>
-                  <IonLabel position="stacked">Email:</IonLabel>
-                  <IonInput
-                    type="email"
-                    value={email}
-                    onIonChange={(e) => setEmail(e.detail.value ?? "")}
-                  />
-                </IonItem>
-                <IonItem>
-                  <IonLabel position="stacked">Phone:</IonLabel>
-                  <IonInput
-                    type="tel"
-                    value={phone}
-                    onIonChange={(e) => setPhone(e.detail.value ?? "")}
-                  />
-                </IonItem>
-              </IonCol>
+              <IonCardHeader>
+                <IonCardTitle>
+                  <strong>Client Information</strong>
+                </IonCardTitle>
+              </IonCardHeader>
+              <IonItem>
+                <IonLabel position="stacked">First Name:</IonLabel>
+                <IonInput
+                  type="text"
+                  value={firstName}
+                  onIonChange={(e) => setFirstName(e.detail.value ?? "")}
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel position="stacked">Last Name:</IonLabel>
+                <IonInput
+                  type="text"
+                  value={lastName}
+                  onIonChange={(e) => setLastName(e.detail.value ?? "")}
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel position="stacked">Email:</IonLabel>
+                <IonInput
+                  type="email"
+                  value={email}
+                  onIonChange={(e) => setEmail(e.detail.value ?? "")}
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel position="stacked">Phone:</IonLabel>
+                <IonInput
+                  type="tel"
+                  value={phone}
+                  onIonChange={(e) => setPhone(e.detail.value ?? "")}
+                />
+              </IonItem>
             </IonCard>
           </IonCol>
           {/* Site info */}
@@ -1676,7 +1693,9 @@ const Quotes = () => {
                 </IonCardTitle>
               </IonCardHeader>
               <IonItem>
-                <IonLabel position="stacked">Window Quantity:</IonLabel>
+                <IonLabel>
+                  <strong>Window Quantity:</strong>
+                </IonLabel>
                 <IonInput
                   type="number"
                   value={windowQuantity}
@@ -1684,6 +1703,18 @@ const Quotes = () => {
                     setWindowQuantity(parseInt(e.detail.value ?? "0"))
                   }
                   min="0"
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel>
+                  <strong>ManDoor Quantity:</strong>
+                </IonLabel>
+                <IonInput
+                  type="number"
+                  value={doorQuantity}
+                  onIonChange={(e) =>
+                    setDoorQuantity(parseInt(e.detail.value ?? "0"))
+                  }
                 />
               </IonItem>
             </IonCard>
@@ -1796,9 +1827,9 @@ const Quotes = () => {
                   </IonItem>
                 ))}
 
-                <p>
+                <IonText style={{ fontSize: "1.25rem", color: "black" }}>
                   <strong>Total Cost: ${totalCost.toFixed(2)}</strong>
-                </p>
+                </IonText>
                 <IonCol>
                   <IonButton expand="full" onClick={exportToExcel}>
                     Export To Excel
