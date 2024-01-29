@@ -5,6 +5,8 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   ManDoor: 1290.0, // per foot
   RollUpDoor: 0.0, // per foot
   Leg: 5.79, // per foot
+  FrontLeg: 5.79, // per foot
+  RearLeg: 5.79, // per foot
   Runner: 8.79, // per foot
   RoofSheet: 5.89, // per length foot
   AngleClip: 5.58, // per clip
@@ -41,4 +43,6 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   ButylTape: 11.4, //per Roll
   OutsideClosure: 3.24, //per closure
   InsideClosure: 3.24, //per closure
+  RearRunner: 8.79, //per foot
+  FrontRunner: 8.79, //per foot
 };

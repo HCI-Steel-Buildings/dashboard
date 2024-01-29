@@ -21,7 +21,11 @@ const itemToGroupMap: any = {
 
   // FRAMING
   RUNNER: "FRAMING",
+  "FRONT RUNNER": "FRAMING",
+  "REAR RUNNER": "FRAMING",
   LEGS: "FRAMING",
+  "FRONT LEGS": "FRAMING",
+  "REAR LEGS": "FRAMING",
   "RAFTERS 3:12": "FRAMING",
   "R1 PEAK": "FRAMING",
   R2: "FRAMING",

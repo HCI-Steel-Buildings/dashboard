@@ -30,7 +30,13 @@ import {
 } from "./types";
 
 import { BASE_UNIT_COSTS } from "./PricingData";
-import { documentsOutline, downloadOutline } from "ionicons/icons";
+import {
+  add,
+  addOutline,
+  documentsOutline,
+  downloadOutline,
+  removeOutline,
+} from "ionicons/icons";
 import Excel from "exceljs";
 import desiredOrder from "./desiredOrder";
 import itemToGroupMap from "./itemToGroupMap";
@@ -72,13 +78,25 @@ const Quotes = () => {
   const [dripStop, setDripStop] = useState(false);
   const [eaveExtension, setEaveExtension] = useState(0);
   const [hasPermit, setHasPermit] = useState(false);
+  const [includeLaborCost, setIncludeLaborCost] = useState(false);
+  const [emailValidationMessage, setEmailValidationMessage] = useState("");
+  const [phoneValidationMessage, setPhoneValidationMessage] = useState("");
+  const [isBreakdownVisible, setIsBreakdownVisible] = useState(false); // New state variable
+  // Toggle function
+  const toggleBreakdownVisibility = () => {
+    setIsBreakdownVisible(!isBreakdownVisible);
+  };
   // Explicitly declare WALL_OPTIONS with its type
-  const WALL_OPTIONS = {
+  const WALL_OPTIONS: { [key: string]: string | number } = {
     ZERO: 0,
     THREE_FEET: "3'",
     SIX_FEET: "6'",
     NINE_FEET: "9'",
     FULLY_ENCLOSED: "Fully Enclosed",
+  };
+  const FRONT_REAR_WALL_OPTIONS = {
+    ...WALL_OPTIONS,
+    PEAK_ONLY: "Peak Only",
   };
 
   const EAVE_EXTENSION = {
@@ -88,6 +106,47 @@ const Quotes = () => {
     TEWELVE: '12"',
     EIGHTEEN: '18"',
     TWENTY_FOUR: '24"',
+  };
+  // Email validation function
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Phone number validation function
+  const validatePhoneNumber = (phone: any) => {
+    return phone.length === 10; // Assuming US phone numbers without country code
+  };
+  const decimalFeetToFeetInches = (decimalFeet: any) => {
+    const totalInches = Math.round(decimalFeet * 12); // Round to nearest inch
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches % 12;
+
+    if (inches === 0) {
+      return `${feet}'`; // Return only feet if inches are 0
+    } else {
+      return `${feet}' ${inches}"`; // Return feet and inches otherwise
+    }
+  };
+  // Update handle change functions
+  const handleEmailChange = (e: any) => {
+    const newEmail = e.detail.value ?? "";
+    setEmail(newEmail);
+    if (!validateEmail(newEmail)) {
+      setEmailValidationMessage("Please enter a valid email address.");
+    } else {
+      setEmailValidationMessage("");
+    }
+  };
+
+  const handlePhoneChange = (e: any) => {
+    const newPhone = e.detail.value ?? "";
+    setPhone(newPhone);
+    if (!validatePhoneNumber(newPhone)) {
+      setPhoneValidationMessage("Phone number must be 10 digits.");
+    } else {
+      setPhoneValidationMessage("");
+    }
   };
   // Convert eave extension from inches (string) to decimal feet
   const eaveExtensionInInches = parseInt(
@@ -100,6 +159,10 @@ const Quotes = () => {
   const [rightWall, setRightWall] = useState(0);
   const [frontWall, setFrontWall] = useState(0);
   const [rearWall, setRearWall] = useState(0);
+
+  // Initialize frontWallData and rearWallData
+  let frontWallData = { cost: 0, quantity: 0, linearFeet: "0'" };
+  let rearWallData = { cost: 0, quantity: 0, linearFeet: "0'" };
 
   const calculateTotalCost = () => {
     const numWidth = parseInt(width);
@@ -289,7 +352,7 @@ const Quotes = () => {
       linearFeet: `${numHeight}'`, // Individual leg height
     });
     // Calculate AngleClips required for each leg
-    const angleClipQuantity = totalLegs * 4; // 4 AngleClips per leg
+    let angleClipQuantity = totalLegs * 4; // 4 AngleClips per leg
     const angleClipCost = angleClipQuantity * BASE_UNIT_COSTS["AngleClip"];
     breakdownDetails.push({
       item: "ANGLE CLIPS",
@@ -353,15 +416,17 @@ const Quotes = () => {
           wallHeightFeet = 0;
       }
 
-      const panelsPerSection = Math.ceil(wallHeightFeet / 3); // 3' width per panel
-      const sections = Math.ceil(buildingLength / 21); // Max length per panel is 21'
-      const totalPanels = panelsPerSection * sections;
+      const MAX_SHEET_LENGTH = 21; // Maximum length of a sheet
+      const sections = Math.ceil(buildingLength / MAX_SHEET_LENGTH);
+      const averageSheetLength =
+        Math.floor((buildingLength / sections) * 10) / 10; // Calculate average length and round to nearest tenth
 
       const sheets = [];
       let remainingLength = buildingLength;
 
-      for (let i = 0; i < totalPanels; i++) {
-        let sheetLength = Math.min(21, remainingLength);
+      for (let i = 0; i < sections; i++) {
+        let sheetLength =
+          i === sections - 1 ? remainingLength : averageSheetLength; // Use remaining length for the last section
         sheets.push({
           height: wallHeightFeet,
           length: sheetLength,
@@ -371,39 +436,77 @@ const Quotes = () => {
 
       return sheets;
     };
-    const calculateTrimForWall = (wallHeight: any, wallSide: string) => {
+
+    // Calculate M29 Trim for each wall
+    const MAX_TRIM_LENGTH = 14.5; // 14' 6" in feet
+
+    const calculateTrimForWall = (
+      wallHeight: any,
+      wallSide: any,
+      buildingLength: any
+    ) => {
       if (wallHeight !== WALL_OPTIONS.ZERO) {
         const trimLF =
           wallHeight === WALL_OPTIONS.FULLY_ENCLOSED
             ? numHeight
             : parseInt(wallHeight);
-        const trimCost = 2 * trimLF * BASE_UNIT_COSTS["M29Trim"]; // 2 pieces per wall
+        const numberOfTrimPieces = Math.ceil(buildingLength / MAX_TRIM_LENGTH);
+        const totalTrimCost = [];
 
-        breakdownDetails.push({
-          item: `${wallSide} Wall M-29 Trim`,
-          quantity: 2,
-          unitPrice: BASE_UNIT_COSTS["M29Trim"],
-          total: trimCost,
-          linearFeet: `${trimLF}'`,
-          color: trimColor,
-        });
+        for (let i = 0; i < numberOfTrimPieces; i++) {
+          const trimPieceLength =
+            i === numberOfTrimPieces - 1
+              ? buildingLength % MAX_TRIM_LENGTH
+              : MAX_TRIM_LENGTH;
+          if (trimPieceLength > 0) {
+            // Ensure the piece length is not zero
+            const trimCost = trimPieceLength * BASE_UNIT_COSTS["M29Trim"];
+            totalTrimCost.push({
+              item: `${wallSide} Wall M-29 Trim`,
+              quantity: 1,
+              unitPrice: BASE_UNIT_COSTS["M29Trim"],
+              total: trimCost,
+              linearFeet: `${decimalFeetToFeetInches(trimPieceLength)}`,
+              color: trimColor,
+            });
+          }
+        }
 
-        return trimCost;
+        return totalTrimCost;
       }
-      return 0;
+      return [];
     };
 
+    // Replace existing calls to calculateTrimForWall with the following
     let totalM29TrimCost = 0;
-    totalM29TrimCost += calculateTrimForWall(leftWall, "Left");
-    totalM29TrimCost += calculateTrimForWall(rightWall, "Right");
+    const leftWallTrim = calculateTrimForWall(leftWall, "Left", numLength);
+    const rightWallTrim = calculateTrimForWall(rightWall, "Right", numLength);
+    leftWallTrim.concat(rightWallTrim).forEach((trim) => {
+      totalM29TrimCost += trim.total;
+      breakdownDetails.push(trim);
+    });
 
-    // Calculate M-29 Trim for front and rear walls if needed
     const calculateTrimFrontRear = () => {
       // Only add trim to the front/rear walls if the corresponding side wall does not have trim
       if (leftWall === WALL_OPTIONS.ZERO && rightWall === WALL_OPTIONS.ZERO) {
-        let frontWallTrimCost = calculateTrimForWall(frontWall, "Front");
-        let rearWallTrimCost = calculateTrimForWall(rearWall, "Rear");
-        totalM29TrimCost += frontWallTrimCost + rearWallTrimCost;
+        const frontWallTrims = calculateTrimForWall(
+          frontWall,
+          "Front",
+          numWidth
+        ); // Assuming numWidth is the width of the building
+        const rearWallTrims = calculateTrimForWall(rearWall, "Rear", numWidth); // Assuming numWidth is the width of the building
+
+        // Iterate over the front wall trims and add them to the breakdown details
+        frontWallTrims.forEach((trimPiece) => {
+          totalM29TrimCost += trimPiece.total;
+          breakdownDetails.push(trimPiece);
+        });
+
+        // Iterate over the rear wall trims and add them to the breakdown details
+        rearWallTrims.forEach((trimPiece) => {
+          totalM29TrimCost += trimPiece.total;
+          breakdownDetails.push(trimPiece);
+        });
       }
     };
 
@@ -501,17 +604,6 @@ const Quotes = () => {
 
       return { height, hypotenuse };
     };
-    const decimalFeetToFeetInches = (decimalFeet: any) => {
-      const totalInches = Math.round(decimalFeet * 12); // Round to nearest inch
-      const feet = Math.floor(totalInches / 12);
-      const inches = totalInches % 12;
-
-      if (inches === 0) {
-        return `${feet}'`; // Return only feet if inches are 0
-      } else {
-        return `${feet}' ${inches}"`; // Return feet and inches otherwise
-      }
-    };
 
     // Inside calculateTotalCost function, after calculating other costs
     const adjustedWidthForR2 = numWidth / 2 + eaveExtensionInFeet; // Add eave extension to half of the width
@@ -536,31 +628,41 @@ const Quotes = () => {
     });
 
     // Calculate Roof Sheathing
-    const roofSheetWidth = 3; // Width of each roof sheet
+    const roofSheetWidth = 3; // Width of each roof sheet in feet
 
     // Add 3 inches to the roof panel length if either left or right gutters are selected
     const extraLengthForGutters = 0.25; // 3 inches in feet
 
+    // Calculate the length of each roof sheet
     const roofSheetLengthInDecimalFeet = Math.min(
       r2LengthPerPiece + 2 + extraLengthForGutters + eaveExtensionInFeet,
-      21
-    ); // Max length of roof sheet is 21 feet
+      21 // Max length of roof sheet is 21 feet
+    );
     const roofSheetLengthInFeetInches = decimalFeetToFeetInches(
       roofSheetLengthInDecimalFeet
     );
 
-    const totalRoofSheets = Math.ceil(numLength / roofSheetWidth) * 2; // Total number of roof sheets for both sides
-    const roofSheetCostPerSheet =
-      roofSheetLengthInDecimalFeet * BASE_UNIT_COSTS["RoofSheet"];
-    const totalRoofSheetCost = totalRoofSheets * roofSheetCostPerSheet; // Total cost for all roof sheets
+    // Calculate the total number of roof sheets for both sides
+    const totalRoofSheets = Math.ceil(numLength / roofSheetWidth) * 2;
+
+    // Calculate the total linear feet for all roof sheets
+    const totalRoofSheetsLF = roofSheetLengthInDecimalFeet * totalRoofSheets;
+
+    // Calculate the cost per linear foot from your pricing data
+    const roofSheetCostPerLF = BASE_UNIT_COSTS["RoofSheet"];
+
+    // Calculate the total cost for all roof sheets
+    const totalRoofSheetCost = totalRoofSheetsLF * roofSheetCostPerLF;
+
     // Dripstop logic
     const dripStopNote = dripStop ? "W/ DRIPSTOP" : "";
+
     // Add Roof Sheathing to breakdown details
     breakdownDetails.push({
       item: "26ga HHR ROOF SHEETS",
       quantity: totalRoofSheets,
-      unitPrice: roofSheetCostPerSheet,
-      total: totalRoofSheetCost,
+      unitPrice: roofSheetCostPerLF, // Cost per linear foot
+      total: totalRoofSheetCost, // Total cost for all roof sheets
       linearFeet: roofSheetLengthInFeetInches, // Length of each roof sheet in feet and inches
       color: roofSheathingColor,
       notes: dripStopNote,
@@ -653,7 +755,7 @@ const Quotes = () => {
         quantity: leftWallSheets.length,
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: leftWallCost,
-        linearFeet: `${leftWallSheets[0].length}'`, // Display LF of each sheet
+        linearFeet: `${decimalFeetToFeetInches(leftWallSheets[0].length)}`, // Display LF of each sheet
         color: wallSheathingColor,
       });
     }
@@ -675,34 +777,40 @@ const Quotes = () => {
         quantity: rightWallSheets.length,
         unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
         total: rightWallCost,
-        linearFeet: `${rightWallSheets[0].length}'`, // Display LF of each sheet
+        linearFeet: `${decimalFeetToFeetInches(rightWallSheets[0].length)}`, // Display LF of each sheet
         color: wallSheathingColor,
       });
     }
     // Calculate costs for front and rear walls
-    const frontWallData = calculateFrontRearWallCost(frontWall, numWidth);
-    if (frontWallData.quantity > 0) {
-      breakdownDetails.push({
-        item: `26ga HHR FRONT GABLE END`,
-        quantity: frontWallData.quantity,
-        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
-        total: frontWallData.cost,
-        linearFeet: frontWallData.linearFeet,
-        color: wallSheathingColor,
-      });
+    if (frontWall !== WALL_OPTIONS.ZERO) {
+      const frontWallData = calculateFrontRearWallCost(frontWall, numWidth);
+      if (frontWallData.quantity > 0) {
+        breakdownDetails.push({
+          item: `26ga HHR FRONT GABLE END`,
+          quantity: frontWallData.quantity,
+          unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+          total: frontWallData.cost,
+          linearFeet: frontWallData.linearFeet,
+          color: wallSheathingColor,
+        });
+      }
     }
 
-    const rearWallData = calculateFrontRearWallCost(rearWall, numWidth);
-    if (rearWallData.quantity > 0) {
-      breakdownDetails.push({
-        item: `26ga HHR REAR GABLE END`,
-        quantity: rearWallData.quantity,
-        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
-        total: rearWallData.cost,
-        linearFeet: rearWallData.linearFeet,
-        color: wallSheathingColor,
-      });
+    // Rear Wall
+    if (rearWall !== WALL_OPTIONS.ZERO) {
+      const rearWallData = calculateFrontRearWallCost(rearWall, numWidth);
+      if (rearWallData.quantity > 0) {
+        breakdownDetails.push({
+          item: `26ga HHR REAR GABLE END`,
+          quantity: rearWallData.quantity,
+          unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+          total: rearWallData.cost,
+          linearFeet: rearWallData.linearFeet,
+          color: wallSheathingColor,
+        });
+      }
     }
+
     // Inside calculateTotalCost function, after existing calculations
     // Calculate Tek Screws
     const tekScrewCostPerUnit = BASE_UNIT_COSTS["TekScrew"];
@@ -787,7 +895,7 @@ const Quotes = () => {
     });
 
     // Ridge Cap calculations
-    const maxRidgeCapLength = 14.5; // Max length for an individual eave trim piece in feet
+    const maxRidgeCapLength = 12; // Max length for an individual eave trim piece in feet
     let totalRidgeCapLength = numLength;
     let ridgeCapPieces = 1;
     let ridgeCapLengthPerPiece = buildingLengthInFeet;
@@ -920,6 +1028,74 @@ const Quotes = () => {
       total: butylTapeCost,
     });
 
+    // Declare additionalLegCost at the start of calculateTotalCost function
+    let additionalLegCost = 0;
+    const runnerLength = parseFloat(width) - 5 / 12; // Convert 5 inches to feet and subtract from width
+
+    // Define unit price for a runner
+    const runnerUnitPrice = BASE_UNIT_COSTS["Runner"];
+
+    // Calculate total cost for front and rear runners
+    const frontRunnerTotalCost = runnerLength * runnerUnitPrice;
+    const rearRunnerTotalCost = runnerLength * runnerUnitPrice;
+    // Existing logic for checking frontWall and rearWall
+    if (
+      frontWall === WALL_OPTIONS.SIX_FEET ||
+      frontWall === WALL_OPTIONS.NINE_FEET ||
+      frontWall === WALL_OPTIONS.FULLY_ENCLOSED
+    ) {
+      // Calculate the number of additional legs needed for front wall
+      const additionalLegs = Math.floor(parseInt(width) / 5) - 1;
+      additionalLegCost += additionalLegs * legCostPerUnit; // Add to additionalLegCost
+      straightClipQuantity += additionalLegs * 2; // Add 2 Straight Clips per additional leg
+      angleClipQuantity += additionalLegs * 2; // Add 2 Angle Clips per additional leg
+      const runnerLength = parseFloat(width) - 5 / 12; // Convert 5 inches to feet and subtract from width
+
+      breakdownDetails.push({
+        item: "FRONT RUNNER",
+        quantity: 1,
+        unitPrice: runnerUnitPrice,
+        total: frontRunnerTotalCost,
+        linearFeet: `${decimalFeetToFeetInches(runnerLength.toFixed(2))}'`,
+      });
+
+      // Add the additional legs to the breakdown details
+      breakdownDetails.push({
+        item: "FRONT LEGS",
+        quantity: additionalLegs,
+        unitPrice: legCostPerUnit,
+        total: additionalLegCost,
+        linearFeet: `${numHeight}'`, // Height of each additional leg
+      });
+    }
+    if (
+      rearWall === WALL_OPTIONS.SIX_FEET ||
+      rearWall === WALL_OPTIONS.NINE_FEET ||
+      rearWall === WALL_OPTIONS.FULLY_ENCLOSED
+    ) {
+      // Calculate the number of additional legs needed for rear wall
+      const additionalLegs = Math.floor(parseInt(width) / 5) - 1;
+      additionalLegCost += additionalLegs * legCostPerUnit; // Add to additionalLegCost
+      straightClipQuantity += additionalLegs * 2; // Add 2 Straight Clips per additional leg
+      angleClipQuantity += additionalLegs * 2; // Add 2 Angle Clips per additional leg
+
+      // Add the additional legs to the breakdown details
+      breakdownDetails.push({
+        item: "REAR LEGS",
+        quantity: additionalLegs,
+        unitPrice: legCostPerUnit,
+        total: additionalLegCost,
+        linearFeet: `${numHeight}'`, // Height of each additional leg
+      });
+      breakdownDetails.push({
+        item: "REAR RUNNER",
+        quantity: 1,
+        unitPrice: runnerUnitPrice,
+        total: rearRunnerTotalCost,
+        linearFeet: `${decimalFeetToFeetInches(runnerLength.toFixed(2))}'`,
+      });
+    }
+
     //! Update total cost
     calculatedTotalCost +=
       runnerCost +
@@ -948,7 +1124,8 @@ const Quotes = () => {
       ridgeCapCost +
       gutterCostLeft +
       gutterCostRight +
-      butylTapeCost;
+      butylTapeCost +
+      additionalLegCost;
 
     setTotalCost(calculatedTotalCost);
     setBreakdown(breakdownDetails);
@@ -1149,7 +1326,11 @@ const Quotes = () => {
       });
       // For example, to merge from column 'D' to 'E' for the label
       worksheet.mergeCells(`D${totalCostRow.number}:E${totalCostRow.number}`);
-      totalCostRow.font = { bold: true, color: { argb: "FF000000" }, size: 14 };
+      totalCostRow.font = {
+        bold: true,
+        color: { argb: "FF000000" },
+        size: 14,
+      };
       totalCostRow.eachCell((cell: any) => {
         cell.border = borderStyle;
       });
@@ -1263,7 +1444,7 @@ const Quotes = () => {
   async function modifyAndDownloadPdf(totalPrice: any) {
     try {
       // Fetch the PDF file over HTTP
-      const response = await fetch("./form.pdf");
+      const response = await fetch("./quoteForm.pdf");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -1295,32 +1476,44 @@ const Quotes = () => {
       const projectNameField = form.getTextField("buildingSize");
       const siteAddressField = form.getTextField("siteAddress");
       const billingAddressField = form.getTextField("billingAddress");
+      // Get the Dripstop field
+      const dripStopField = form.getTextField("Dripstop");
+      const wallColorField = form.getTextField("wallColor");
+      const trimColorField = form.getTextField("trimColor");
+      const roofColorField = form.getTextField("roofColor");
+
+      // Set the text for the color fields
+      wallColorField.setText(wallSheathingColor);
+      trimColorField.setText(trimColor);
+      roofColorField.setText(roofSheathingColor);
 
       // Ensure totalPrice is a number
       totalPrice = parseFloat(totalPrice);
 
       // Set the total price
-      totalPriceField.setText(totalPrice.toString());
+      totalPriceField.setText(`$${totalPrice.toString()}`);
 
       // Calculate and set delivery cost
       const delivery = 500; // Assuming this is a fixed number
-      deliveryField.setText(delivery.toString());
+      deliveryField.setText(`$${delivery.toString()}`);
 
       // Calculate and set labor cost
-      const laborCost = parseFloat((totalPrice * 0.45).toFixed(2));
-      laborField.setText(laborCost.toString());
+      const laborCost = includeLaborCost
+        ? parseFloat((totalPrice * 0.45).toFixed(2))
+        : 0;
+      laborField.setText(`$${laborCost.toString()}`);
 
       // Calculate and set tax
       const tax = parseFloat((totalPrice * 0.07).toFixed(2));
-      taxField.setText(tax.toString());
+      taxField.setText(`$${tax.toString()}`);
 
       // Calculate and set subtotal
       const subTotal = totalPrice + laborCost + delivery;
-      subTotalField.setText(subTotal.toFixed(2));
+      subTotalField.setText(`$${subTotal.toFixed(2)}`);
 
       // Calculate and set grand total
       const grandTotal = subTotal + tax;
-      grandTotalField.setText(grandTotal.toFixed(2));
+      grandTotalField.setText(`$${grandTotal.toFixed(2)}`);
 
       // Calculate and set quote number
       const quoteNumber = `M${phone.slice(-7)}`;
@@ -1330,7 +1523,13 @@ const Quotes = () => {
       firstNameField.setText(firstName);
       lastNameField.setText(lastName);
       emailField.setText(email);
-      phoneField.setText(phone);
+      phoneField.setText(
+        `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`
+      );
+
+      // Set the Dripstop text based on the dripStop state
+      const dripStopText = dripStop ? "Yes" : "No";
+      dripStopField.setText(dripStopText);
 
       // Fill out and set billing information
       billToNameField.setText(`${firstName} ${lastName}`);
@@ -1390,7 +1589,7 @@ const Quotes = () => {
           <IonHeader>
             <IonCardHeader>
               <IonCardTitle>
-                <strong>Quotes Calculator 🧮</strong>
+                <strong>A-Frame Vertical Quotes Calculator 🧮</strong>
               </IonCardTitle>
             </IonCardHeader>
           </IonHeader>
@@ -1406,7 +1605,9 @@ const Quotes = () => {
                 </IonCardTitle>
               </IonCardHeader>
               <IonItem>
-                <IonLabel position="stacked">First Name:</IonLabel>
+                <IonLabel position="stacked">
+                  <strong>First Name:</strong>
+                </IonLabel>
                 <IonInput
                   type="text"
                   value={firstName}
@@ -1414,7 +1615,9 @@ const Quotes = () => {
                 />
               </IonItem>
               <IonItem>
-                <IonLabel position="stacked">Last Name:</IonLabel>
+                <IonLabel position="stacked">
+                  <strong>Last Name:</strong>
+                </IonLabel>
                 <IonInput
                   type="text"
                   value={lastName}
@@ -1422,20 +1625,30 @@ const Quotes = () => {
                 />
               </IonItem>
               <IonItem>
-                <IonLabel position="stacked">Email:</IonLabel>
+                <IonLabel position="stacked">
+                  <strong>Email:</strong>
+                </IonLabel>
                 <IonInput
                   type="email"
                   value={email}
-                  onIonChange={(e) => setEmail(e.detail.value ?? "")}
+                  onIonChange={handleEmailChange}
                 />
+                {emailValidationMessage && (
+                  <IonText color="danger">{emailValidationMessage}</IonText>
+                )}
               </IonItem>
               <IonItem>
-                <IonLabel position="stacked">Phone:</IonLabel>
+                <IonLabel position="stacked">
+                  <strong>Phone:</strong>
+                </IonLabel>
                 <IonInput
                   type="tel"
                   value={phone}
-                  onIonChange={(e) => setPhone(e.detail.value ?? "")}
+                  onIonChange={handlePhoneChange}
                 />
+                {phoneValidationMessage && (
+                  <IonText color="danger">{phoneValidationMessage}</IonText>
+                )}
               </IonItem>
             </IonCard>
           </IonCol>
@@ -1456,7 +1669,9 @@ const Quotes = () => {
                 />
               </IonItem>
               <IonItem>
-                <IonLabel position="stacked">City:</IonLabel>
+                <IonLabel position="stacked">
+                  <strong>City:</strong>
+                </IonLabel>
                 <IonInput
                   type="text"
                   value={city}
@@ -1464,7 +1679,9 @@ const Quotes = () => {
                 />
               </IonItem>
               <IonItem>
-                <IonLabel position="stacked">State:</IonLabel>
+                <IonLabel position="stacked">
+                  <strong>State:</strong>
+                </IonLabel>
                 <IonInput
                   type="text"
                   value={state}
@@ -1472,7 +1689,9 @@ const Quotes = () => {
                 />
               </IonItem>
               <IonItem>
-                <IonLabel position="stacked">Zip:</IonLabel>
+                <IonLabel position="stacked">
+                  <strong>ZipCode:</strong>
+                </IonLabel>
                 <IonInput
                   type="text"
                   value={zipCode}
@@ -1544,7 +1763,9 @@ const Quotes = () => {
               <IonRow>
                 <IonCol>
                   <IonItem>
-                    <IonLabel position="stacked">Left Wall:</IonLabel>
+                    <IonLabel position="stacked">
+                      <strong>Left Wall:</strong>
+                    </IonLabel>
                     <IonSelect
                       value={leftWall}
                       onIonChange={(e) => setLeftWall(e.detail.value)}
@@ -1559,7 +1780,9 @@ const Quotes = () => {
                 </IonCol>
                 <IonCol>
                   <IonItem>
-                    <IonLabel position="stacked">Right Wall:</IonLabel>
+                    <IonLabel position="stacked">
+                      <strong>Right Wall:</strong>
+                    </IonLabel>
                     <IonSelect
                       value={rightWall}
                       onIonChange={(e) => setRightWall(e.detail.value)}
@@ -1574,12 +1797,14 @@ const Quotes = () => {
                 </IonCol>
                 <IonCol>
                   <IonItem>
-                    <IonLabel position="stacked">Front Wall:</IonLabel>
+                    <IonLabel position="stacked">
+                      <strong>Front Wall:</strong>
+                    </IonLabel>
                     <IonSelect
                       value={frontWall}
                       onIonChange={(e) => setFrontWall(e.detail.value)}
                     >
-                      {Object.values(WALL_OPTIONS).map((option) => (
+                      {Object.values(FRONT_REAR_WALL_OPTIONS).map((option) => (
                         <IonSelectOption key={`front-${option}`} value={option}>
                           {option}
                         </IonSelectOption>
@@ -1589,12 +1814,14 @@ const Quotes = () => {
                 </IonCol>
                 <IonCol>
                   <IonItem>
-                    <IonLabel position="stacked">Rear Wall:</IonLabel>
+                    <IonLabel position="stacked">
+                      <strong>Rear Wall:</strong>
+                    </IonLabel>
                     <IonSelect
                       value={rearWall}
                       onIonChange={(e) => setRearWall(e.detail.value)}
                     >
-                      {Object.values(WALL_OPTIONS).map((option) => (
+                      {Object.values(FRONT_REAR_WALL_OPTIONS).map((option) => (
                         <IonSelectOption key={`rear-${option}`} value={option}>
                           {option}
                         </IonSelectOption>
@@ -1760,7 +1987,7 @@ const Quotes = () => {
                 </IonCardTitle>
               </IonCardHeader>
               <IonRow>
-                <IonCol size="4">
+                <IonCol size="3">
                   <IonCard>
                     <IonItem>
                       <IonLabel>Dripstop?:</IonLabel>
@@ -1771,7 +1998,7 @@ const Quotes = () => {
                     </IonItem>
                   </IonCard>
                 </IonCol>
-                <IonCol size="4">
+                <IonCol size="3">
                   <IonCard>
                     <IonItem>
                       <IonLabel position="stacked">Eave Extension:</IonLabel>
@@ -1789,13 +2016,26 @@ const Quotes = () => {
                     </IonItem>
                   </IonCard>
                 </IonCol>
-                <IonCol size="4">
+                <IonCol size="3">
                   <IonCard>
                     <IonItem>
                       <IonLabel>Has Permit</IonLabel>
                       <IonCheckbox
                         checked={hasPermit}
                         onIonChange={(e) => setHasPermit(e.detail.checked)}
+                      />
+                    </IonItem>
+                  </IonCard>
+                </IonCol>
+                <IonCol size="3">
+                  <IonCard>
+                    <IonItem>
+                      <IonLabel>Include Labor Cost:</IonLabel>
+                      <IonCheckbox
+                        checked={includeLaborCost}
+                        onIonChange={(e) =>
+                          setIncludeLaborCost(e.detail.checked)
+                        }
                       />
                     </IonItem>
                   </IonCard>
@@ -1830,48 +2070,80 @@ const Quotes = () => {
           <IonCol>
             <IonCard>
               <IonCardHeader>
-                <IonCardTitle>Cost Breakdown</IonCardTitle>
+                <IonRow>
+                  <IonCol size="9">
+                    <IonCardTitle>Cost Breakdown</IonCardTitle>
+                  </IonCol>
+                  <IonCol size="3">
+                    {/* Toggle Breakdown Button */}
+                    <IonButton
+                      expand="full"
+                      onClick={toggleBreakdownVisibility}
+                      style={{ float: "right" }}
+                    >
+                      {isBreakdownVisible ? (
+                        <>
+                          Hide Breakdown <IonIcon icon={removeOutline} />
+                        </>
+                      ) : (
+                        <>
+                          Show Breakdown <IonIcon icon={addOutline} />
+                        </>
+                      )}
+                    </IonButton>
+                  </IonCol>
+                </IonRow>
               </IonCardHeader>
               <IonCardContent>
-                {aggregatedBreakdown.map((detail, index) => (
-                  <IonItem key={index}>
-                    <IonLabel>
-                      <p>
-                        <strong>{detail.item} | </strong>
-                        {detail.color && <strong> Color:</strong>}{" "}
-                        {detail.color}
-                        <strong> Quantity:</strong> {detail.quantity},
-                        {detail.linearFeet && (
-                          <>
-                            <strong> LF:</strong> {detail.linearFeet},{" "}
-                          </>
-                        )}
-                        <strong> Unit Price:</strong> $
-                        {detail.unitPrice
-                          ? detail.unitPrice.toFixed(2)
-                          : "0.00"}
-                        ,<strong> Total:</strong> $
-                        {detail.total ? detail.total.toFixed(2) : "0.00"}
-                      </p>
-                    </IonLabel>
-                  </IonItem>
-                ))}
+                {isBreakdownVisible ? (
+                  <>
+                    {aggregatedBreakdown.map((detail, index) => (
+                      <IonItem key={index}>
+                        <IonLabel>
+                          <p>
+                            <strong>{detail.item} | </strong>
+                            {detail.color && <strong> Color:</strong>}{" "}
+                            {detail.color}
+                            <strong> Quantity:</strong> {detail.quantity},
+                            {detail.linearFeet && (
+                              <>
+                                <strong> LF:</strong> {detail.linearFeet},{" "}
+                              </>
+                            )}
+                            <strong> Unit Price:</strong> $
+                            {detail.unitPrice
+                              ? detail.unitPrice.toFixed(2)
+                              : "0.00"}
+                            ,<strong> Total:</strong> $
+                            {detail.total ? detail.total.toFixed(2) : "0.00"}
+                          </p>
+                        </IonLabel>
+                      </IonItem>
+                    ))}
+                  </>
+                ) : null}
 
                 <IonText style={{ fontSize: "1.25rem", color: "black" }}>
                   <strong>Total Cost: ${totalCost.toFixed(2)}</strong>
                 </IonText>
-                <IonCol>
-                  <IonButton expand="full" onClick={exportToExcel}>
-                    Export To Excel
-                    <IonIcon icon={downloadOutline} />
-                  </IonButton>
-                </IonCol>
-                <IonCol>
-                  <IonButton expand="full" onClick={handleExportToPdfClick}>
-                    Export to PDF
-                    <IonIcon icon={documentsOutline} />
-                  </IonButton>
-                </IonCol>
+                <IonRow>
+                  <IonCol>
+                    <IonButton expand="full" onClick={exportToExcel}>
+                      Export To Excel
+                      <IonIcon icon={downloadOutline} />
+                    </IonButton>
+                  </IonCol>
+                  <IonCol>
+                    <IonButton
+                      color={"danger"}
+                      expand="full"
+                      onClick={handleExportToPdfClick}
+                    >
+                      Export to PDF
+                      <IonIcon icon={documentsOutline} />
+                    </IonButton>
+                  </IonCol>
+                </IonRow>
               </IonCardContent>
             </IonCard>
           </IonCol>
