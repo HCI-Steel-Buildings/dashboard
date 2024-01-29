@@ -1260,7 +1260,6 @@ const Quotes = () => {
   const toCssClassName = (colorName: string) => {
     return colorName.toLowerCase().replace(/\s+/g, "-");
   };
-
   async function modifyAndDownloadPdf(totalPrice: any) {
     try {
       // Fetch the PDF file over HTTP
@@ -1275,9 +1274,11 @@ const Quotes = () => {
 
       // Get the form within the document
       const form = pdfDoc.getForm();
-      const helveticaFont = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
+      const helveticaFont = await pdfDoc.embedStandardFont(
+        StandardFonts.Helvetica
+      );
 
-      // Get the field where you want to insert the total price
+      // Get the fields
       const firstNameField = form.getTextField("firstName");
       const lastNameField = form.getTextField("lastName");
       const quoteNumberField = form.getTextField("quoteNumber");
@@ -1295,38 +1296,43 @@ const Quotes = () => {
       const siteAddressField = form.getTextField("siteAddress");
       const billingAddressField = form.getTextField("billingAddress");
 
-      // Fill the field with the total price
+      // Ensure totalPrice is a number
+      totalPrice = parseFloat(totalPrice);
+
+      // Set the total price
       totalPriceField.setText(totalPrice.toString());
-      // Calculate delivery cost
-      const delivery = 500;
+
+      // Calculate and set delivery cost
+      const delivery = 500; // Assuming this is a fixed number
       deliveryField.setText(delivery.toString());
-      // Calculate labor cost
-      const laborCost = (totalPrice * 0.45).toFixed(2);
+
+      // Calculate and set labor cost
+      const laborCost = parseFloat((totalPrice * 0.45).toFixed(2));
       laborField.setText(laborCost.toString());
-      // Calculate tax
-      const tax = (totalPrice * 0.07).toFixed(2);
+
+      // Calculate and set tax
+      const tax = parseFloat((totalPrice * 0.07).toFixed(2));
       taxField.setText(tax.toString());
 
-      // Calculate subtotal
+      // Calculate and set subtotal
       const subTotal = totalPrice + laborCost + delivery;
-      subTotalField.setText(subTotal.toString());
+      subTotalField.setText(subTotal.toFixed(2));
 
-      // Calculate grand total
+      // Calculate and set grand total
       const grandTotal = subTotal + tax;
-      grandTotalField.setText(grandTotal.toString());
+      grandTotalField.setText(grandTotal.toFixed(2));
 
-      // Calculate quote number
+      // Calculate and set quote number
       const quoteNumber = `M${phone.slice(-7)}`;
+      quoteNumberField.setText(quoteNumber);
 
-      quoteNumberField.setText(quoteNumber.toString());
+      // Fill out and set client information
+      firstNameField.setText(firstName);
+      lastNameField.setText(lastName);
+      emailField.setText(email);
+      phoneField.setText(phone);
 
-      // Fill out client information
-      firstNameField.setText(firstName.toString());
-      lastNameField.setText(lastName.toString());
-      emailField.setText(email.toString());
-      phoneField.setText(phone.toString());
-
-      // Fill out billing information
+      // Fill out and set billing information
       billToNameField.setText(`${firstName} ${lastName}`);
       contactNameField.setText(`${firstName} ${lastName}`);
       projectNameField.setText(`${width}' x ${buildingLength}' x ${height}'`);
