@@ -2123,7 +2123,7 @@ const Quotes = () => {
                   </>
                 ) : null}
 
-                <IonText style={{ fontSize: "1.25rem", color: "black" }}>
+                <IonText style={{ fontSize: "1.25rem" }}>
                   <strong>Total Cost: ${totalCost.toFixed(2)}</strong>
                 </IonText>
                 <IonRow>
