@@ -86,6 +86,33 @@ http://ionicframework.com/docs/theming/ */
   --ion-color-winter-white: #ffffff;
   --ion-color-malibu-white: #eeeeee;
   --ion-color-beige: #bf901f;
+
+  /** APP COLORS */
+  --ion-color-custom-royal-blue: #1f2860;
+  --ion-color-custom-white: #e3e3e3;
+  --ion-color-custom-deep-red: #6b0f1a;
+  --ion-color-custom-grayish-blue: #596869;
+  --ion-color-custom-bright-blue: #4a5fe8;
+  --ion-color-custom-dark-gray: #3e3e3e;
+}
+
+/* Customizing ion-card */
+ion-card {
+  --background: var(--ion-color-custom-royal-blue);
+  color: var(--ion-color-custom-white);
+}
+ion-content {
+  --background: var(--ion-color-custom-white); /* Main background color */
+  color: var(--ion-color-custom-white);
+}
+ion-card-title {
+  --background: var(--ion-color-custom-royal-blue);
+  color: var(--ion-color-custom-white);
+}
+
+ion-card-header {
+  --background: var(--ion-color-custom-royal-blue);
+  color: var(--ion-color-custom-white);
 }
 .ion-color-black {
   --ion-color-base: var(--ion-color-black);
