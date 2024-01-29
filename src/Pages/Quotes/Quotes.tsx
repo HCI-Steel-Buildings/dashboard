@@ -82,6 +82,8 @@ const Quotes = () => {
   const [emailValidationMessage, setEmailValidationMessage] = useState("");
   const [phoneValidationMessage, setPhoneValidationMessage] = useState("");
   const [isBreakdownVisible, setIsBreakdownVisible] = useState(false); // New state variable
+  const [widthAlertMessage, setWidthAlertMessage] = useState("");
+  const [showWidthAlert, setShowWidthAlert] = useState(false);
   // Toggle function
   const toggleBreakdownVisibility = () => {
     setIsBreakdownVisible(!isBreakdownVisible);
@@ -146,6 +148,15 @@ const Quotes = () => {
       setPhoneValidationMessage("Phone number must be 10 digits.");
     } else {
       setPhoneValidationMessage("");
+    }
+  };
+  const handleWidthChange = (e: any) => {
+    const newWidth = parseInt(e.detail.value ?? "0");
+    if (newWidth % 2 === 0) {
+      setWidth(newWidth.toString());
+    } else {
+      setWidthAlertMessage("Width must be in 2' increments");
+      setShowWidthAlert(true);
     }
   };
   // Convert eave extension from inches (string) to decimal feet
@@ -260,6 +271,7 @@ const Quotes = () => {
       hatChannelQuantity = numWidth > 24 ? 12 : 10;
     }
 
+    // Updated distributeHatChannelLength function
     const distributeHatChannelLength = (
       numLength: number,
       hatChannelQuantity: number
@@ -274,6 +286,17 @@ const Quotes = () => {
           remainingLength >= maxHatChannelLength
             ? maxHatChannelLength
             : remainingLength;
+
+        // Add an extra 6 inches (0.5 feet) to pieces shorter than max length,
+        // but only if the building length is greater than 20 feet
+        if (numLength > 20 && length < maxHatChannelLength) {
+          length += 0.5;
+
+          // Ensure the length does not exceed the maximum hat channel length
+          if (length > maxHatChannelLength) {
+            length = maxHatChannelLength;
+          }
+        }
         lengths.push(length);
         remainingLength -= length;
       }
@@ -293,7 +316,7 @@ const Quotes = () => {
         quantity: hatChannelQuantity, // Each entry represents one piece of hat channel
         unitPrice: BASE_UNIT_COSTS["HatChannel"],
         total: length * BASE_UNIT_COSTS["HatChannel"],
-        linearFeet: `${length}'`,
+        linearFeet: `${decimalFeetToFeetInches(length)}`,
       });
     });
 
@@ -974,7 +997,7 @@ const Quotes = () => {
         gutterItems["K5 ElbowA"] = numberOfPieces;
         gutterItems["K5 ElbowB"] = numberOfPieces;
         gutterItems["K5 Gutter Screw"] = buildingLength;
-        gutterItems["NovaFlex"] = numberOfPieces;
+        gutterItems["NovaFlex"] = 1;
       }
 
       return gutterItems;
@@ -1718,12 +1741,12 @@ const Quotes = () => {
               </IonCardHeader>
               <IonItem>
                 <IonLabel position="stacked">
-                  Width (Min: 10', Max: 30'):
+                  Width (Min: 10', Max: 30', Even Numbers Only):
                 </IonLabel>
                 <IonInput
                   type="number"
                   value={width}
-                  onIonChange={(e) => setWidth(e.detail.value ?? "")}
+                  onIonChange={handleWidthChange}
                   min={10}
                   max={30}
                   defaultValue={0}
@@ -1742,6 +1765,13 @@ const Quotes = () => {
                   defaultValue={0}
                 />
               </IonItem>
+              <IonAlert
+                isOpen={showWidthAlert}
+                onDidDismiss={() => setShowWidthAlert(false)}
+                header={"Invalid Width"}
+                message={widthAlertMessage}
+                buttons={["OK"]}
+              />
               <IonItem>
                 <IonLabel position="stacked">
                   Height (Min: 6', Max: 12'):
