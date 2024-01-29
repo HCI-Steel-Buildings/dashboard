@@ -34,7 +34,7 @@ import { documentsOutline, downloadOutline } from "ionicons/icons";
 import Excel from "exceljs";
 import desiredOrder from "./desiredOrder";
 import itemToGroupMap from "./itemToGroupMap";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 
 const Quotes = () => {
   const FOUNDATION = {
@@ -1275,21 +1275,25 @@ const Quotes = () => {
 
       // Get the form within the document
       const form = pdfDoc.getForm();
+      const helveticaFont = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
 
       // Get the field where you want to insert the total price
+      const firstNameField = form.getTextField("firstName");
+      const lastNameField = form.getTextField("lastName");
+      const quoteNumberField = form.getTextField("quoteNumber");
+      const emailField = form.getTextField("email");
       const totalPriceField = form.getTextField("Total");
       const laborField = form.getTextField("Labor");
+      const deliveryField = form.getTextField("Delivery");
       const taxField = form.getTextField("Tax");
       const grandTotalField = form.getTextField("GrandTotal");
       const subTotalField = form.getTextField("Subtotal");
-      const deliveryField = form.getTextField("Delivery");
-      const buildingSizeField = form.getTextField("Building Size");
-      const firstNameField = form.getTextField("firstName");
-      const lastNameField = form.getTextField("lastName");
-      const emailField = form.getTextField("email");
       const phoneField = form.getTextField("phone");
-      // const addressField = form.getTextField("address");
-      const quoteNumberField = form.getTextField("quoteNumber");
+      const billToNameField = form.getTextField("billToName");
+      const contactNameField = form.getTextField("contactName");
+      const projectNameField = form.getTextField("buildingSize");
+      const siteAddressField = form.getTextField("siteAddress");
+      const billingAddressField = form.getTextField("billingAddress");
 
       // Fill the field with the total price
       totalPriceField.setText(totalPrice.toString());
@@ -1311,12 +1315,9 @@ const Quotes = () => {
       const grandTotal = subTotal + tax;
       grandTotalField.setText(grandTotal.toString());
 
-      // Calculate building size
-      const buildingSize = `${width}' x ${buildingLength}' x ${height}'`;
-      buildingSizeField.setText(buildingSize.toString());
-
       // Calculate quote number
-      const quoteNumber = Math.floor(Math.random() * 1000000);
+      const quoteNumber = `M${phone.slice(-7)}`;
+
       quoteNumberField.setText(quoteNumber.toString());
 
       // Fill out client information
@@ -1324,6 +1325,13 @@ const Quotes = () => {
       lastNameField.setText(lastName.toString());
       emailField.setText(email.toString());
       phoneField.setText(phone.toString());
+
+      // Fill out billing information
+      billToNameField.setText(`${firstName} ${lastName}`);
+      contactNameField.setText(`${firstName} ${lastName}`);
+      projectNameField.setText(`${width}' x ${buildingLength}' x ${height}'`);
+      siteAddressField.setText(`${address}, ${city}, ${state} ${zipCode}`);
+      billingAddressField.setText(`${address}, ${city}, ${state} ${zipCode}`);
 
       // Flatten the form to prevent further editing of filled fields
       form.flatten();
