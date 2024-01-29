@@ -352,7 +352,7 @@ const Quotes = () => {
       linearFeet: `${numHeight}'`, // Individual leg height
     });
     // Calculate AngleClips required for each leg
-    let angleClipQuantity = totalLegs * 4; // 4 AngleClips per leg
+    let angleClipQuantity = totalLegs * 2; // 4 AngleClips per leg
     const angleClipCost = angleClipQuantity * BASE_UNIT_COSTS["AngleClip"];
     breakdownDetails.push({
       item: "ANGLE CLIPS",
@@ -737,50 +737,55 @@ const Quotes = () => {
       };
     };
 
-    // Inside calculateTotalCost function
     // Left Wall Sheets
-    let totalLeftWallLF = 0;
-    const leftWallSheets = calculateSidewallSheets(leftWall, numLength);
-    leftWallSheets.forEach((sheet) => {
-      totalLeftWallLF += sheet.length;
-    });
-    leftWallCost =
-      totalLeftWallLF *
-      leftWallSheets.length *
-      BASE_UNIT_COSTS["SidewallSheet"];
-
-    if (leftWallSheets.length > 0) {
-      breakdownDetails.push({
-        item: `26ga Left Wall Sidewall Sheets`,
-        quantity: leftWallSheets.length,
-        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
-        total: leftWallCost,
-        linearFeet: `${decimalFeetToFeetInches(leftWallSheets[0].length)}`, // Display LF of each sheet
-        color: wallSheathingColor,
+    if (leftWall !== WALL_OPTIONS.ZERO) {
+      let totalLeftWallLF = 0;
+      const leftWallSheets = calculateSidewallSheets(leftWall, numLength);
+      leftWallSheets.forEach((sheet) => {
+        totalLeftWallLF += sheet.length;
       });
+      leftWallCost =
+        totalLeftWallLF *
+        leftWallSheets.length *
+        BASE_UNIT_COSTS["SidewallSheet"];
+
+      if (leftWallSheets.length > 0) {
+        breakdownDetails.push({
+          item: `26ga Left Wall Sidewall Sheets`,
+          quantity: leftWallSheets.length,
+          unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+          total: leftWallCost,
+          linearFeet: `${decimalFeetToFeetInches(leftWallSheets[0].length)}`, // Display LF of each sheet
+          color: wallSheathingColor,
+        });
+      }
     }
 
     // Right Wall Sheets
-    let totalRightWallLF = 0;
-    const rightWallSheets = calculateSidewallSheets(rightWall, numLength);
-    rightWallSheets.forEach((sheet) => {
-      totalRightWallLF += sheet.length;
-    });
-    rightWallCost =
-      totalRightWallLF *
-      rightWallSheets.length *
-      BASE_UNIT_COSTS["SidewallSheet"];
-
-    if (rightWallSheets.length > 0) {
-      breakdownDetails.push({
-        item: `26ga Right Wall Sidewall Sheets`,
-        quantity: rightWallSheets.length,
-        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
-        total: rightWallCost,
-        linearFeet: `${decimalFeetToFeetInches(rightWallSheets[0].length)}`, // Display LF of each sheet
-        color: wallSheathingColor,
+    // Right Wall Sheets
+    if (rightWall !== WALL_OPTIONS.ZERO) {
+      let totalRightWallLF = 0;
+      const rightWallSheets = calculateSidewallSheets(rightWall, numLength);
+      rightWallSheets.forEach((sheet) => {
+        totalRightWallLF += sheet.length;
       });
+      rightWallCost =
+        totalRightWallLF *
+        rightWallSheets.length *
+        BASE_UNIT_COSTS["SidewallSheet"];
+
+      if (rightWallSheets.length > 0) {
+        breakdownDetails.push({
+          item: `26ga Right Wall Sidewall Sheets`,
+          quantity: rightWallSheets.length,
+          unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+          total: rightWallCost,
+          linearFeet: `${decimalFeetToFeetInches(rightWallSheets[0].length)}`, // Display LF of each sheet
+          color: wallSheathingColor,
+        });
+      }
     }
+
     // Calculate costs for front and rear walls
     if (frontWall !== WALL_OPTIONS.ZERO) {
       const frontWallData = calculateFrontRearWallCost(frontWall, numWidth);
