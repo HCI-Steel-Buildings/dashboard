@@ -431,7 +431,7 @@ const Quotes = () => {
           wallHeightMultiplier = 3;
           break;
         case WALL_OPTIONS.FULLY_ENCLOSED:
-          wallHeightMultiplier = numHeight; // Assuming fully enclosed means up to the building height
+          wallHeightMultiplier = 4; // Send 4 sheets for fully enclosed
           break;
         default:
           wallHeightMultiplier = 0;
@@ -460,12 +460,11 @@ const Quotes = () => {
         if (buildingLength > 20) {
           sheetLength += 0.5; // 0.5 feet is 6 inches
         }
-        for (let i = 0; i < wallHeightMultiplier; i++) {
-          sheets.push({
-            length: sheetLength,
-            quantity: wallHeightMultiplier,
-          });
-        }
+        // Here, we simply use the wallHeightMultiplier as the quantity
+        sheets.push({
+          length: sheetLength,
+          quantity: wallHeightMultiplier,
+        });
       });
 
       return sheets;
