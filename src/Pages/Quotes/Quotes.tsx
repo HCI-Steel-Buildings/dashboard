@@ -440,7 +440,7 @@ const Quotes = () => {
       const sheetLengthsMap: any = {
         15: [15],
         20: [20],
-        25: [15, 20],
+        25: [15, 10],
         30: [15, 15],
         35: [20, 15],
         40: [20, 20],
@@ -767,19 +767,27 @@ const Quotes = () => {
     };
 
     // Example for left wall sheets
+    // Example for left wall sheets
     const leftWallSheets = calculateSidewallSheets(leftWall, numLength);
     leftWallSheets.forEach((sheet) => {
-      leftWallCost +=
-        sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"];
+      if (sheet.quantity > 0) {
+        // Add this check
+        leftWallCost +=
+          sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"];
 
-      breakdownDetails.push({
-        item: `26ga Left Wall Sidewall Sheets`,
-        quantity: sheet.quantity,
-        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
-        total: sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"],
-        linearFeet: `${decimalFeetToFeetInches(sheet.length)}`,
-      });
+        breakdownDetails.push({
+          item: `26ga Left Wall Sidewall Sheets`,
+          quantity: sheet.quantity,
+          unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+          total:
+            sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"],
+          linearFeet: `${decimalFeetToFeetInches(sheet.length)}`,
+          color: wallSheathingColor,
+        });
+      }
     });
+
+    // Similar checks should be added wherever you are pushing items to the breakdownDetails
 
     // Right Wall Sheets
     if (rightWall !== WALL_OPTIONS.ZERO) {
@@ -798,6 +806,7 @@ const Quotes = () => {
           total:
             sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"],
           linearFeet: `${decimalFeetToFeetInches(sheet.length)}`,
+          color: wallSheathingColor,
         });
       });
     }
@@ -908,6 +917,7 @@ const Quotes = () => {
       unitPrice: eaveTrimCostPerUnit,
       total: eaveTrimCost,
       linearFeet: `${decimalFeetToFeetInches(eaveTrimLengthPerPiece)}'`,
+      color: trimColor,
     });
 
     // Inside calculateTotalCost function, replace the existing Ridge Cap calculations with:
@@ -930,6 +940,7 @@ const Quotes = () => {
       unitPrice: ridgeCapCostPerUnit,
       total: ridgeCapCost,
       linearFeet: `${decimalFeetToFeetInches(ridgeCapLengthPerPiece)}'`,
+      color: trimColor,
     });
 
     // Add window to breakdown
@@ -1009,6 +1020,7 @@ const Quotes = () => {
           unitPrice: unitCost,
           total: total,
           linearFeet: item === "K5 Gutter" ? linearFeetString : undefined,
+          color: gutterColor,
         });
       }
       return totalCost;
