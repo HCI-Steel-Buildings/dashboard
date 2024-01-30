@@ -45,4 +45,5 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   InsideClosure: 3.24, //per closure
   RearRunner: 8.79, //per foot
   FrontRunner: 8.79, //per foot
+  DRIPSTOP: 1.4, //per foot
 };

@@ -184,7 +184,7 @@ const Quotes = () => {
     // Calculate the number of grid lines
     const gridLines = Math.ceil(numLength / 5) + 1;
     let calculatedTotalCost = 0;
-    let breakdownDetails = [];
+    let breakdownDetails: any = [];
     const legsPerRunner = Math.ceil(numLength / 5);
 
     if (numWidth < 10 || numWidth > 30 || isNaN(numWidth)) {
@@ -696,6 +696,22 @@ const Quotes = () => {
       color: roofSheathingColor,
       notes: dripStopNote,
     });
+    // Calculate the total area of roof sheathing
+    const roofSheetAreaInSqFt = roofSheetLengthInDecimalFeet * roofSheetWidth; // Area of a single roof sheet
+    const totalRoofSheetArea = roofSheetAreaInSqFt * totalRoofSheets; // Total area for all roof sheets
+
+    // Calculate Dripstop cost if selected
+    let dripStopCost = 0;
+    if (dripStop) {
+      const dripStopCostPerSqFt = 1.4; // Cost per square foot
+      dripStopCost = totalRoofSheetArea * dripStopCostPerSqFt;
+      breakdownDetails.push({
+        item: "DRIPSTOP",
+        quantity: `${totalRoofSheetArea.toFixed()} SF`, // Total area in square feet
+        unitPrice: dripStopCostPerSqFt,
+        total: dripStopCost,
+      });
+    }
 
     // Calcualte stich screws
     const stitchScrewCostPerUnit = BASE_UNIT_COSTS["StitchScrew"];
@@ -1141,7 +1157,8 @@ const Quotes = () => {
       gutterCostLeft +
       gutterCostRight +
       butylTapeCost +
-      additionalLegCost;
+      additionalLegCost +
+      dripStopCost;
 
     setTotalCost(calculatedTotalCost);
     setBreakdown(breakdownDetails);
