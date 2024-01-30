@@ -84,6 +84,8 @@ const Quotes = () => {
   const [isBreakdownVisible, setIsBreakdownVisible] = useState(false); // New state variable
   const [widthAlertMessage, setWidthAlertMessage] = useState("");
   const [showWidthAlert, setShowWidthAlert] = useState(false);
+  const [gutterColor, setGutterColor] = useState("");
+
   // Toggle function
   const toggleBreakdownVisibility = () => {
     setIsBreakdownVisible(!isBreakdownVisible);
@@ -1465,6 +1467,8 @@ const Quotes = () => {
       setRoofSheathingColor(color);
     } else if (selectedColorType === "wall") {
       setWallSheathingColor(color);
+    } else if (selectedColorType === "gutter") {
+      setGutterColor(color);
     }
     setShowColorSelector(false);
   };
@@ -1974,6 +1978,18 @@ const Quotes = () => {
                     onClick={() => openColorSelector("wall")}
                   >
                     {wallSheathingColor || "Select Wall Color"}
+                  </IonButton>
+                </IonCol>
+                <IonCol>
+                  <IonLabel>Gutter Color:</IonLabel>
+                  <IonButton
+                    color={
+                      gutterColor ? toCssClassName(gutterColor) : "primary"
+                    }
+                    expand="block"
+                    onClick={() => openColorSelector("gutter")}
+                  >
+                    {gutterColor || "Select Gutter Color"}
                   </IonButton>
                 </IonCol>
               </IonRow>
