@@ -16,8 +16,8 @@ const itemToGroupMap: any = {
   "M-3-BT BASE TRIM - SIDEWALL": "TRIM",
   "M-33 RIDGE CAP": "TRIM",
   "Rear Wall M-29 Trim": "TRIM",
-  "Left Wall M-29 Trim": "TRIM",
-  "Right Wall M-29 Trim": "TRIM",
+  "Left Wall M-29 J Trim": "TRIM",
+  "Right Wall M-29 J Trim": "TRIM",
 
   // FRAMING
   RUNNER: "FRAMING",

@@ -419,47 +419,60 @@ const Quotes = () => {
       wallSelection: any,
       buildingLength: any
     ) => {
-      let wallHeightFeet = 0;
+      let wallHeightMultiplier = 0;
       switch (wallSelection) {
         case WALL_OPTIONS.THREE_FEET:
-          wallHeightFeet = 3;
+          wallHeightMultiplier = 1;
           break;
         case WALL_OPTIONS.SIX_FEET:
-          wallHeightFeet = 6;
+          wallHeightMultiplier = 2;
           break;
         case WALL_OPTIONS.NINE_FEET:
-          wallHeightFeet = 9;
+          wallHeightMultiplier = 3;
           break;
         case WALL_OPTIONS.FULLY_ENCLOSED:
-          wallHeightFeet = numHeight; // Assuming fully enclosed means up to the building height
+          wallHeightMultiplier = numHeight; // Assuming fully enclosed means up to the building height
           break;
         default:
-          wallHeightFeet = 0;
+          wallHeightMultiplier = 0;
       }
 
-      const MAX_SHEET_LENGTH = 21; // Maximum length of a sheet
-      const sections = Math.ceil(buildingLength / MAX_SHEET_LENGTH);
-      const averageSheetLength =
-        Math.floor((buildingLength / sections) * 10) / 10; // Calculate average length and round to nearest tenth
+      const sheetLengthsMap: any = {
+        15: [15],
+        20: [20],
+        25: [15, 20],
+        30: [15, 15],
+        35: [20, 15],
+        40: [20, 20],
+        45: [20, 10, 15],
+        50: [20, 20, 10],
+        55: [20, 20, 15],
+        60: [20, 20, 20],
+        65: [20, 20, 15, 10],
+      };
 
-      const sheets = [];
-      let remainingLength = buildingLength;
+      let sheetLengths = sheetLengthsMap[buildingLength] || [buildingLength]; // Default to building length if not in map
 
-      for (let i = 0; i < sections; i++) {
-        let sheetLength =
-          i === sections - 1 ? remainingLength : averageSheetLength; // Use remaining length for the last section
-        sheets.push({
-          height: wallHeightFeet,
-          length: sheetLength,
-        });
-        remainingLength -= sheetLength;
-      }
+      const sheets: any[] = [];
+      sheetLengths.forEach((baseLength: any) => {
+        let sheetLength = baseLength;
+        // Add 6 inches to each sheet length if the building length is more than 20 feet
+        if (buildingLength > 20) {
+          sheetLength += 0.5; // 0.5 feet is 6 inches
+        }
+        for (let i = 0; i < wallHeightMultiplier; i++) {
+          sheets.push({
+            length: sheetLength,
+            quantity: wallHeightMultiplier,
+          });
+        }
+      });
 
       return sheets;
     };
 
     // Calculate M29 Trim for each wall
-    const MAX_TRIM_LENGTH = 14.5; // 14' 6" in feet
+    const MAX_TRIM_LENGTH = 10.25; // 10'3" in decimal feet
 
     const calculateTrimForWall = (
       wallHeight: any,
@@ -472,25 +485,18 @@ const Quotes = () => {
             ? numHeight
             : parseInt(wallHeight);
         const numberOfTrimPieces = Math.ceil(buildingLength / MAX_TRIM_LENGTH);
+
         const totalTrimCost = [];
 
         for (let i = 0; i < numberOfTrimPieces; i++) {
-          const trimPieceLength =
-            i === numberOfTrimPieces - 1
-              ? buildingLength % MAX_TRIM_LENGTH
-              : MAX_TRIM_LENGTH;
-          if (trimPieceLength > 0) {
-            // Ensure the piece length is not zero
-            const trimCost = trimPieceLength * BASE_UNIT_COSTS["M29Trim"];
-            totalTrimCost.push({
-              item: `${wallSide} Wall M-29 Trim`,
-              quantity: 1,
-              unitPrice: BASE_UNIT_COSTS["M29Trim"],
-              total: trimCost,
-              linearFeet: `${decimalFeetToFeetInches(trimPieceLength)}`,
-              color: trimColor,
-            });
-          }
+          totalTrimCost.push({
+            item: `${wallSide} Wall M-29 J Trim`,
+            quantity: 1,
+            unitPrice: BASE_UNIT_COSTS["M29Trim"],
+            total: MAX_TRIM_LENGTH * BASE_UNIT_COSTS["M29Trim"],
+            linearFeet: `${decimalFeetToFeetInches(MAX_TRIM_LENGTH)}`, // Fixed length for each piece
+            color: trimColor,
+          });
         }
 
         return totalTrimCost;
@@ -498,10 +504,12 @@ const Quotes = () => {
       return [];
     };
 
-    // Replace existing calls to calculateTrimForWall with the following
+    // Replace the existing calls to calculateTrimForWall with the updated function
     let totalM29TrimCost = 0;
     const leftWallTrim = calculateTrimForWall(leftWall, "Left", numLength);
     const rightWallTrim = calculateTrimForWall(rightWall, "Right", numLength);
+
+    // Calculate the total cost and add to breakdown details
     leftWallTrim.concat(rightWallTrim).forEach((trim) => {
       totalM29TrimCost += trim.total;
       breakdownDetails.push(trim);
@@ -628,12 +636,13 @@ const Quotes = () => {
 
     // Inside calculateTotalCost function, after calculating other costs
     const adjustedWidthForR2 = numWidth / 2 + eaveExtensionInFeet; // Add eave extension to half of the width
-    const r2HypotenuseLength = calculateTriangleDimensions(
+    const hypotenuseLength = calculateTriangleDimensions(
       adjustedWidthForR2,
       PITCH_RISE,
       PITCH_RUN
     ).hypotenuse;
-    const r2LengthPerPiece = Math.max(r2HypotenuseLength - 24 / 12, 0); // Subtract 24 inches, converted to feet for the R1
+    console.log(hypotenuseLength);
+    const r2LengthPerPiece = Math.max(hypotenuseLength - 24 / 12, 0) + 0.25; // Subtract 24 inches, converted to feet for the R1, plus 3 inches for the R2
     const r2Quantity = gridLines * 2; // Twice the quantity of R1
     const totalR2LF = r2Quantity * r2LengthPerPiece;
     const r2Cost = totalR2LF * BASE_UNIT_COSTS["R2"]; // Calculate cost based on per foot price
@@ -758,53 +767,40 @@ const Quotes = () => {
       };
     };
 
-    // Left Wall Sheets
-    if (leftWall !== WALL_OPTIONS.ZERO) {
-      let totalLeftWallLF = 0;
-      const leftWallSheets = calculateSidewallSheets(leftWall, numLength);
-      leftWallSheets.forEach((sheet) => {
-        totalLeftWallLF += sheet.length;
+    // Example for left wall sheets
+    const leftWallSheets = calculateSidewallSheets(leftWall, numLength);
+    leftWallSheets.forEach((sheet) => {
+      leftWallCost +=
+        sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"];
+
+      breakdownDetails.push({
+        item: `26ga Left Wall Sidewall Sheets`,
+        quantity: sheet.quantity,
+        unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
+        total: sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"],
+        linearFeet: `${decimalFeetToFeetInches(sheet.length)}`,
       });
-      leftWallCost =
-        totalLeftWallLF *
-        leftWallSheets.length *
-        BASE_UNIT_COSTS["SidewallSheet"];
+    });
 
-      if (leftWallSheets.length > 0) {
-        breakdownDetails.push({
-          item: `26ga Left Wall Sidewall Sheets`,
-          quantity: leftWallSheets.length,
-          unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
-          total: leftWallCost,
-          linearFeet: `${decimalFeetToFeetInches(leftWallSheets[0].length)}`, // Display LF of each sheet
-          color: wallSheathingColor,
-        });
-      }
-    }
-
-    // Right Wall Sheets
     // Right Wall Sheets
     if (rightWall !== WALL_OPTIONS.ZERO) {
-      let totalRightWallLF = 0;
       const rightWallSheets = calculateSidewallSheets(rightWall, numLength);
+      let totalRightWallLF = 0;
+
       rightWallSheets.forEach((sheet) => {
         totalRightWallLF += sheet.length;
-      });
-      rightWallCost =
-        totalRightWallLF *
-        rightWallSheets.length *
-        BASE_UNIT_COSTS["SidewallSheet"];
+        rightWallCost +=
+          sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"];
 
-      if (rightWallSheets.length > 0) {
         breakdownDetails.push({
           item: `26ga Right Wall Sidewall Sheets`,
-          quantity: rightWallSheets.length,
+          quantity: sheet.quantity,
           unitPrice: BASE_UNIT_COSTS["SidewallSheet"],
-          total: rightWallCost,
-          linearFeet: `${decimalFeetToFeetInches(rightWallSheets[0].length)}`, // Display LF of each sheet
-          color: wallSheathingColor,
+          total:
+            sheet.length * sheet.quantity * BASE_UNIT_COSTS["SidewallSheet"],
+          linearFeet: `${decimalFeetToFeetInches(sheet.length)}`,
         });
-      }
+      });
     }
 
     // Calculate costs for front and rear walls
@@ -877,7 +873,7 @@ const Quotes = () => {
     });
 
     // Calculate M29GableTrim
-    let m29GableTrimLength = r2HypotenuseLength; // Same length as the R2 hypotenuse
+    let m29GableTrimLength = hypotenuseLength; // Same length as the R2 hypotenuse
     let m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
 
     // M29GableTrim calculations with overlap
@@ -893,62 +889,39 @@ const Quotes = () => {
       linearFeet: decimalFeetToFeetInches(m29GableTrimLength),
       color: trimColor,
     });
-    // Eave Trim calculations
-    const maxEaveTrimLength = 14.5; // Max length for an individual eave trim piece in feet
-    const buildingLengthInFeet = numLength; // Assuming 'numLength' is the length of the building in feet
-    let totalEaveTrimLength = buildingLengthInFeet;
-    let eaveTrimPieces = 1;
-    let eaveTrimLengthPerPiece = buildingLengthInFeet;
 
-    // Splitting into even lengths if the total length exceeds the max length of an eave trim piece
-    if (totalEaveTrimLength > maxEaveTrimLength) {
-      eaveTrimPieces = Math.ceil(totalEaveTrimLength / maxEaveTrimLength);
-      eaveTrimLengthPerPiece = totalEaveTrimLength / eaveTrimPieces;
-      // Adjust to ensure even distribution without exceeding max length
-      eaveTrimLengthPerPiece = Math.floor(eaveTrimLengthPerPiece * 10) / 10; // Round down to nearest tenth
-    }
+    // Eave Trim calculations
+    const eaveTrimLengthPerPiece = 10.25; // Length of each eave trim piece in feet (10' 3")
+    const buildingLengthInFeet = parseFloat(buildingLength); // Convert the building length to a float
+    const eaveTrimPieces = Math.ceil(
+      buildingLengthInFeet / eaveTrimLengthPerPiece
+    ); // Calculate the number of pieces, rounded up
 
     // Calculate the cost of eave trim
     let eaveTrimCostPerUnit = BASE_UNIT_COSTS["EaveTrim"]; // Ensure this is defined in your BASE_UNIT_COSTS
     let eaveTrimCost =
       eaveTrimPieces * eaveTrimLengthPerPiece * eaveTrimCostPerUnit;
-    // Eave Trim calculations with overlap
-    eaveTrimLengthPerPiece += 0.5; // Add 6 inches for overlap
-    eaveTrimCost =
-      eaveTrimPieces * eaveTrimLengthPerPiece * eaveTrimCostPerUnit;
 
     // Add updated Eave Trim details to the breakdown
     breakdownDetails.push({
       item: "M-31 EAVE CLOSURE TRIM",
-      quantity: eaveTrimPieces * 2,
+      quantity: eaveTrimPieces,
       unitPrice: eaveTrimCostPerUnit,
       total: eaveTrimCost,
-      linearFeet: decimalFeetToFeetInches(eaveTrimLengthPerPiece),
-      color: trimColor,
+      linearFeet: `${decimalFeetToFeetInches(eaveTrimLengthPerPiece)}'`,
     });
 
+    // Inside calculateTotalCost function, replace the existing Ridge Cap calculations with:
+
     // Ridge Cap calculations
-    const maxRidgeCapLength = 12; // Max length for an individual eave trim piece in feet
-    let totalRidgeCapLength = numLength;
-    let ridgeCapPieces = 1;
-    let ridgeCapLengthPerPiece = buildingLengthInFeet;
+    const ridgeCapLengthPerPiece = 10.25; // Length of each ridge cap piece in feet (10' 3")
+    const ridgeCapPieces = Math.ceil(
+      buildingLengthInFeet / ridgeCapLengthPerPiece
+    ); // Calculate the number of pieces, rounded up
 
-    // Splitting into even lengths if the total length exceeds the max length of an eave trim piece
-    if (totalRidgeCapLength > maxRidgeCapLength) {
-      ridgeCapPieces = Math.ceil(totalEaveTrimLength / maxRidgeCapLength);
-      ridgeCapLengthPerPiece = totalEaveTrimLength / ridgeCapPieces;
-      // Adjust to ensure even distribution without exceeding max length
-      ridgeCapLengthPerPiece = Math.floor(ridgeCapLengthPerPiece * 10) / 10; // Round down to nearest tenth
-    }
-
-    // Calculate the cost of eave trim
+    // Calculate the cost of ridge cap
     let ridgeCapCostPerUnit = BASE_UNIT_COSTS["RidgeCap"]; // Ensure this is defined in your BASE_UNIT_COSTS
     let ridgeCapCost =
-      ridgeCapPieces * ridgeCapLengthPerPiece * ridgeCapCostPerUnit;
-
-    // Ridge Cap calculations with overlap
-    ridgeCapLengthPerPiece += 0.5; // Add 6 inches for overlap
-    ridgeCapCost =
       ridgeCapPieces * ridgeCapLengthPerPiece * ridgeCapCostPerUnit;
 
     // Add updated Ridge Cap details to the breakdown
@@ -957,8 +930,7 @@ const Quotes = () => {
       quantity: ridgeCapPieces,
       unitPrice: ridgeCapCostPerUnit,
       total: ridgeCapCost,
-      linearFeet: decimalFeetToFeetInches(ridgeCapLengthPerPiece),
-      color: trimColor,
+      linearFeet: `${decimalFeetToFeetInches(ridgeCapLengthPerPiece)}'`,
     });
 
     // Add window to breakdown
