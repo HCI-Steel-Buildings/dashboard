@@ -257,7 +257,6 @@ const Quotes = () => {
 
     // Hat channel calculations
     const hatChannelSpacing = 3; // Every 3 feet
-    const maxHatChannelLength = 21; // Maximum length of a hat channel piece
     let hatChannelCost = 0;
     let hatChannelQuantity = 0;
 
@@ -273,32 +272,27 @@ const Quotes = () => {
 
     // Updated distributeHatChannelLength function
     const distributeHatChannelLength = (
-      numLength: number,
+      numLength: any,
       hatChannelQuantity: number
     ) => {
       let lengths = [];
       let remainingLength = numLength;
 
-      for (let i = 0; i < hatChannelQuantity; i++) {
-        if (remainingLength <= 0) break; // Exit if no length remains
-
-        let length =
-          remainingLength >= maxHatChannelLength
-            ? maxHatChannelLength
-            : remainingLength;
-
-        // Add an extra 6 inches (0.5 feet) to pieces shorter than max length,
-        // but only if the building length is greater than 20 feet
-        if (numLength > 20 && length < maxHatChannelLength) {
-          length += 0.5;
-
-          // Ensure the length does not exceed the maximum hat channel length
-          if (length > maxHatChannelLength) {
-            length = maxHatChannelLength;
-          }
+      while (remainingLength > 0 && hatChannelQuantity > 0) {
+        let length;
+        if (remainingLength >= 20) {
+          length = 20;
+        } else if (remainingLength >= 15) {
+          length = 15;
+        } else if (remainingLength >= 10) {
+          length = 10;
+        } else {
+          length = remainingLength; // Use the remaining length if it's less than 10
         }
+
         lengths.push(length);
         remainingLength -= length;
+        hatChannelQuantity--;
       }
 
       return lengths;
@@ -310,12 +304,14 @@ const Quotes = () => {
     );
 
     hatChannelLengths.forEach((length) => {
-      hatChannelCost += length * BASE_UNIT_COSTS["HatChannel"];
+      let individualHatChannelCost = length * BASE_UNIT_COSTS["HatChannel"];
+      hatChannelCost += individualHatChannelCost * hatChannelQuantity; // Update total hat channel cost
+
       breakdownDetails.push({
         item: "HAT CHANNEL",
-        quantity: hatChannelQuantity, // Each entry represents one piece of hat channel
+        quantity: hatChannelQuantity, // Updated to use hatChannelQuantity
         unitPrice: BASE_UNIT_COSTS["HatChannel"],
-        total: length * BASE_UNIT_COSTS["HatChannel"],
+        total: individualHatChannelCost * hatChannelQuantity, // Multiply individual cost by quantity
         linearFeet: `${decimalFeetToFeetInches(length)}`,
       });
     });
@@ -540,12 +536,11 @@ const Quotes = () => {
     const structuralScrewQuantityForLegs =
       totalLegs * screwsPerLeg * tallestSidewallHeight;
 
-    // Calculate total structural screws for Hat Channel
     let totalHatChannelLF = 0;
-    for (let i = 0; i < hatChannelQuantity; i++) {
-      const channelLength = Math.min(numLength, maxHatChannelLength);
-      totalHatChannelLF += channelLength;
-    }
+    hatChannelLengths.forEach((length) => {
+      totalHatChannelLF += length; // Summing up the lengths of all hat channel pieces
+    });
+    console.log(totalHatChannelLF);
     const structuralScrewQuantityForHatChannel = totalHatChannelLF;
 
     // Combine structural screws from hat channel and legs
@@ -584,8 +579,9 @@ const Quotes = () => {
     // Calculate R1s
     const r1Length = 4; // Default value of 4 feet
     const totalR1LF = gridLines * r1Length;
-    const r1Cost = totalR1LF * BASE_UNIT_COSTS["R1Peak"];
-    const r1Quantity = gridLines;
+    const r1Quantity = gridLines; // Number of R1s needed
+    const r1UnitCost = BASE_UNIT_COSTS["R1Peak"]; // Unit cost for one R1
+    const r1Cost = r1Quantity * r1UnitCost; // Total cost for R1s
     breakdownDetails.push({
       item: "R1 PEAK",
       quantity: gridLines,
@@ -654,7 +650,7 @@ const Quotes = () => {
     const roofSheetWidth = 3; // Width of each roof sheet in feet
 
     // Add 3 inches to the roof panel length if either left or right gutters are selected
-    const extraLengthForGutters = 0.25; // 3 inches in feet
+    const extraLengthForGutters = 1.5 / 12;
 
     // Calculate the length of each roof sheet
     const roofSheetLengthInDecimalFeet = Math.min(
@@ -844,6 +840,13 @@ const Quotes = () => {
     const tekScrewCostPerUnit = BASE_UNIT_COSTS["TekScrew"];
     let totalTekScrews = 0;
     let tekScrewCost = 0;
+    const tekScrewsPerHatChannelPiece = 6; // Assuming 6 tek screws per hat channel piece
+    let totalTekScrewsForHatChannels = 0;
+    hatChannelLengths.forEach((length) => {
+      // Assuming each length of hat channel gets 6 tek screws
+      totalTekScrewsForHatChannels += tekScrewsPerHatChannelPiece;
+    });
+    totalTekScrews += totalTekScrewsForHatChannels; // Add tek screws for hat channels to total tek screws count
 
     // Tek Screws for AngleClips
     const tekScrewsForAngleClips = angleClipQuantity * 4;
