@@ -27,7 +27,7 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   M29Trim: 5.79, // per foot
   M29GableTrim: 5.79, // per foot
   EaveTrim: 5.79, // per foot
-  RidgeCap: 5.79, // per foot
+  RidgeCap: 6.28, // per foot
   K5Gutter: 8.49, // per foot
   K5ElbowA: 7.62, // per elbow
   K5ElbowB: 4.11, // per elbow
