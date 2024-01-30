@@ -970,35 +970,35 @@ const Quotes = () => {
 
     // Function to calculate gutter cost and add breakdown details
     const calculateGutterCost = (buildingLength: any, sideSelected: any) => {
-      if (!sideSelected) return {};
+      if (!sideSelected || isNaN(buildingLength) || buildingLength <= 0)
+        return {};
 
       const MAX_GUTTER_LENGTH = 14.5; // 14'6" in decimal feet
-      const gutterItems: any = {};
+      let numberOfGutterPieces = Math.ceil(buildingLength / MAX_GUTTER_LENGTH);
+      let gutterPieceLength = buildingLength / numberOfGutterPieces;
+      gutterPieceLength = Math.round(gutterPieceLength * 10) / 10; // Round to nearest tenth
 
-      if (buildingLength > 0) {
-        let numberOfPieces = Math.ceil(buildingLength / MAX_GUTTER_LENGTH);
-        let gutterPieceLength = buildingLength / numberOfPieces;
-        gutterPieceLength = Math.floor(gutterPieceLength * 10) / 10; // Round down to the nearest tenth
-        gutterPieceLength += 0.5;
-
-        // Ensure that gutterPieceLength does not exceed MAX_GUTTER_LENGTH
-        if (gutterPieceLength > MAX_GUTTER_LENGTH) {
-          gutterPieceLength = MAX_GUTTER_LENGTH;
-          numberOfPieces = Math.ceil(buildingLength / gutterPieceLength);
-        }
-
-        // Assigning gutter components based on the calculated number of pieces
-        gutterItems["K5 Gutter"] = numberOfPieces;
-        gutterItems["K5 Downspout"] = numberOfPieces;
-        gutterItems["K5 EndCap"] = numberOfPieces * 2;
-        gutterItems["K5 DownspoutStrap"] = numberOfPieces;
-        gutterItems["K5 Clip"] =
-          numberOfPieces * Math.ceil(gutterPieceLength / 1.5);
-        gutterItems["K5 ElbowA"] = numberOfPieces;
-        gutterItems["K5 ElbowB"] = numberOfPieces;
-        gutterItems["K5 Gutter Screw"] = buildingLength;
-        gutterItems["NovaFlex"] = 1;
+      if (gutterPieceLength + 0.5 > MAX_GUTTER_LENGTH) {
+        gutterPieceLength = MAX_GUTTER_LENGTH;
+        numberOfGutterPieces = Math.ceil(buildingLength / gutterPieceLength);
+      } else {
+        gutterPieceLength += 0.5; // Add 6 inches for overlap
       }
+
+      let numberOfDownspouts = buildingLength >= 40 ? 2 : 1;
+
+      let gutterItems = {
+        "K5 Gutter": numberOfGutterPieces,
+        "K5 Downspout": numberOfDownspouts,
+        "K5 EndCap": 2,
+        "K5 DownspoutStrap": numberOfDownspouts,
+        "K5 Clip": numberOfGutterPieces * Math.ceil(gutterPieceLength / 1.5),
+        "K5 ElbowA": numberOfDownspouts,
+        "K5 ElbowB": numberOfDownspouts,
+        "K5 Gutter Screw": Math.ceil(buildingLength), // Assuming 1 screw per foot
+        NovaFlex: 1,
+        GutterPieceLength: gutterPieceLength, // Store the gutter piece length
+      };
 
       return gutterItems;
     };
@@ -1007,32 +1007,32 @@ const Quotes = () => {
     const gutterCosts = (gutterItems: any) => {
       let totalCost = 0;
       let linearFeetString = "";
-      let downspoutLengthString = "10'"; // Length for each downspout
 
       for (const item in gutterItems) {
+        if (item === "GutterPieceLength") continue; // Skip this item
+
         const quantity = gutterItems[item];
         const unitCost = BASE_UNIT_COSTS[item.replace(/\s/g, "")];
-        const total = quantity * unitCost;
-        totalCost += total;
 
+        let total = 0;
         if (item === "K5 Gutter") {
-          // Convert the linear feet for gutters to feet and inches format
+          const linearFeet = quantity * gutterItems["GutterPieceLength"];
+          total = linearFeet * unitCost;
           linearFeetString = decimalFeetToFeetInches(
             gutterItems["GutterPieceLength"]
           );
+        } else {
+          total = quantity * unitCost;
         }
+
+        totalCost += total;
 
         breakdownDetails.push({
           item: item,
           quantity: quantity,
           unitPrice: unitCost,
           total: total,
-          linearFeet:
-            item === "K5 Gutter"
-              ? linearFeetString
-              : item === "K5 Downspout"
-              ? downspoutLengthString
-              : undefined, // Add LF for K5 Gutter and K5 Downspout
+          linearFeet: item === "K5 Gutter" ? linearFeetString : undefined,
         });
       }
       return totalCost;
