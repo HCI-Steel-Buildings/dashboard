@@ -1586,15 +1586,14 @@ const Quotes = () => {
       laborField.setText(`$${laborCost.toString()}`);
 
       // Calculate and set tax
-      const tax = parseFloat((totalPrice * 0.07).toFixed(2));
-      taxField.setText(`$${tax.toString()}`);
+      taxField.setText(`$0.00`);
 
       // Calculate and set subtotal
       const subTotal = totalPrice + laborCost + delivery;
       subTotalField.setText(`$${subTotal.toFixed(2)}`);
 
       // Calculate and set grand total
-      const grandTotal = subTotal + tax;
+      const grandTotal = subTotal;
       grandTotalField.setText(`$${grandTotal.toFixed(2)}`);
 
       // Calculate and set quote number
@@ -1627,7 +1626,7 @@ const Quotes = () => {
       const pdfBytes = await pdfDoc.save();
 
       // Trigger download
-      downloadPdf(pdfBytes, "ModifiedForm.pdf");
+      downloadPdf(pdfBytes, `${lastName}, ${firstName} - ${quoteNumber}.pdf`);
     } catch (error) {
       console.error("Error modifying PDF:", error);
     }
