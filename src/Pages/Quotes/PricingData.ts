@@ -7,7 +7,7 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   Leg: 5.79, // per foot
   FrontLeg: 5.79, // per foot
   RearLeg: 5.79, // per foot
-  Runner: 8.79, // per foot
+  Runner: 13.79, // per foot
   RoofSheet: 5.89, // per length foot
   AngleClip: 5.58, // per clip
   StraightClip: 4.99, // per clip
@@ -21,7 +21,7 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   ConcreteAnchor: 4.67, // per anchor
   TubeCap: 3.18, // per cap
   KingPin: 5.79, // per pin
-  R1Peak: 34.74, // per r1
+  R1Peak: 64.74, // per r1
   R2: 5.79, // per foot
   SidewallSheet: 5.89, // per length foot
   M29Trim: 5.79, // per foot

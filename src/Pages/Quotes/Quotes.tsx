@@ -292,7 +292,7 @@ const Quotes = () => {
           length = remainingLength; // Use the remaining length if it's less than 10
         }
 
-        lengths.push(length); // Add 6 inches to each length
+        lengths.push(length);
         remainingLength -= length;
         hatChannelQuantity--;
       }
@@ -305,16 +305,19 @@ const Quotes = () => {
       hatChannelQuantity
     );
 
+    // Calculate total cost for hat channels with added 6 inches
     hatChannelLengths.forEach((length) => {
-      let individualHatChannelCost = length * BASE_UNIT_COSTS["HatChannel"];
+      let adjustedLength = length + 0.5; // Add 6 inches (0.5 feet) to each length
+      let individualHatChannelCost =
+        adjustedLength * BASE_UNIT_COSTS["HatChannel"];
       hatChannelCost += individualHatChannelCost * hatChannelQuantity; // Update total hat channel cost
 
       breakdownDetails.push({
         item: "HAT CHANNEL",
-        quantity: hatChannelQuantity, // Updated to use hatChannelQuantity
+        quantity: hatChannelQuantity,
         unitPrice: BASE_UNIT_COSTS["HatChannel"],
-        total: individualHatChannelCost * hatChannelQuantity, // Multiply individual cost by quantity
-        linearFeet: `${decimalFeetToFeetInches(length + 0.5)}`, // Add 6 inches to each length
+        total: individualHatChannelCost * hatChannelQuantity, // Multiply individual adjusted cost by quantity
+        linearFeet: `${decimalFeetToFeetInches(adjustedLength)}`, // Display adjusted length including the added 6 inches
       });
     });
 
@@ -541,35 +544,6 @@ const Quotes = () => {
 
     calculateTrimFrontRear();
 
-    // Structural Screw Calculation
-    const screwsPerLeg = 4; // Assuming 4 screws are needed per leg
-    const structuralScrewQuantityForLegs =
-      totalLegs * screwsPerLeg * tallestSidewallHeight;
-
-    let totalHatChannelLF = 0;
-    hatChannelLengths.forEach((length) => {
-      totalHatChannelLF += length; // Summing up the lengths of all hat channel pieces
-    });
-    console.log(totalHatChannelLF);
-    const structuralScrewQuantityForHatChannel = totalHatChannelLF;
-
-    // Combine structural screws from hat channel and legs
-    const totalStructuralScrews = Math.ceil(
-      (structuralScrewQuantityForHatChannel + structuralScrewQuantityForLegs) *
-        1.15
-    ); // Add 15% for waste
-    const totalStructuralScrewsCost =
-      totalStructuralScrews * BASE_UNIT_COSTS["StructuralScrew"];
-
-    // Ensure to add structural screw cost to breakdown details and total cost
-    breakdownDetails.push({
-      item: "STRUCTURAL SCREWS",
-      quantity: totalStructuralScrews,
-      unitPrice: BASE_UNIT_COSTS["StructuralScrew"],
-      total: totalStructuralScrewsCost,
-      color: roofSheathingColor,
-    });
-
     // Calculate King Pins
     const kingPinLength = 3; // Default value of 3 feet
 
@@ -606,7 +580,7 @@ const Quotes = () => {
     const roofBraceQuantity = r1Quantity; // One roof brace per R1
     const roofBraceLength = 3; // Each roof brace is 3 feet long
     const totalRoofBraceLF = roofBraceQuantity * roofBraceLength;
-    const roofBraceCost = totalRoofBraceLF * BASE_UNIT_COSTS["RoofBrace"];
+    const roofBraceCost = roofBraceQuantity * BASE_UNIT_COSTS["RoofBrace"];
 
     // Add roof braces to breakdown details
     if (roofBraceQuantity > 0) {
@@ -878,7 +852,7 @@ const Quotes = () => {
     totalTekScrews += totalTekScrewsForHatChannels; // Add tek screws for hat channels to total tek screws count
 
     // Tek Screws for AngleClips
-    const tekScrewsForAngleClips = angleClipQuantity * 4;
+    const tekScrewsForAngleClips = totalLegs * 8;
     totalTekScrews += tekScrewsForAngleClips;
 
     // Tek Screws for Straight Clips
@@ -893,6 +867,10 @@ const Quotes = () => {
     const tekScrewsForRoofBraces = roofBraceQuantity * 8; // 8 Tek Screws per Roof Brace
     totalTekScrews += tekScrewsForRoofBraces;
 
+    // Tek screws for Knee Braces
+    const tekScrewsForKneeBraces = kneeBraceQuantity * 8; // 8 Tek Screws per Knee Brace
+    totalTekScrews += tekScrewsForKneeBraces;
+
     tekScrewCost = totalTekScrews * tekScrewCostPerUnit;
 
     // Add Tek Screws to breakdown details
@@ -902,11 +880,47 @@ const Quotes = () => {
       unitPrice: tekScrewCostPerUnit,
       total: tekScrewCost,
     });
+    // Structural Screw Calculation
+    const screwsPerLeg = 4; // Assuming 4 screws are needed per leg
+    const structuralScrewQuantityForLegs =
+      totalLegs * screwsPerLeg * tallestSidewallHeight;
+
+    let totalHatChannelLF = 0;
+    hatChannelLengths.forEach((length) => {
+      totalHatChannelLF += length; // Summing up the lengths of all hat channel pieces
+    });
+    console.log(totalHatChannelLF);
+    const structuralScrewQuantityForHatChannel = totalHatChannelLF;
+
+    // Combine structural screws from hat channel and legs
+    let totalStructuralScrews = Math.ceil(
+      (structuralScrewQuantityForHatChannel + structuralScrewQuantityForLegs) *
+        1.15
+    ); // Add 15% for waste
+    const totalStructuralScrewsCost =
+      totalStructuralScrews * BASE_UNIT_COSTS["StructuralScrew"];
+
+    // Add another 25 strucutral screws per roof sheet pannel
+    totalStructuralScrews += totalRoofSheets * 9;
+
+    // Ensure to add structural screw cost to breakdown details and total cost
+    breakdownDetails.push({
+      item: "STRUCTURAL SCREWS",
+      quantity: totalStructuralScrews,
+      unitPrice: BASE_UNIT_COSTS["StructuralScrew"],
+      total: totalStructuralScrewsCost,
+      color: roofSheathingColor,
+    });
 
     // Calculate M29GableTrim
+    // Todo: currently taken out for 10' 3" pieces
     let m29GableTrimLength = hypotenuseLength; // Same length as the R2 hypotenuse
     let m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
 
+    let widthOfBuilding = parseInt(width);
+    let m29gableTrimQuantity = widthOfBuilding / 10.25; // 10' 3" in decimal feet
+    m29gableTrimQuantity = Math.ceil(m29gableTrimQuantity); // Round up to the nearest whole number
+    m29gableTrimQuantity *= 2; // Multiply by 2 for both sides
     // M29GableTrim calculations with overlap
     m29GableTrimLength += 0.75; // Add 8 inches for overlap
     m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
@@ -914,10 +928,10 @@ const Quotes = () => {
     // Add updated M29GableTrim details to the breakdown
     breakdownDetails.push({
       item: "M-29 OUTSIDE GABLE TRIM 5X5",
-      quantity: 4,
+      quantity: m29gableTrimQuantity,
       unitPrice: BASE_UNIT_COSTS["M29GableTrim"],
       total: m29GableTrimCost,
-      linearFeet: decimalFeetToFeetInches(m29GableTrimLength),
+      linearFeet: decimalFeetToFeetInches(10.25),
       color: trimColor,
     });
 
