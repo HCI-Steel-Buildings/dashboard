@@ -544,35 +544,38 @@ const Quotes = () => {
 
     calculateTrimFrontRear();
 
-    // Calculate King Pins
-    const kingPinLength = 3; // Default value of 3 feet
+    const kingPinLength = 1.9167; // 1' 11" in decimal feet
 
     // Check if width is greater than 24 feet
     const totalKingPinLF = gridLines * kingPinLength;
     const kingPinCost = totalKingPinLF * BASE_UNIT_COSTS["KingPin"];
 
-    if (numWidth > 24) {
+    if (numWidth >= 28) {
       breakdownDetails.push({
         item: "KINGPIN",
         quantity: gridLines,
         unitPrice: BASE_UNIT_COSTS["KingPin"],
         total: kingPinCost,
-        linearFeet: kingPinLength,
+        linearFeet: decimalFeetToFeetInches(kingPinLength),
       });
     }
 
-    // Calculate R1s
-    const r1Length = 4; // Default value of 4 feet
-    const totalR1LF = gridLines * r1Length;
+    // Calculate R1s with cost based on linear feet
+    const r1Length = 4; // Length of one R1 in feet
     const r1Quantity = gridLines; // Number of R1s needed
-    const r1UnitCost = BASE_UNIT_COSTS["R1Peak"]; // Unit cost for one R1
-    const r1Cost = r1Quantity * r1UnitCost; // Total cost for R1s
+    const totalR1LF = r1Quantity * r1Length; // Total linear feet for all R1s
+    const r1UnitCost = BASE_UNIT_COSTS["R1Peak"]; // Cost per linear foot for one R1
+
+    // Adjusted cost calculation: Total linear feet multiplied by cost per linear foot
+    const r1Cost = totalR1LF * r1UnitCost; // Total cost for R1s based on linear feet
+
+    // Add R1 details to the breakdown
     breakdownDetails.push({
       item: "R1 PEAK",
-      quantity: gridLines,
-      unitPrice: BASE_UNIT_COSTS["R1Peak"],
+      quantity: r1Quantity,
+      unitPrice: r1UnitCost,
       total: r1Cost,
-      linearFeet: `${r1Length}'`,
+      linearFeet: `${r1Length}'`, // Display the length of one R1, though cost calculation is based on total linear feet
     });
 
     // Calculate number of roof braces.
@@ -580,7 +583,7 @@ const Quotes = () => {
     const roofBraceQuantity = r1Quantity; // One roof brace per R1
     const roofBraceLength = 3; // Each roof brace is 3 feet long
     const totalRoofBraceLF = roofBraceQuantity * roofBraceLength;
-    const roofBraceCost = roofBraceQuantity * BASE_UNIT_COSTS["RoofBrace"];
+    const roofBraceCost = totalRoofBraceLF * BASE_UNIT_COSTS["RoofBrace"];
 
     // Add roof braces to breakdown details
     if (roofBraceQuantity > 0) {
@@ -712,8 +715,10 @@ const Quotes = () => {
       total: totalStitchScrewCost,
     });
     // Calculate KneeBrace for each R2
+    const kneeBraeLF = parseInt(width) > 16 ? 3 : 2;
     const kneeBraceQuantity = r2Quantity; // One KneeBrace per R2
-    const kneeBraceCost = kneeBraceQuantity * BASE_UNIT_COSTS["KneeBrace"];
+    const kneeBraceCost =
+      kneeBraceQuantity * kneeBraeLF * BASE_UNIT_COSTS["KneeBrace"];
 
     // Add KneeBrace cost to the total cost
     calculatedTotalCost += kneeBraceCost;
@@ -724,7 +729,7 @@ const Quotes = () => {
       quantity: kneeBraceQuantity,
       unitPrice: BASE_UNIT_COSTS["KneeBrace"],
       total: kneeBraceCost,
-      linearFeet: `3'`,
+      linearFeet: `${kneeBraeLF}'`,
     });
 
     // Calculate Straight Clips for each King Pin
@@ -838,48 +843,6 @@ const Quotes = () => {
       }
     }
 
-    // Inside calculateTotalCost function, after existing calculations
-    // Calculate Tek Screws
-    const tekScrewCostPerUnit = BASE_UNIT_COSTS["TekScrew"];
-    let totalTekScrews = 0;
-    let tekScrewCost = 0;
-    const tekScrewsPerHatChannelPiece = 6; // Assuming 6 tek screws per hat channel piece
-    let totalTekScrewsForHatChannels = 0;
-    hatChannelLengths.forEach((length) => {
-      // Assuming each length of hat channel gets 6 tek screws
-      totalTekScrewsForHatChannels += tekScrewsPerHatChannelPiece;
-    });
-    totalTekScrews += totalTekScrewsForHatChannels; // Add tek screws for hat channels to total tek screws count
-
-    // Tek Screws for AngleClips
-    const tekScrewsForAngleClips = totalLegs * 8;
-    totalTekScrews += tekScrewsForAngleClips;
-
-    // Tek Screws for Straight Clips
-    const tekScrewsForStraightClips = straightClipQuantity * 4;
-    totalTekScrews += tekScrewsForStraightClips;
-
-    // Tek Screws for R1s
-    const tekScrewsForR2s = gridLines * 32; // Assuming one R1 per grid line
-    totalTekScrews += tekScrewsForR2s;
-
-    // Tek Screws for Roof Braces
-    const tekScrewsForRoofBraces = roofBraceQuantity * 8; // 8 Tek Screws per Roof Brace
-    totalTekScrews += tekScrewsForRoofBraces;
-
-    // Tek screws for Knee Braces
-    const tekScrewsForKneeBraces = kneeBraceQuantity * 8; // 8 Tek Screws per Knee Brace
-    totalTekScrews += tekScrewsForKneeBraces;
-
-    tekScrewCost = totalTekScrews * tekScrewCostPerUnit;
-
-    // Add Tek Screws to breakdown details
-    breakdownDetails.push({
-      item: "TEK-3 SCREWS",
-      quantity: totalTekScrews,
-      unitPrice: tekScrewCostPerUnit,
-      total: tekScrewCost,
-    });
     // Structural Screw Calculation
     const screwsPerLeg = 4; // Assuming 4 screws are needed per leg
     const structuralScrewQuantityForLegs =
@@ -897,11 +860,11 @@ const Quotes = () => {
       (structuralScrewQuantityForHatChannel + structuralScrewQuantityForLegs) *
         1.15
     ); // Add 15% for waste
-    const totalStructuralScrewsCost =
-      totalStructuralScrews * BASE_UNIT_COSTS["StructuralScrew"];
 
     // Add another 25 strucutral screws per roof sheet pannel
     totalStructuralScrews += totalRoofSheets * 9;
+    const totalStructuralScrewsCost =
+      totalStructuralScrews * BASE_UNIT_COSTS["StructuralScrew"];
 
     // Ensure to add structural screw cost to breakdown details and total cost
     breakdownDetails.push({
@@ -912,26 +875,24 @@ const Quotes = () => {
       color: roofSheathingColor,
     });
 
-    // Calculate M29GableTrim
-    // Todo: currently taken out for 10' 3" pieces
-    let m29GableTrimLength = hypotenuseLength; // Same length as the R2 hypotenuse
-    let m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
-
+    // M29GableTrim calculations
     let widthOfBuilding = parseInt(width);
-    let m29gableTrimQuantity = widthOfBuilding / 10.25; // 10' 3" in decimal feet
-    m29gableTrimQuantity = Math.ceil(m29gableTrimQuantity); // Round up to the nearest whole number
-    m29gableTrimQuantity *= 2; // Multiply by 2 for both sides
-    // M29GableTrim calculations with overlap
-    m29GableTrimLength += 0.75; // Add 8 inches for overlap
-    m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
+    let m29GableTrimQuantity = Math.ceil(widthOfBuilding / 10.25) * 2; // Calculate the quantity needed for both sides, rounding up
 
-    // Add updated M29GableTrim details to the breakdown
+    // Each piece is 10.25 feet, but you add 0.75 feet for overlap on each piece
+    // This calculation ensures each piece's length, including overlap, is considered
+    let totalM29GableTrimLF = m29GableTrimQuantity * 10.25; // Total linear feet of M29GableTrim needed
+
+    let m29GableTrimCost =
+      totalM29GableTrimLF * BASE_UNIT_COSTS["M29GableTrim"]; // Total cost based on linear feet and unit price
+
+    // Add M29GableTrim details to the breakdown
     breakdownDetails.push({
       item: "M-29 OUTSIDE GABLE TRIM 5X5",
-      quantity: m29gableTrimQuantity,
+      quantity: m29GableTrimQuantity,
       unitPrice: BASE_UNIT_COSTS["M29GableTrim"],
       total: m29GableTrimCost,
-      linearFeet: decimalFeetToFeetInches(10.25),
+      linearFeet: decimalFeetToFeetInches(10.25), // This shows the length of one piece, not the total length used for calculation
       color: trimColor,
     });
 
@@ -1173,6 +1134,140 @@ const Quotes = () => {
         linearFeet: `${decimalFeetToFeetInches(runnerLength.toFixed(2))}'`,
       });
     }
+    // Inside the calculateTotalCost function, after calculating R1s
+
+    // Determine the length of each Rafter Brace based on building width
+    let rafterBraceQuantity = gridLines; // One Rafter Brace per R1
+    let rafterBraceLength = 0;
+    if (numWidth >= 20 && numWidth <= 24) {
+      rafterBraceLength = 10; // 10 feet for buildings 20' to 24' wide
+    } else if (numWidth > 24 && numWidth <= 30) {
+      rafterBraceLength = 16; // 16 feet for buildings greater than 24' to 30'
+    } else if (numWidth < 20) {
+      rafterBraceLength = 0; // 6 feet for buildings less than 20' wide
+      rafterBraceQuantity = 0; // No Rafter Braces needed for buildings less than 20' wide
+    }
+
+    // Calculate the number of Rafter Braces (same as the number of R1s)
+
+    // Calculate total cost for Rafter Braces
+    let rafterBraceUnitCost = BASE_UNIT_COSTS["RafterBrace"]; // Ensure this is defined in your BASE_UNIT_COSTS
+    let rafterBraceTotalCost =
+      rafterBraceQuantity * rafterBraceUnitCost * rafterBraceLength;
+
+    // Add Rafter Braces to breakdown details
+    breakdownDetails.push({
+      item: "RAFTER BRACE",
+      quantity: rafterBraceQuantity,
+      unitPrice: rafterBraceUnitCost,
+      total: rafterBraceTotalCost,
+      linearFeet: `${decimalFeetToFeetInches(rafterBraceLength)}`,
+    });
+
+    // Inside the calculateTotalCost function, right after the logic for Rafter Braces
+
+    // Determine the quantity of Rafter Brace Clips based on building width
+    let rafterBraceClipQuantityPerBrace = 0;
+    if (numWidth >= 20 && numWidth <= 24) {
+      rafterBraceClipQuantityPerBrace = 2; // 2 clips per brace for buildings 20' to 24' wide
+    } else if (numWidth > 24 && numWidth <= 30) {
+      rafterBraceClipQuantityPerBrace = 4; // 4 clips per brace for buildings greater than 24' to 30'
+    }
+
+    // Calculate total quantity of Rafter Brace Clips
+    let totalRafterBraceClipQuantity =
+      rafterBraceClipQuantityPerBrace * rafterBraceQuantity;
+
+    // Calculate total cost for Rafter Brace Clips
+    let rafterBraceClipUnitCost = BASE_UNIT_COSTS["RafterBraceClip"]; // Ensure this is defined in your BASE_UNIT_COSTS
+    let rafterBraceClipTotalCost =
+      totalRafterBraceClipQuantity * rafterBraceClipUnitCost;
+
+    // Add Rafter Brace Clips to breakdown details
+    breakdownDetails.push({
+      item: "RAFTER BRACE CLIP",
+      quantity: totalRafterBraceClipQuantity,
+      unitPrice: rafterBraceClipUnitCost,
+      total: rafterBraceClipTotalCost,
+    });
+    // Inside the calculateTotalCost function
+
+    // New logic for Rafter Brace Extensions
+    let rafterBraceExtensionLength = 0;
+    let rafterBraceExtensionQuantity = rafterBraceQuantity * 2; // Twice the number of Rafter Braces
+
+    // Determine the length of each Rafter Brace Extension based on building width
+    if (numWidth === 30) {
+      rafterBraceExtensionLength = 5.0833; // 5'1" in decimal feet
+    } else if (numWidth === 28) {
+      rafterBraceExtensionLength = 4.0833; // 4'1" in decimal feet
+    } else if (numWidth === 26) {
+      rafterBraceExtensionLength = 3.0833; // 3'1" in decimal feet
+    }
+
+    // Calculate total cost for Rafter Brace Extensions
+    let rafterBraceExtensionUnitCost = BASE_UNIT_COSTS["RafterBraceExtension"]; // Ensure this is defined in your BASE_UNIT_COSTS
+    let rafterBraceExtensionTotalCost =
+      rafterBraceExtensionQuantity *
+      rafterBraceExtensionUnitCost *
+      rafterBraceExtensionLength;
+
+    // Add Rafter Brace Extensions to breakdown details
+    breakdownDetails.push({
+      item: "RAFTER BRACE EXTENSION",
+      quantity: rafterBraceExtensionQuantity,
+      unitPrice: rafterBraceExtensionUnitCost,
+      total: rafterBraceExtensionTotalCost,
+      linearFeet: `${decimalFeetToFeetInches(
+        rafterBraceExtensionLength.toFixed(2)
+      )}`,
+    });
+
+    // Add the cost of Rafter Brace Extensions to the total cost
+
+    // Calculate Tek Screws
+    const tekScrewCostPerUnit = BASE_UNIT_COSTS["TekScrew"];
+    let totalTekScrews = 0;
+    let tekScrewCost = 0;
+    const tekScrewsPerHatChannelPiece = 6; // Assuming 6 tek screws per hat channel piece
+    let totalTekScrewsForHatChannels = 0;
+    hatChannelLengths.forEach((length) => {
+      // Assuming each length of hat channel gets 6 tek screws
+      totalTekScrewsForHatChannels += tekScrewsPerHatChannelPiece;
+    });
+    totalTekScrews += totalTekScrewsForHatChannels; // Add tek screws for hat channels to total tek screws count
+
+    // Tek Screws for AngleClips
+    const tekScrewsForAngleClips = totalLegs * 8;
+    totalTekScrews += tekScrewsForAngleClips;
+
+    // Tek Screws for Straight Clips
+    const tekScrewsForStraightClips = straightClipQuantity * 4;
+    totalTekScrews += tekScrewsForStraightClips;
+
+    // Tek Screws for R1s
+    const tekScrewsForR2s = gridLines * 32; // Assuming one R1 per grid line
+    totalTekScrews += tekScrewsForR2s;
+
+    // Tek Screws for Roof Braces
+    const tekScrewsForRoofBraces = roofBraceQuantity * 8; // 8 Tek Screws per Roof Brace
+    totalTekScrews += tekScrewsForRoofBraces;
+
+    // Tek screws for Knee Braces
+    const tekScrewsForKneeBraces = kneeBraceQuantity * 8; // 8 Tek Screws per Knee Brace
+    totalTekScrews += tekScrewsForKneeBraces;
+
+    totalTekScrews += totalRafterBraceClipQuantity * 12;
+
+    tekScrewCost = totalTekScrews * tekScrewCostPerUnit;
+
+    // Add Tek Screws to breakdown details
+    breakdownDetails.push({
+      item: "TEK-3 SCREWS",
+      quantity: totalTekScrews,
+      unitPrice: tekScrewCostPerUnit,
+      total: tekScrewCost,
+    });
 
     //! Update total cost
     calculatedTotalCost +=
@@ -1205,7 +1300,12 @@ const Quotes = () => {
       gutterCostRight +
       // butylTapeCost +
       additionalLegCost +
-      dripStopCost;
+      dripStopCost +
+      frontRunnerTotalCost +
+      rearRunnerTotalCost +
+      rafterBraceTotalCost +
+      rafterBraceClipTotalCost +
+      rafterBraceExtensionTotalCost;
 
     setTotalCost(calculatedTotalCost);
     setBreakdown(breakdownDetails);
@@ -1241,6 +1341,7 @@ const Quotes = () => {
     setState("");
     setZipCode("");
     setHasPermit(false);
+    setQuoteNumber("");
   };
 
   // Helper function to get the index of an item in the desired order
@@ -1349,6 +1450,10 @@ const Quotes = () => {
         // Determine the group of the current item
         const itemGroup = itemToGroupMap[item.item];
 
+        if (item.quantity === 0) {
+          return;
+        }
+
         // Check if we've encountered a new group
         if (itemGroup && itemGroup !== currentGroup) {
           // Insert a group header row
@@ -1415,7 +1520,19 @@ const Quotes = () => {
         cell.border = borderStyle;
       });
       totalCostRow.getCell(6).numFmt = '"$"#,##0.00'; // Assuming that the 'total' is the 6th column
+      // Add a row for building size
+      const buildingSizeRow = worksheet.addRow({
+        item: `Building Size: ${width}' x ${buildingLength}' x ${height}'`,
+      });
 
+      // Merge cells for building size row if needed and apply styling
+      worksheet.mergeCells(
+        `B${buildingSizeRow.number}:G${buildingSizeRow.number}`
+      );
+      buildingSizeRow.getCell(7).font = {
+        bold: true,
+        size: 24,
+      };
       // Write the workbook to a buffer
       const buffer = await workbook.xlsx.writeBuffer();
 
@@ -1436,7 +1553,7 @@ const Quotes = () => {
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = "Breakdown.xlsx";
+    anchor.download = `${lastName}, ${firstName}-${quoteNumber}.xlsx`;
     document.body.appendChild(anchor);
     anchor.click();
     window.URL.revokeObjectURL(url);
@@ -1598,6 +1715,7 @@ const Quotes = () => {
 
       // Calculate and set quote number
       const quoteNumber = `M${phone.slice(-7)}`;
+      setQuoteNumber(quoteNumber);
       quoteNumberField.setText(quoteNumber);
 
       // Fill out and set client information
