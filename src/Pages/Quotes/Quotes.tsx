@@ -949,7 +949,7 @@ const Quotes = () => {
       quantity: eaveTrimPieces,
       unitPrice: eaveTrimCostPerUnit,
       total: leftEaveTrimCost,
-      linearFeet: `${decimalFeetToFeetInches(eaveTrimLengthPerPiece)}'`,
+      linearFeet: `${decimalFeetToFeetInches(eaveTrimLengthPerPiece)}`,
       color: trimColor,
     });
 
@@ -964,7 +964,7 @@ const Quotes = () => {
       quantity: eaveTrimPieces,
       unitPrice: eaveTrimCostPerUnit,
       total: rightEaveTrimCost,
-      linearFeet: `${decimalFeetToFeetInches(eaveTrimLengthPerPiece)}'`,
+      linearFeet: `${decimalFeetToFeetInches(eaveTrimLengthPerPiece)}`,
       color: trimColor,
     });
 
@@ -987,7 +987,7 @@ const Quotes = () => {
       quantity: ridgeCapPieces,
       unitPrice: ridgeCapCostPerUnit,
       total: ridgeCapCost,
-      linearFeet: `${decimalFeetToFeetInches(ridgeCapLengthPerPiece)}'`,
+      linearFeet: `${decimalFeetToFeetInches(ridgeCapLengthPerPiece)}`,
       color: trimColor,
     });
 
@@ -2184,29 +2184,34 @@ const Quotes = () => {
               <IonCardContent>
                 {isBreakdownVisible ? (
                   <>
-                    {aggregatedBreakdown.map((detail, index) => (
-                      <IonItem key={index}>
-                        <IonLabel>
-                          <p>
-                            <strong>{detail.item} | </strong>
-                            {detail.color && <strong> Color:</strong>}{" "}
-                            {detail.color}
-                            <strong> Quantity:</strong> {detail.quantity},
-                            {detail.linearFeet && (
-                              <>
-                                <strong> LF:</strong> {detail.linearFeet},{" "}
-                              </>
-                            )}
-                            <strong> Unit Price:</strong> $
-                            {detail.unitPrice
-                              ? detail.unitPrice.toFixed(2)
-                              : "0.00"}
-                            ,<strong> Total:</strong> $
-                            {detail.total ? detail.total.toFixed(2) : "0.00"}
-                          </p>
-                        </IonLabel>
-                      </IonItem>
-                    ))}
+                    {aggregatedBreakdown.map((detail, index) => {
+                      if (detail.quantity === 0) {
+                        return null;
+                      }
+                      return (
+                        <IonItem key={index}>
+                          <IonLabel>
+                            <p>
+                              <strong>{detail.item} | </strong>
+                              {detail.color && <strong>Color:</strong>}{" "}
+                              {detail.color}
+                              <strong> Quantity:</strong> {detail.quantity},
+                              {detail.linearFeet && (
+                                <>
+                                  <strong> LF:</strong> {detail.linearFeet},
+                                </>
+                              )}
+                              <strong> Unit Price:</strong> $
+                              {detail.unitPrice
+                                ? detail.unitPrice.toFixed(2)
+                                : "0.00"}
+                              ,<strong> Total:</strong> $
+                              {detail.total ? detail.total.toFixed(2) : "0.00"}
+                            </p>
+                          </IonLabel>
+                        </IonItem>
+                      );
+                    })}
                   </>
                 ) : null}
 
