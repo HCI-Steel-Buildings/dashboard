@@ -15,7 +15,7 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   StructuralScrew: 0.25, // per screw
   StitchScrew: 0.25, // per screw
   KneeBrace: 10.49, // per brace
-  RoofBrace: 8.79, // per foot
+  RoofBrace: 10.49, // per foot
   HatChannel: 4.97, // per foot
   RebarAnchor: 31.85, // per anchor
   ConcreteAnchor: 4.67, // per anchor

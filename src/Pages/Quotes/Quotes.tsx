@@ -292,7 +292,7 @@ const Quotes = () => {
           length = remainingLength; // Use the remaining length if it's less than 10
         }
 
-        lengths.push(length);
+        lengths.push(length); // Add 6 inches to each length
         remainingLength -= length;
         hatChannelQuantity--;
       }
@@ -314,7 +314,7 @@ const Quotes = () => {
         quantity: hatChannelQuantity, // Updated to use hatChannelQuantity
         unitPrice: BASE_UNIT_COSTS["HatChannel"],
         total: individualHatChannelCost * hatChannelQuantity, // Multiply individual cost by quantity
-        linearFeet: `${decimalFeetToFeetInches(length)}`,
+        linearFeet: `${decimalFeetToFeetInches(length + 0.5)}`, // Add 6 inches to each length
       });
     });
 
@@ -373,7 +373,8 @@ const Quotes = () => {
       linearFeet: `${numHeight}'`, // Individual leg height
     });
     // Calculate AngleClips required for each leg
-    let angleClipQuantity = totalLegs * 2; // 4 AngleClips per leg
+    // let angleClipQuantity = totalLegs * 2; // 4 AngleClips per leg
+    let angleClipQuantity = 0;
     const angleClipCost = angleClipQuantity * BASE_UNIT_COSTS["AngleClip"];
     breakdownDetails.push({
       item: "ANGLE CLIPS",
@@ -566,6 +567,7 @@ const Quotes = () => {
       quantity: totalStructuralScrews,
       unitPrice: BASE_UNIT_COSTS["StructuralScrew"],
       total: totalStructuralScrewsCost,
+      color: roofSheathingColor,
     });
 
     // Calculate King Pins
@@ -664,7 +666,11 @@ const Quotes = () => {
 
     // Calculate the length of each roof sheet
     const roofSheetLengthInDecimalFeet = Math.min(
-      r2LengthPerPiece + 2 + extraLengthForGutters + eaveExtensionInFeet,
+      r2LengthPerPiece +
+        2 +
+        extraLengthForGutters +
+        eaveExtensionInFeet -
+        2 / 12, // Subtract 2 inches for overlap
       21 // Max length of roof sheet is 21 feet
     );
     const roofSheetLengthInFeetInches = decimalFeetToFeetInches(
@@ -748,8 +754,9 @@ const Quotes = () => {
     });
 
     // Calculate Straight Clips for each King Pin
-    let straightClipQuantity = gridLines * 4; // 4 Straight Clips per King Pin
-    straightClipQuantity += totalLegs * 2; // 2 Straight Clips per leg
+    // let straightClipQuantity = gridLines * 4; // 4 Straight Clips per King Pin
+    // straightClipQuantity += totalLegs * 2; // 2 Straight Clips per leg
+    let straightClipQuantity = 0;
     const straightClipCost =
       straightClipQuantity * BASE_UNIT_COSTS["StraightClip"];
     breakdownDetails.push({
@@ -901,7 +908,7 @@ const Quotes = () => {
     let m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
 
     // M29GableTrim calculations with overlap
-    m29GableTrimLength += 0.5; // Add 6 inches for overlap
+    m29GableTrimLength += 0.75; // Add 8 inches for overlap
     m29GableTrimCost = m29GableTrimLength * BASE_UNIT_COSTS["M29GableTrim"];
 
     // Add updated M29GableTrim details to the breakdown
@@ -914,24 +921,49 @@ const Quotes = () => {
       color: trimColor,
     });
 
-    // Eave Trim calculations
+    // Inside the calculateTotalCost function, find the section where you handle Eave Trim calculations.
+
     const eaveTrimLengthPerPiece = 10.25; // Length of each eave trim piece in feet (10' 3")
     const buildingLengthInFeet = parseFloat(buildingLength); // Convert the building length to a float
     const eaveTrimPieces = Math.ceil(
       buildingLengthInFeet / eaveTrimLengthPerPiece
     ); // Calculate the number of pieces, rounded up
 
-    // Calculate the cost of eave trim
     let eaveTrimCostPerUnit = BASE_UNIT_COSTS["EaveTrim"]; // Ensure this is defined in your BASE_UNIT_COSTS
-    let eaveTrimCost =
+
+    // Function to determine the eave trim type
+    const determineEaveTrimType = (wallOption: any) => {
+      return wallOption === WALL_OPTIONS.ZERO
+        ? "M-30 EAVE CLOSURE TRIM"
+        : "M-31 EAVE CLOSURE TRIM";
+    };
+
+    // Calculate eave trim for the left side
+    const leftEaveTrimType = determineEaveTrimType(leftWall);
+    const leftEaveTrimCost =
       eaveTrimPieces * eaveTrimLengthPerPiece * eaveTrimCostPerUnit;
 
-    // Add updated Eave Trim details to the breakdown
+    // Add left Eave Trim details to the breakdown
     breakdownDetails.push({
-      item: "M-31 EAVE CLOSURE TRIM",
+      item: leftEaveTrimType,
       quantity: eaveTrimPieces,
       unitPrice: eaveTrimCostPerUnit,
-      total: eaveTrimCost,
+      total: leftEaveTrimCost,
+      linearFeet: `${decimalFeetToFeetInches(eaveTrimLengthPerPiece)}'`,
+      color: trimColor,
+    });
+
+    // Calculate eave trim for the right side
+    const rightEaveTrimType = determineEaveTrimType(rightWall);
+    const rightEaveTrimCost =
+      eaveTrimPieces * eaveTrimLengthPerPiece * eaveTrimCostPerUnit;
+
+    // Add right Eave Trim details to the breakdown
+    breakdownDetails.push({
+      item: rightEaveTrimType,
+      quantity: eaveTrimPieces,
+      unitPrice: eaveTrimCostPerUnit,
+      total: rightEaveTrimCost,
       linearFeet: `${decimalFeetToFeetInches(eaveTrimLengthPerPiece)}'`,
       color: trimColor,
     });
@@ -1050,15 +1082,15 @@ const Quotes = () => {
       calculateGutterCost(buildingLength, guttersRight)
     );
 
-    // Add Butyl Tape to the breakdown
-    const butylTapeCost = BASE_UNIT_COSTS["ButylTape"];
-    breakdownDetails.push({
-      item: "Butyl Tape",
-      quantity: 1,
-      // linearFeet: length * 2,
-      unitPrice: butylTapeCost,
-      total: butylTapeCost,
-    });
+    // // Add Butyl Tape to the breakdown
+    // const butylTapeCost = BASE_UNIT_COSTS["ButylTape"];
+    // breakdownDetails.push({
+    //   item: "Butyl Tape",
+    //   quantity: 1,
+    //   // linearFeet: length * 2,
+    //   unitPrice: butylTapeCost,
+    //   total: butylTapeCost,
+    // });
 
     // Declare additionalLegCost at the start of calculateTotalCost function
     let additionalLegCost = 0;
@@ -1152,11 +1184,12 @@ const Quotes = () => {
       totalStitchScrewCost +
       totalM29TrimCost +
       m29GableTrimCost +
-      eaveTrimCost +
+      leftEaveTrimCost +
+      rightEaveTrimCost +
       ridgeCapCost +
       gutterCostLeft +
       gutterCostRight +
-      butylTapeCost +
+      // butylTapeCost +
       additionalLegCost +
       dripStopCost;
 
