@@ -1744,7 +1744,10 @@ const Quotes = () => {
       const pdfBytes = await pdfDoc.save();
 
       // Trigger download
-      downloadPdf(pdfBytes, `${lastName}, ${firstName} - ${quoteNumber}.pdf`);
+      downloadPdf(
+        pdfBytes,
+        `${lastName}, ${firstName} - ${quoteNumber} Quote.pdf`
+      );
     } catch (error) {
       console.error("Error modifying PDF:", error);
     }
