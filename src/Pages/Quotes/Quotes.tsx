@@ -1282,7 +1282,7 @@ const Quotes = () => {
       unitPrice: rollUpDoorUnitCost,
       total: rollUpDoorTotalCost,
     });
-    const doorUnitCost = BASE_UNIT_COSTS["Door"]; // Assuming you have this in BASE_UNIT_COSTS
+    const doorUnitCost = BASE_UNIT_COSTS["ManDoor"]; // Assuming you have this in BASE_UNIT_COSTS
     const doorTotalCost = doorQuantity * doorUnitCost;
 
     // Add door cost to the total cost
