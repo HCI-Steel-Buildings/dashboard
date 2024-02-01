@@ -85,6 +85,7 @@ const Quotes = () => {
   const [widthAlertMessage, setWidthAlertMessage] = useState("");
   const [showWidthAlert, setShowWidthAlert] = useState(false);
   const [gutterColor, setGutterColor] = useState("");
+  const [rollUpDoorQuantity, setRollUpDoorQuantity] = useState(0);
 
   // Toggle function
   const toggleBreakdownVisibility = () => {
@@ -1269,6 +1270,31 @@ const Quotes = () => {
       total: tekScrewCost,
     });
 
+    const rollUpDoorUnitCost = BASE_UNIT_COSTS["RollUpDoor"]; // Assuming this is defined
+    const rollUpDoorTotalCost = rollUpDoorQuantity * rollUpDoorUnitCost;
+
+    // Add roll-up door cost to total cost
+
+    // Add roll-up door details to breakdown details
+    breakdownDetails.push({
+      item: "Roll-Up Door",
+      quantity: rollUpDoorQuantity,
+      unitPrice: rollUpDoorUnitCost,
+      total: rollUpDoorTotalCost,
+    });
+    const doorUnitCost = BASE_UNIT_COSTS["Door"]; // Assuming you have this in BASE_UNIT_COSTS
+    const doorTotalCost = doorQuantity * doorUnitCost;
+
+    // Add door cost to the total cost
+
+    // Add door details to the breakdown details
+    breakdownDetails.push({
+      item: "Door",
+      quantity: doorQuantity,
+      unitPrice: doorUnitCost,
+      total: doorTotalCost,
+    });
+
     //! Update total cost
     calculatedTotalCost +=
       runnerCost +
@@ -1305,7 +1331,9 @@ const Quotes = () => {
       rearRunnerTotalCost +
       rafterBraceTotalCost +
       rafterBraceClipTotalCost +
-      rafterBraceExtensionTotalCost;
+      rafterBraceExtensionTotalCost +
+      rollUpDoorTotalCost +
+      doorTotalCost;
 
     setTotalCost(calculatedTotalCost);
     setBreakdown(breakdownDetails);
@@ -2193,6 +2221,19 @@ const Quotes = () => {
                   onIonChange={(e) =>
                     setDoorQuantity(parseInt(e.detail.value ?? "0"))
                   }
+                />
+              </IonItem>
+              <IonItem>
+                <IonLabel>
+                  <strong>Roll-Up Door Quantity:</strong>
+                </IonLabel>
+                <IonInput
+                  type="number"
+                  value={rollUpDoorQuantity}
+                  onIonChange={(e) =>
+                    setRollUpDoorQuantity(parseInt(e.detail.value ?? "0"))
+                  }
+                  min="0"
                 />
               </IonItem>
             </IonCard>

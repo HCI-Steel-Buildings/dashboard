@@ -40,7 +40,7 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   RidgeCap: 6.28, // per foot
   RoofBrace: 3.5, // per foot
   RoofSheet: 5.89, // per length foot
-  RollUpDoor: 0.0, // per foot
+  RollUpDoor: 1670.0, // per foot
   Runner: 13.79, // per foot
   SidewallSheet: 5.89, // per length foot
   StitchScrew: 0.25, // per screw
