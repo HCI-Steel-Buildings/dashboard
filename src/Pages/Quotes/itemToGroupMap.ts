@@ -48,7 +48,7 @@ const itemToGroupMap: any = {
   "K5 DownspoutStrap": "K5 GUTTER SYSTEM",
   "K5 Clip": "K5 GUTTER SYSTEM",
   "K5 ElbowA": "K5 GUTTER SYSTEM",
-  "K5 ElbowB": "K5 GUTTER SYSTEM",
+  'K5 2" Offset A': "K5 GUTTER SYSTEM",
   "K5 Gutter Screw": "K5 GUTTER SYSTEM",
   "K5 SCUPPER": "K5 GUTTER SYSTEM",
   NovaFlex: "K5 GUTTER SYSTEM",

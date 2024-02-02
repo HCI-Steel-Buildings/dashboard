@@ -46,7 +46,7 @@ const desiredOrder = [
   "K5 DownspoutStrap",
   "K5 Clip",
   "K5 ElbowA",
-  "K5 ElbowB",
+  'K5 2"Offset A',
   "K5 Gutter Screw",
   "K5 SCUPPER",
   "NovaFlex",

@@ -16,7 +16,7 @@ export const BASE_UNIT_COSTS: BaseUnitCosts = {
   K5DownspoutBracket: 5.79, // per foot
   K5DownspoutStrap: 1.08, // per strap
   K5ElbowA: 7.62, // per elbow
-  K5ElbowB: 4.11, // per elbow
+  K52InOffsetA: 4.11, // per elbow
   K5EndCap: 4.56, // per cap
   K5Gutter: 8.49, // per foot
   K5GutterScrew: 0.07, // per screw
