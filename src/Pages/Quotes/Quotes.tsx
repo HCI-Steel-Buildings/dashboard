@@ -269,8 +269,10 @@ const Quotes = () => {
       hatChannelQuantity = 8;
     } else if (numWidth > 18 && numWidth <= 20) {
       hatChannelQuantity = 10;
+    } else if (numWidth > 20 && numWidth <= 24) {
+      hatChannelQuantity = 12;
     } else {
-      hatChannelQuantity = numWidth > 24 ? 12 : 10;
+      hatChannelQuantity = 14;
     }
 
     // Updated distributeHatChannelLength function
