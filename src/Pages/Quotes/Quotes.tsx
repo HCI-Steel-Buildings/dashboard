@@ -1007,7 +1007,7 @@ const Quotes = () => {
         "K5 DownspoutStrap": numberOfDownspouts,
         "K5 Clip": numberOfGutterPieces * Math.ceil(gutterPieceLength / 1.5),
         "K5 ElbowA": numberOfDownspouts,
-        'K5 2"Offset A': numberOfDownspouts,
+        "K5 2InOffset": numberOfDownspouts,
         "K5 Gutter Screw": Math.ceil(buildingLength), // Assuming 1 screw per foot
         NovaFlex: 1,
         GutterPieceLength: gutterPieceLength, // Store the gutter piece length
