@@ -537,11 +537,13 @@ const TrimCalculator: React.FC = () => {
                         </IonCol>
                         <IonCol>
                           <strong>Total Linear Feet:</strong>
-                          {item.results.totalLinearFeetNeeded.toFixed(2)}'
+                          {decimalFeetToFeetInches(
+                            item.results.totalLinearFeetNeeded
+                          )}
                         </IonCol>
                         <IonCol>
                           <strong>Coil Needed:</strong>{" "}
-                          {item.results.coil.toFixed(2)}'
+                          {decimalFeetToFeetInches(item.results.coil)}
                         </IonCol>
                       </IonRow>
                     </IonGrid>
