@@ -320,6 +320,17 @@ const TrimCalculator: React.FC = () => {
       }));
     }
   };
+  const decimalFeetToFeetInches = (decimalFeet: number) => {
+    const totalInches = Math.round(decimalFeet * 12); // Round to nearest inch
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches % 12;
+
+    if (inches === 0) {
+      return `${feet}'`; // Return only feet if inches are 0
+    } else {
+      return `${feet}' ${inches}"`; // Return feet and inches otherwise
+    }
+  };
 
   return (
     <IonGrid>
@@ -474,7 +485,7 @@ const TrimCalculator: React.FC = () => {
                 <h2>Total Linear Feet</h2>
               </strong>
               <strong style={{ fontSize: "2rem" }}>
-                {results.totalLinearFeetNeeded.toFixed(2)}'
+                {decimalFeetToFeetInches(results.totalLinearFeetNeeded)}
               </strong>
             </IonCardContent>
           </IonCard>
@@ -486,7 +497,7 @@ const TrimCalculator: React.FC = () => {
                 <h2>Coil Needed</h2>
               </strong>
               <strong style={{ fontSize: "2rem" }}>
-                {results.coil.toFixed(2)}'
+                {decimalFeetToFeetInches(results.coil)}
               </strong>
             </IonCardContent>
           </IonCard>
