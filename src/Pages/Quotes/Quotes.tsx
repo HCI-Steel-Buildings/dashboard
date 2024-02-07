@@ -1723,8 +1723,8 @@ const Quotes = () => {
       totalPriceField.setText(`$${totalPrice.toString()}`);
 
       // Calculate and set delivery cost
-      const delivery = 500; // Assuming this is a fixed number
-      deliveryField.setText(`$${delivery.toString()}`);
+      const delivery = "TBD"; // Assuming this is a fixed number
+      deliveryField.setText(delivery);
 
       // Calculate and set labor cost
       const laborCost = includeLaborCost
@@ -1736,7 +1736,7 @@ const Quotes = () => {
       taxField.setText(`$0.00`);
 
       // Calculate and set subtotal
-      const subTotal = totalPrice + laborCost + delivery;
+      const subTotal = totalPrice + laborCost;
       subTotalField.setText(`$${subTotal.toFixed(2)}`);
 
       // Calculate and set grand total
