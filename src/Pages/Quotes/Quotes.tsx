@@ -1952,7 +1952,7 @@ const Quotes = () => {
                   value={width}
                   onIonChange={handleWidthChange}
                   min={10}
-                  max={30}
+                  max={40}
                   defaultValue={0}
                 />
               </IonItem>
@@ -1984,7 +1984,7 @@ const Quotes = () => {
                   type="number"
                   value={height}
                   onIonChange={(e) => setHeight(e.detail.value ?? "")}
-                  min={6}
+                  min={2}
                   max={12}
                   defaultValue={0}
                 />
