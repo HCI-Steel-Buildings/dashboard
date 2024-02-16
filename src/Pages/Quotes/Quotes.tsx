@@ -1978,7 +1978,7 @@ const Quotes = () => {
               />
               <IonItem>
                 <IonLabel position="stacked">
-                  Height (Min: 6', Max: 12'):
+                  Height (Min: 2', Max: 12'):
                 </IonLabel>
                 <IonInput
                   type="number"
