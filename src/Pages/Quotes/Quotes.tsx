@@ -198,7 +198,7 @@ const Quotes = () => {
       setShowAlert(true);
       return;
     }
-    if (numHeight < 6 || numHeight > 12 || isNaN(numHeight)) {
+    if (numHeight < 2 || numHeight > 12 || isNaN(numHeight)) {
       setAlertMessage("Height must be between 6' and 12'.");
       setShowAlert(true);
       return;
