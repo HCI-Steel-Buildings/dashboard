@@ -1,0 +1,15 @@
+/* Minis.css */
+.cost-text {
+  font-size: 1rem; /* Larger font size for better readability */
+  font-weight: bold; /* Optional: makes the text stand out more */
+}
+/* Minis.css */
+.tight-spacing {
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 4px; /* Adjust as needed */
+}
+
+.tight-text {
+  font-size: 0.8rem; /* Adjust font size for better fitting */
+}
