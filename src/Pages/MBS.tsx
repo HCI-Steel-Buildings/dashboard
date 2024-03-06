@@ -23,9 +23,10 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { documentTextOutline, linkOutline } from "ionicons/icons";
+import { log } from "console";
 
 function MBS() {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -41,6 +42,20 @@ function MBS() {
   const [width, setWidth]: any = useState();
   const [length, setLength]: any = useState();
 
+  // Engineering State
+  const [buildingCost, setBuildingCost] = React.useState();
+  const [results, setResults] = useState<{
+    engineeringCost: number;
+    structuralCost: number;
+    foundationCost: number;
+    totalCost: number;
+  } | null>(null);
+  useEffect(() => {
+    // Ensure all required data is present before calculating
+    if (width && length && buildingCost) {
+      calculate();
+    }
+  }, [width, length, buildingCost]); // Depend on width, length, and buildingCost
   const handleFileChange = (event: any) => {
     console.log("File selected:", event.target.files[0]); // Log the selected file
     setUploadedFile(event.target.files[0]);
@@ -69,8 +84,6 @@ function MBS() {
         setWidth(parseFloat(extractedWidth)); // Update state with extracted width
         setLength(parseFloat(extractedLength)); // Update state with extracted length
       }
-      console.log(width);
-      console.log(length);
 
       let capture = false;
 
@@ -109,6 +122,16 @@ function MBS() {
       // Updating the component state with the extracted summary data
       setSummary(summaryData);
       setExtractionDone(true);
+      // Calculate buildingCost here based on the newly set summary
+      const calculatedTotalCost = summaryData
+        .reduce((acc: any, curr: any) => acc + curr.cost, 0)
+        .toFixed(2);
+
+      // Set buildingCost state
+      setBuildingCost(calculatedTotalCost);
+
+      // Ensure calculate is called after buildingCost is set
+      calculate(); // Pass calculatedTotalCost if needed as an argument
     };
 
     reader.onerror = (error) => {
@@ -132,6 +155,7 @@ function MBS() {
 
     setTimeout(() => {
       extractSummary(uploadedFile); // Proceed with the file extraction
+
       setShowLoading(false); // Hide loading spinner after 3 seconds
     }, 3000);
   };
@@ -144,7 +168,6 @@ function MBS() {
 
     // Adjusted hardcoded items with a valid quantity (1)
     const hardcodedItems = [
-      { name: "Stamped Foundation Engineering", cost: 0, qty: 1, weight: 0 },
       { name: "Hot Dip Galvanize", cost: 0, qty: 1, weight: 0 },
       {
         name: "Roof Insulation (Simple Saver R38)",
@@ -173,7 +196,13 @@ function MBS() {
       },
       {
         name: "Stamped Structural Engineering",
-        cost: 0,
+        cost: results?.structuralCost || 0, // Use structuralCost from the results
+        qty: 1,
+        weight: 0,
+      },
+      {
+        name: "Stamped Foundation Engineering",
+        cost: results?.foundationCost || 0, // Use foundationCost from the results
         qty: 1,
         weight: 0,
       },
@@ -270,6 +299,71 @@ function MBS() {
       console.error("Failed to create PandaDoc document:", error);
     }
   };
+  const totalCost = summary
+    .reduce((acc: any, curr: any) => acc + curr.cost, 0)
+    .toFixed(2);
+
+  const categories = {
+    "Anything under 1,000 sq ft": 6000,
+    "Between 1,001 - 2,400 sq ft": 6500,
+    "Between 2,401 - 6,000 sq ft": 7000,
+    "Between 6,001 - 10,000 sq ft": 7500,
+    "Between 10,001 - 20,000 sq ft": 8000,
+    "Between 20,001 - 30,000 sq ft": 8500,
+    "Between 30,001 - 40,000 sq ft": 9000,
+    "Between 40,001 - 50,000 sq ft": 9500,
+    "Between 50,001 - 60,000 sq ft": 10000,
+    "Between 60,001 - 70,000 sq ft": 10500,
+    "Between 70,001 - 80,000 sq ft": 11000,
+    "Between 80,001 - 90,000 sq ft": 11500,
+  };
+
+  const determineEngineeringCost = (
+    squareFootage: number,
+    buildingCost: number
+  ) => {
+    for (const [category, baseCost] of Object.entries(categories)) {
+      if (category.includes("under") && squareFootage <= 1000) {
+        return baseCost + 0.015 * buildingCost;
+      } else if (category.includes("-")) {
+        const bounds = category.split("-");
+        const lowerBound = parseInt(bounds[0].replace(/[^\d]/g, ""), 10);
+        const upperBound = parseInt(bounds[1].replace(/[^\d]/g, ""), 10);
+        if (lowerBound <= squareFootage && squareFootage <= upperBound) {
+          return baseCost + 0.015 * buildingCost;
+        }
+      }
+    }
+    return 11500 + 0.015 * buildingCost; // Default to the highest category
+  };
+  const calculate = () => {
+    const numericBuildingCost = parseFloat(buildingCost || "0");
+    if (width && length && numericBuildingCost) {
+      const squareFootage = width * length;
+      const engineeringCost = determineEngineeringCost(
+        squareFootage,
+        numericBuildingCost
+      );
+      const structuralCost = 0.85 * engineeringCost;
+      const foundationCost = 0.15 * engineeringCost;
+      const totalCost =
+        numericBuildingCost + engineeringCost + structuralCost + foundationCost;
+
+      setResults({
+        engineeringCost: engineeringCost,
+        structuralCost: structuralCost,
+        foundationCost: foundationCost,
+        totalCost: totalCost,
+      });
+    }
+  };
+
+  const displayNames: any = {
+    engineeringCost: "Engineering Cost",
+    structuralCost: "Structural Cost",
+    foundationCost: "Foundation Cost",
+    totalCost: "Total Cost",
+  };
 
   return (
     <IonPage>
@@ -277,7 +371,7 @@ function MBS() {
         <IonLoading
           isOpen={showLoading}
           message={"Please wait..."}
-          duration={0} // We're manually controlling the visibility, so set duration to 0
+          duration={0}
         />
 
         <IonModal isOpen={showModal} className="custom-modal">
@@ -370,7 +464,6 @@ function MBS() {
               </IonGrid>
             </IonItem>
           ))}
-
           {/* Display totals */}
           <IonItem className="tight-spacing">
             <IonGrid>
@@ -383,14 +476,26 @@ function MBS() {
                   lbs
                 </IonCol>
                 <IonCol size="6" className="cost-text">
-                  <strong>Total Cost:</strong> $
-                  {summary
-                    .reduce((acc: any, curr: any) => acc + curr.cost, 0)
-                    .toFixed(2)}
+                  <strong>Total Cost:</strong> ${buildingCost}
                 </IonCol>
               </IonRow>
             </IonGrid>
           </IonItem>
+
+          <IonRow>
+            {results &&
+              Object.entries(results).map(([key, value]) => (
+                <IonCol key={key}>
+                  <IonCard>
+                    <IonCardHeader>
+                      <IonCardTitle>
+                        {displayNames[key] || key}: ${value.toFixed(2)}
+                      </IonCardTitle>
+                    </IonCardHeader>
+                  </IonCard>
+                </IonCol>
+              ))}
+          </IonRow>
         </IonList>
       </IonContent>
     </IonPage>
