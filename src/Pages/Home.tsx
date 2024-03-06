@@ -6,6 +6,7 @@ import {
   IonRow,
   IonCol,
   isPlatform,
+  IonImg,
 } from "@ionic/react";
 import Header from "../Components/Header/Header";
 import MessageOfTheDay from "../Components/MesssageOfTheDay/MessageOfTheDay";
@@ -23,7 +24,7 @@ const Home: React.FC = () => {
       route: "/purchasing",
     },
     {
-      title: "Minis",
+      title: "Pre-Eng Quoting",
       description: "Explore the Minis Department🔬",
       route: "/minis",
     },
@@ -53,10 +54,16 @@ const Home: React.FC = () => {
         <Header />
 
         <IonGrid>
-          <IonRow>
-            <IonCol>
-              <MessageOfTheDay />
-            </IonCol>
+          <IonRow
+            style={{
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <IonImg
+              src="https://cdn.dribbble.com/users/1072488/screenshots/11848987/media/f69852d96f1e1737c3229a7f554c4df4.gif"
+              style={{ width: "15%" }}
+            />
           </IonRow>
 
           {/* Row for App Navigation Boxes */}
