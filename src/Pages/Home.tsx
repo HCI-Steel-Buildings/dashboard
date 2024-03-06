@@ -26,7 +26,7 @@ const Home: React.FC = () => {
     {
       title: "Pre-Eng Quoting",
       description: "Explore the Minis Department🔬",
-      route: "/minis",
+      route: "/mbs",
     },
     {
       title: "Analytics",
