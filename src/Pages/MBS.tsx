@@ -38,6 +38,8 @@ function MBS() {
   const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
   const [showLoading, setShowLoading] = useState(false);
   const [firstName, lastName]: any = user?.name?.split(" ");
+  const [width, setWidth]: any = useState();
+  const [length, setLength]: any = useState();
 
   const handleFileChange = (event: any) => {
     console.log("File selected:", event.target.files[0]); // Log the selected file
@@ -56,10 +58,19 @@ function MBS() {
       const text = e.target.result;
       const lines = text.split(/\r?\n/);
       const summaryData: any = [];
+      // Regular expression pattern to match the format "Width (ft)= [value] Length (ft)= [value]"
+      const layoutPattern =
+        /Width\s+\(ft\)=\s+([\d.]+)\s+Length\s+\(ft\)=\s+([\d.]+)/;
 
-      // Adjusted regex pattern to specifically match the lines within the summary
-      // Assumes a consistent format: "Description    Weight(lb)    Price"
-      const pattern = /^(\D.*?)\s+(\d[\d.,]*)\s+(\d[\d.,]+)$/;
+      // Attempt to extract width and length from the complete text
+      const layoutMatch = layoutPattern.exec(text);
+      if (layoutMatch) {
+        const [_, extractedWidth, extractedLength] = layoutMatch;
+        setWidth(parseFloat(extractedWidth)); // Update state with extracted width
+        setLength(parseFloat(extractedLength)); // Update state with extracted length
+      }
+      console.log(width);
+      console.log(length);
 
       let capture = false;
 
@@ -77,6 +88,9 @@ function MBS() {
         }
 
         if (capture) {
+          // Adjusted regex pattern to specifically match the lines within the summary
+          // Assumes a consistent format: "Description    Weight(lb)    Price"
+          const pattern = /^(\D.*?)\s+(\d[\d.,]*)\s+(\d[\d.,]+)$/;
           const match = line.match(pattern);
           if (match && match.length === 4) {
             const [_, description, weight, cost] = match;
@@ -92,7 +106,7 @@ function MBS() {
         }
       });
 
-      console.log("Summary data extracted:", summaryData);
+      // Updating the component state with the extracted summary data
       setSummary(summaryData);
       setExtractionDone(true);
     };
@@ -101,6 +115,7 @@ function MBS() {
       console.error("Error reading file:", error);
     };
 
+    // Initiating the text extraction process from the uploaded file
     reader.readAsText(file);
   };
 
@@ -152,6 +167,12 @@ function MBS() {
       { name: "Shipping & Crating*", cost: 0, qty: 1, weight: 0 },
       {
         name: "Erection Costs of Building Kit & HCI Accessories**",
+        cost: 0,
+        qty: 1,
+        weight: 0,
+      },
+      {
+        name: "Stamped Structural Engineering",
         cost: 0,
         qty: 1,
         weight: 0,
@@ -212,7 +233,6 @@ function MBS() {
           ],
         },
       ],
-
       // Additional tokens, metadata, etc., as needed
     };
 
