@@ -13,3 +13,14 @@
 .tight-text {
   font-size: 0.8rem; /* Adjust font size for better fitting */
 }
+.custom-modal .modal-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 500px;
+  height: auto;
+  border-radius: 20px;
+  overflow: hidden;
+}

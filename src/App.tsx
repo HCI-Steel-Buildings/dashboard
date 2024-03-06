@@ -31,7 +31,7 @@ import {
   square,
 } from "ionicons/icons";
 import Home from "./Pages/Home";
-import Minis from "./Pages/Minis";
+import MBS from "./Pages/MBS";
 import Charts from "./Pages/Charts";
 import Calculator from "./Pages/Calculator";
 import Quotes from "./Pages/Quotes/Quotes";
@@ -104,8 +104,8 @@ const App: React.FC = () => {
             <Route exact path="/purchasing">
               <Purchasing />
             </Route>
-            <Route path="/minis">
-              <Minis />
+            <Route path="/mbs">
+              <MBS />
             </Route>
             <Route exact path="/charts">
               <Charts />
@@ -129,9 +129,9 @@ const App: React.FC = () => {
               <IonIcon icon={cashOutline} />
               <IonLabel>Purchasing</IonLabel>
             </IonTabButton>
-            <IonTabButton tab="minis" href="/minis">
+            <IonTabButton tab="minis" href="/mbs">
               <IonIcon icon={square} />
-              <IonLabel>Minis</IonLabel>
+              <IonLabel>Pre-Eng</IonLabel>
             </IonTabButton>
             <IonTabButton tab="charts" href="/charts">
               <IonIcon icon={barChart} />
