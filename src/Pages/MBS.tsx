@@ -1,6 +1,7 @@
 import {
   IonAlert,
   IonButton,
+  IonButtons,
   IonCard,
   IonCardContent,
   IonCardHeader,
@@ -8,6 +9,8 @@ import {
   IonCol,
   IonContent,
   IonGrid,
+  IonHeader,
+  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
@@ -17,9 +20,13 @@ import {
   IonPage,
   IonRow,
   IonText,
+  IonTitle,
+  IonToolbar,
 } from "@ionic/react";
 import React, { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { documentTextOutline, linkOutline } from "ionicons/icons";
+
 function MBS() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [summary, setSummary] = useState([]);
@@ -30,6 +37,7 @@ function MBS() {
   const [extractionDone, setExtractionDone] = useState(false);
   const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
   const [showLoading, setShowLoading] = useState(false);
+  const [firstName, lastName]: any = user?.name?.split(" ");
 
   const handleFileChange = (event: any) => {
     console.log("File selected:", event.target.files[0]); // Log the selected file
@@ -118,8 +126,6 @@ function MBS() {
     const apiKey = "API-Key fabb6d54d41349127dbf917150ef5db9bb937fac"; // Ensure this is securely managed
 
     const userEmail = user?.email;
-    const userFirstName = user?.given_name || ""; // or user['https://example.com/given_name'] if you've set custom claims
-    const userLastName = user?.family_name || ""; // or user['https://example.com/family_name']
 
     // Adjusted hardcoded items with a valid quantity (1)
     const hardcodedItems = [
@@ -181,9 +187,14 @@ function MBS() {
     const requestBody = {
       name: "New Document from HCI App",
       template_uuid: "ouoLePZqYqtdmopQfnwPim",
+      owner: {
+        email: `nate@hcisteelbuildings.com`,
+        first_name: `${firstName}`,
+        last_name: `${lastName}`,
+      },
       recipients: [
         {
-          email: userEmail,
+          email: "",
           role: "Client",
         },
       ],
@@ -201,6 +212,7 @@ function MBS() {
           ],
         },
       ],
+
       // Additional tokens, metadata, etc., as needed
     };
 
@@ -249,25 +261,39 @@ function MBS() {
         />
 
         <IonModal isOpen={showModal} className="custom-modal">
-          <IonContent className="ion-padding">
-            <h2>Document Has Been Created</h2>
-            <p>Your document has been successfully submitted for creation.</p>
-            {statusCheckUrl && (
-              <p>
-                Document status can be checked{" "}
-                <a
-                  href={statusCheckUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  here
-                </a>
-                .
-              </p>
-            )}
-            <IonButton expand="block" onClick={() => setShowModal(false)}>
-              Close
-            </IonButton>
+          <IonContent className="ion-padding custom-modal-content">
+            <IonHeader>
+              <IonToolbar>
+                <IonTitle>Document Creation Status</IonTitle>
+                <IonButtons slot="end">
+                  <IonButton onClick={() => setShowModal(false)}>
+                    Close
+                  </IonButton>
+                </IonButtons>
+              </IonToolbar>
+            </IonHeader>
+            <IonList lines="none">
+              <IonItem>
+                <IonIcon icon={documentTextOutline} slot="start" />
+                <IonLabel>
+                  Your document has been successfully submitted for creation.
+                </IonLabel>
+              </IonItem>
+              {statusCheckUrl && (
+                <IonItem>
+                  <IonIcon icon={linkOutline} slot="start" />
+                  <IonLabel>
+                    <a
+                      href={statusCheckUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Check document status
+                    </a>
+                  </IonLabel>
+                </IonItem>
+              )}
+            </IonList>
           </IonContent>
         </IonModal>
 

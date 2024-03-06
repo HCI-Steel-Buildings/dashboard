@@ -24,3 +24,41 @@
   border-radius: 20px;
   overflow: hidden;
 }
+/* MBS.css */
+.custom-modal .modal-wrapper {
+  max-width: 500px;
+  width: 90%;
+  height: auto;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.custom-modal-content {
+  --background: #ffffff; /* Modal background */
+}
+
+/* Styling for the header toolbar */
+.custom-modal ion-toolbar {
+  --background: #f8f8f8; /* Light grey background for the toolbar */
+}
+
+.custom-modal ion-button {
+  --color: #387ef5; /* Adjust button color as needed */
+}
+
+/* Adjust the IonList and IonItem for cleaner look */
+.custom-modal ion-list {
+  margin-top: 20px; /* Space between header and list */
+}
+
+.custom-modal ion-item {
+  --background: #ffffff; /* Ensure items have a solid background */
+  --padding-start: 20px; /* Padding for icons and text */
+  --inner-padding-end: 20px; /* Padding inside the item */
+  --border-style: none; /* Remove borders */
+}
+
+.custom-modal ion-icon {
+  --color: #387ef5; /* Icon color */
+  margin-right: 15px; /* Space between icon and label */
+}
