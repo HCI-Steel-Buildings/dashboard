@@ -1,6 +1,7 @@
 import React from "react";
 import {
   IonAvatar,
+  IonButton,
   IonCol,
   IonGrid,
   IonHeader,
@@ -38,12 +39,16 @@ const Header = () => {
                   height: "100%",
                 }}
               >
-                Welcome, <strong>{user?.name || "Guest"}</strong> to HCIX
+                Welcome, &nbsp; <strong>{user?.name || "Guest"}</strong>&nbsp;to
+                HCIX
               </div>
             </IonCol>
             {/* Directly rendering buttons to ensure visibility */}
           </IonRow>
         </IonGrid>
+        <IonButton href="/home" slot="start">
+          Country Roadssss Take Me Homeee
+        </IonButton>
         {isAuthenticated ? <LogoutButton /> : <LoginButton />}
       </IonToolbar>
     </IonHeader>

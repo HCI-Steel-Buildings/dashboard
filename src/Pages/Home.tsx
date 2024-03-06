@@ -13,7 +13,6 @@ import MessageOfTheDay from "../Components/MesssageOfTheDay/MessageOfTheDay";
 import "./Home.css";
 import AppCard from "../Components/AppCardComponent/AppCardComponent";
 import { useCommonContext } from "../Context/CommonContext";
-// import Snowfall from "react-snowfall";
 
 // Inside your component return statement
 const Home: React.FC = () => {
@@ -49,7 +48,6 @@ const Home: React.FC = () => {
   const colSize = isPlatform("mobile") ? "12" : "6";
   return (
     <IonPage>
-      {/* <Snowfall style={{ zIndex: 1000 }} color="red" snowflakeCount={50} /> */}
       <IonContent fullscreen>
         <Header />
 

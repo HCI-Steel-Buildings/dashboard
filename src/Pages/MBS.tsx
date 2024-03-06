@@ -27,6 +27,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { documentTextOutline, linkOutline } from "ionicons/icons";
 import { log } from "console";
+import Header from "../Components/Header/Header";
 
 function MBS() {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -212,7 +213,12 @@ function MBS() {
         qty: 1,
         weight: 0,
       },
-      { name: "Shipping & Crating*", cost: 0, qty: 1, weight: 0 },
+      {
+        name: "Shipping & Crating*",
+        cost: 0,
+        qty: 1,
+        weight: 0,
+      },
       {
         name: "Erection Costs of Building Kit & HCI Accessories**",
         cost: 0,
@@ -231,18 +237,16 @@ function MBS() {
           name: item.description,
           price: item.cost,
           qty: 1, // Ensure this is a valid number
-          weight: item.weight,
         },
       })),
       ...hardcodedItems.map((item) => ({
         options: {
-          multichoice_selected: false,
+          optional: true,
         },
         data: {
           name: item.name,
           price: item.cost,
           qty: 1, // Corrected to valid number
-          weight: item.weight,
         },
       })),
     ];
@@ -380,6 +384,7 @@ function MBS() {
 
   return (
     <IonPage>
+      <Header />
       <IonContent>
         <IonLoading
           isOpen={showLoading}
