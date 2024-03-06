@@ -165,10 +165,35 @@ function MBS() {
     const apiKey = "API-Key fabb6d54d41349127dbf917150ef5db9bb937fac"; // Ensure this is securely managed
 
     const userEmail = user?.email;
+    // Find the line item with the name "Rigid Frames & Endwall Frames"
+    const rigidFramesItem: any = summary.find(
+      (item: any) => item.description === "Rigid Frames & Endwall Frames"
+    );
 
-    // Adjusted hardcoded items with a valid quantity (1)
+    // Calculate the cost of Hot Dip Galvanize based on the weight of "Rigid Frames & Endwall Frames" * 1.5
+    const hotDipGalvanizeCost = rigidFramesItem
+      ? rigidFramesItem.weight * 1.5
+      : 0;
+
     const hardcodedItems = [
-      { name: "Hot Dip Galvanize", cost: 0, qty: 1, weight: 0 },
+      {
+        name: "Stamped Structural Engineering",
+        cost: results?.structuralCost.toFixed(2) || 0, // Use structuralCost from the results
+        qty: 1,
+        weight: 0,
+      },
+      {
+        name: "Stamped Foundation Engineering",
+        cost: results?.foundationCost.toFixed(2) || 0, // Use foundationCost from the results
+        qty: 1,
+        weight: 0,
+      },
+      {
+        name: "Hot Dip Galvanize",
+        cost: hotDipGalvanizeCost.toFixed(2),
+        qty: 1,
+        weight: 0,
+      },
       {
         name: "Roof Insulation (Simple Saver R38)",
         cost: 0,
@@ -191,18 +216,6 @@ function MBS() {
       {
         name: "Erection Costs of Building Kit & HCI Accessories**",
         cost: 0,
-        qty: 1,
-        weight: 0,
-      },
-      {
-        name: "Stamped Structural Engineering",
-        cost: results?.structuralCost.toFixed(2) || 0, // Use structuralCost from the results
-        qty: 1,
-        weight: 0,
-      },
-      {
-        name: "Stamped Foundation Engineering",
-        cost: results?.foundationCost.toFixed(2) || 0, // Use foundationCost from the results
         qty: 1,
         weight: 0,
       },
