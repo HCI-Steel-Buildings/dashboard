@@ -196,13 +196,13 @@ function MBS() {
       },
       {
         name: "Stamped Structural Engineering",
-        cost: results?.structuralCost || 0, // Use structuralCost from the results
+        cost: results?.structuralCost.toFixed(2) || 0, // Use structuralCost from the results
         qty: 1,
         weight: 0,
       },
       {
         name: "Stamped Foundation Engineering",
-        cost: results?.foundationCost || 0, // Use foundationCost from the results
+        cost: results?.foundationCost.toFixed(2) || 0, // Use foundationCost from the results
         qty: 1,
         weight: 0,
       },
