@@ -185,10 +185,10 @@ function MBS() {
     ];
 
     const requestBody = {
-      name: "New Document from HCI App",
+      name: "Pre-Eng Quote",
       template_uuid: "ouoLePZqYqtdmopQfnwPim",
       owner: {
-        email: `nate@hcisteelbuildings.com`,
+        email: `${userEmail}`,
         first_name: `${firstName}`,
         last_name: `${lastName}`,
       },
